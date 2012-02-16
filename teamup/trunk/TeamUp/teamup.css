@@ -340,6 +340,7 @@ div.team_box {
     opacity:0;
 }
 
+
 img.team_table {
     position:absolute;
     z-index:-20;
@@ -654,7 +655,22 @@ div.recordings_button {
     cursor:pointer;
 
 }
-
+div.recordings_button span {
+    position: absolute;
+    background: #6D1D1C;
+    border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    padding-left:4px;
+    padding-right:4px;
+    top:-2px;
+    right:-2px;
+    font-size:10pt;
+}
+div.recordings_button:hover span {
+    background: #dD1D1C;
+    color: #fff;
+}
 
 #note_recorder_help p {
     font-size:90%;

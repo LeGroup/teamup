@@ -38,6 +38,7 @@ var THIS_PERSON = 0;
 var drag_remove_me = true;
 var UNIFYING_CRITERIA=[];
 var selected_face=null;
+var my_changes={}; // if changes pile up, do not overwrite last changes
 
 
 var CLASS_KEY = '';
@@ -834,7 +835,12 @@ CONTROLLER.addArray=function(array_key, changed_array) {
     
 CONTROLLER.sendChanges=function() {
     CONTROLLER.checkConsistency();
-    if (!wave_enabled) return;
+    if (!wave_enabled) 
+    {
+        debug('*** sending changes called (offline) ***');
+        CONTROLLER.delta={};
+        return;
+    }
     if (wave_enabled) {
         debug('*** sending changes ***');
         wave.getState().submitDelta(CONTROLLER.delta);        
@@ -2149,6 +2155,12 @@ CLASSROOM.build_team_view = function(animate) {
         new_x=Math.round((Math.sin(rad2)*(dist)))+center-icon_center;
         new_y=Math.round((Math.cos(rad2)*(dist)))+center-icon_center;
         team_box.find('div.recordings_button').css({left: center-(icon_center*0.75), top: center-(icon_center*0.75)});
+        if (tteam.notes.length==0) {
+            team_box.find('div.recordings_button span').hide();
+        } else {
+            team_box.find('div.recordings_button span').show();
+            team_box.find('div.recordings_button span').text(tteam.notes.length)
+        }
         team_box.find('input.team_name').css({left: new_x, top: new_y+icon_center-20}).val(tteam.name);
         team_box.find('span.team_name').css({left: new_x, top: new_y+icon_center-20}).text(tteam.name);
         rad2=rad2+radstep2;        
@@ -2258,7 +2270,7 @@ CLASSROOM.redraw_team_labels= function() {
     place=$('div.class_area');
     for (i=0;i<TEAMS.length;i++){
         team_name=TEAMS[i].name;
-        place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><div class="recordings_button" title="'+i18n('Team notes')+'"><img src="icons/rec.png" width="48" height="48" alt="" /></div><img class="team_table" src="images/circle2.png" alt="" width="164" height="152" /></div>');
+        place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><div class="recordings_button" title="'+i18n('Team notes')+'"><img src="icons/rec.png" width="48" height="48" alt="" /><span class="available_recordings">0</span></div><img class="team_table" src="images/circle2.png" alt="" width="164" height="152" /></div>');
         team_name_input=$('#team_'+i);
         team_name_input.val(team_name);
         team_name_input.attr('size',(team_name.length>10) ? team_name.length: 10);
