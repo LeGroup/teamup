@@ -1,0 +1,651 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<title>TeamUp -- Aalto</title>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+<script language="javascript" type="text/javascript" src="jquery-1.6.2.min.js"></script>
+<script language="javascript" type="text/javascript" src="swfobject.js"></script>
+
+<script type="text/javascript">
+
+var url='';
+var params={};
+var searching=false;
+var localizedStrings;
+
+var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'Español', 'et-ET':'Eesti', 'fr-FR':'Français', 'he-HE':'עִבְרִית', 'hu-HU':'Magyar', 'it-IT':'Italiano','lt-LT':'Lietuvių', 'nl-NL':'Nederlands', 'no-NO':'Norsk', 'pt-PT':'Português','sk-SK':'Slovenčina', 'tr-TR':'Türkçe'};
+
+
+function setInstanceParams() {
+    $('#progress').css('background','#af0').show(); 
+    data=getData();
+    var params={};
+    params.class_key=data.shareddatakey;
+    params.moderator_id=data.userid;
+    params.names_list=validated_names_list() || 'Learner1, Learner2, Learner3';
+    $('#names_list').val(params.names_list);
+    params.teacher_url=setUrlVars(data, true);
+    params.learner_url=setUrlVars(data, false);
+    params.moderator_email=$.trim($('#email').val().replace(/\s/g, ''));
+    $('#email').val(params.moderator_email);
+    params.moderator_email=(is_email(params.moderator_email)) ? params.moderator_email : '';
+    data.moderator_email=params.moderator_email; 
+    data.msg_subject=i18n('Your TeamUp classroom');
+    data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+params.teacher_url+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+params.learner_url+'\n\n -- TeamUp service';
+    data.propertyvalue=JSON.stringify(params);
+    if (!data.propertyvalue || data.propertyvalue.length==0) {
+        debug('problems sending parameters');
+        return;
+    }    
+    data.task='set_params';
+    $.get('bridge.php', data, function(success) {
+        if (success=='ok') {
+            $('#progress').css('background','#aa0').show();
+            go_there();
+        } else {
+            $('#progress').hide();
+            debug('Something strange happened when reading learner list or email.');
+        }
+    }, 'text');
+}
+
+function validate_class_name(name) {
+    name=$.trim(name.replace(/[\\%\+<>\n\t\r]/g, ''));
+    return name
+}
+
+function validated_names_list() {
+    nl=$.trim($('#names_list').val());
+    nl=nl.replace(/[\+#\\%<>]/g, ''); // remove bad chars
+    nl=nl.replace(/[,:;]\s+/g, ', ');  // linebreak/tab after separator is removed
+    nl=nl.replace(/[;:\n\t\r]/g, ','); // if there are linebreaks/tabs left, they are separators
+    nl=nl.replace(/\s/g, ' '); // all of the rest whitespaces are replaced with simple spaces
+    nl = (nl.search(',')==-1) ? nl.replace(/\s/g, ', ') : nl;
+    return nl
+}
+
+function go_there() {
+    $('#progress').css('background','#aa0').show();
+    if (data.locale.length<10) url+='&locale='+data.locale;
+    window.location=url;
+}
+
+function already_there(data, textStatus, jqXHR) {
+    $('#progress').css('background','#0a0').hide(); 
+    $('#classroom_already_exists').show();
+    searching=false;
+}
+
+function is_email(email) {
+  var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  return regex.test(email);
+}
+
+function debug(text) {
+    $('#debugger').html($('#debugger').html()+text+'<br/>');
+}
+
+function no_class(data, textStatus, jqXHR) {
+    $('#progress').hide(); 
+    $('#classroom_not_available').show()
+}
+
+function getJoinData() {
+    data= new Object();
+    data.shareddatakey=validate_class_name($('#shareddatakey').val());
+    $('#shareddatakey').val(data.shareddatakey);
+    data.userid=$('#userid').val();
+    data.locale=$('#locale').val();
+    return data
+}    
+
+function getData() {
+    data= new Object();
+    data.shareddatakey=validate_class_name($('#new_classroom_key').val());
+    $('#new_classroom_key').val(data.shareddatakey);
+    data.userid=$('#userid').val();
+    data.locale=$('#locale').val();
+    return data
+}    
+
+function setUrlVars(data, teacher) {
+    var base=window.location.href.slice(0,(window.location.href.lastIndexOf('/')+1));
+    req_data={};
+    if (data.shareddatakey) {
+        base+='?class_key='+encodeURIComponent(data.shareddatakey);
+    } else {
+        return base;
+    }
+    if (!teacher) {
+        return base;
+    }
+    
+    if (data.userid) {
+        base+='&teacher='+encodeURIComponent(data.userid); // hex_md5()
+    }        
+    if (data.locale!='en-EN') {
+        base+='&lang='+encodeURIComponent(data.locale);
+    }
+    return base;
+}
+
+function getUrlVars() {
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+}
+
+function check_flash_version(){
+    var playerVersion = swfobject.getFlashPlayerVersion();
+    if ((playerVersion.major>=10 && playerVersion.minor>=3) || (playerVersion.major>10)) {
+    } else {
+        var output = "You need to update your Flash player to record newsflashes in TeamUp."+"<br/>"+        
+        "Required Flash player 10.3 or more, you have: " +
+        playerVersion.major + "." + playerVersion.minor + "." +
+        playerVersion.release;
+        $('#flash_version').html(output);
+    }
+}
+
+function i18n(str){
+    if (localizedStrings == null) return str;
+    var locstr = localizedStrings[str];
+    if (locstr == null || locstr == "") locstr = str;
+    return locstr;
+}
+
+function localize(){
+    /* Ensure language code is in the format aa-AA. */
+	if (!params.lang || params.lang=='en-EN') return;
+    jQuery.ajax("i18n/localized_"+params.lang+".js", {
+        dataType: "json",
+        isLocal: true,     
+        error: function(jqXHR, textStatus, errorThrown){
+            debug('i18n failed:jqXHR='+jqXHR+' textStatus:'+textStatus+' errorThrown:'+errorThrown);
+            return jqXHR;
+                
+        },
+        complete: function(data) {
+            // Change all of the static strings in index.html
+            localizedStrings=$.parseJSON(data.responseText);
+            $('.i18n').each( function () {
+                item=$(this);
+                if (!localizedStrings[item.text()]) {
+                    //debug('missing: "'+item.html()+'"');
+                } else {
+                //    debug('found: '+item.text());
+                }
+                $(this).text(i18n($(this).text()));
+            });
+            $('.i18n-value').each( function () {
+                item=$(this);
+                if (!localizedStrings[item.val()]) {
+                    debug('missing: "'+item.val()+'"');
+                } else {
+                //    debug('found: '+item.val());
+                }
+                $(this).val(i18n($(this).val()));
+            });
+            }
+        }           
+    );
+    
+}
+
+function getCookie(c_name) {
+    var i,x,y,ARRcookies=document.cookie.split(";");
+    for (i=0;i<ARRcookies.length;i++) {
+      x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+      y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+      x=x.replace(/^\s+|\s+$/g,"");
+      if (x==c_name) {
+        return unescape(y);
+      }
+    }
+}
+
+
+jQuery(document).ready(function() {
+
+    $('#userid').val(getCookie("userid") || new Date().getTime());
+    $('input[type=text], textarea').each( function () {
+        if ($(this).val()!='') {
+            $(this).prev('label').hide();
+        }
+    });
+    params=getUrlVars();
+    s='';
+    for (key in LANGUAGES) {
+        if (params.lang==key || (key=='en-EN' && !params.lang)) {
+            s+='<span id="lang_'+key+'">'+LANGUAGES[key]+'</span> | ';
+        } else {
+            s+='<a href="?lang='+key+'" class="lang" id="lang_'+key+'">'+LANGUAGES[key]+'</a> | ';
+        }
+    }
+    $('#language_column').html(s);
+    localize();
+
+    // if there are enough url parameters, we can try to jump directly to class. 
+    //If it fails, treat this as like the form was filled wrong. 
+    if (params.class_key) { 
+        $('#shareddatakey').val(validate_class_name(decodeURIComponent(params.class_key)));
+        $('#shareddatakey').prev('label').hide();
+        $('#join_classroom').attr('disabled',($('#shareddatakey').val()=='')); 
+        if (params.lang) {
+            $('#locale').val(decodeURIComponent(params.lang));
+        }
+        if (params.teacher) {
+            $('#userid').val(decodeURIComponent(params.teacher));
+        } else {
+            $('#userid').val(new Date().getTime());
+        }
+        data=getJoinData();
+        data.task='get_instance';       
+        $('#progress').css('background','#a0a').show();
+        $.get('bridge.php', data, function(instance_url) {
+            if (instance_url=='not found') {
+                no_class();
+            } else {
+                url=instance_url;
+                go_there();
+            }
+        }, 'text');              
+    } else if (params.lang) {
+        $('#locale').val(unescape(params.lang));
+    }
+
+    $('label').click(function () {
+        $(this).next('input, textarea').focus();
+    });
+
+    $('input, textarea').focus(function () {
+        $(this).prev('label').hide();
+    });
+    $('input, textarea').focusout(function () {
+        if ($(this).val()=='') {
+            $(this).prev('label').show();
+        };
+    });
+
+    $('#shareddatakey').change(function () {
+        $('#join_classroom').attr('disabled',($(this).val()==''));
+        $(this).val(validate_class_name($(this).val())); 
+    });
+    $('#shareddatakey').keyup(function (e) {
+        $('#join_classroom').attr('disabled',($(this).val()==''))
+        if(e.keyCode==13){
+            // Enter pressed
+            $('#join_classroom').click()
+        }
+    });
+
+    $('#new_classroom_key').change(function () {
+        $(this).val(validate_class_name($(this).val())); 
+    });
+
+    $('#names_list').change(function () {
+        $('#names_list').val(validated_names_list());
+    });
+
+    $('#email').focusin(function () {
+        $('#email').css('background-color','#fff');
+        $('#email_help').fadeIn();
+    });
+    $('#email').focusout(function () {
+        $('#email_help').fadeOut();
+    });
+        
+
+    $('#join_classroom').click(function () {
+        data=getJoinData();
+        data.task='get_instance';       
+        $('#progress').css('background','#a0a').show();
+        $.get('bridge.php', data, function(instance_url) {
+            if (instance_url=='not found') {
+                no_class();
+            } else {
+                url=instance_url;
+                go_there();
+            }
+        }, 'text');              
+    });
+
+    $('#create_classroom').click(function () {
+        if (searching) return;
+        if (!is_email($('#email').val())) {
+            $('#email').css('background-color','#ffaaaa');
+            return;
+        } 
+        if ($('#new_classroom_key').val().length < 3 || $('#new_classroom_key').val().length > 50) {
+            $('#bad_classroom_name').show();
+            return;
+        } else {            
+            $('#bad_classroom_name').hide();
+        }
+
+        $('#progress').css('background','#f00').show(); 
+        searching=true;
+        data=getData();
+        data.task='create_instance';
+        $.get('bridge.php', data, function(instance_url) {
+            $('#progress').css('background','#fa0').show();
+            if (instance_url=='reserved') {
+                already_there();
+            } else {
+                url=instance_url;
+                setInstanceParams();
+            }
+            }, 'text'); 
+    });
+    check_flash_version();
+});
+
+</script>
+<style>
+div#classroom_not_available {display:none}
+div#classroom_already_exists {display:none}
+body {
+    background:#1E1D1C;
+    color:#E8E8E8;
+    font-family: Helvetica, Verdana, sans-serif;
+    margin-left:2em;
+}
+#language_column {
+    font-size:80%;
+    text-align:right;
+}
+
+#left_area {
+    position:absolute;
+    top:100px;
+    left:40px;
+}
+#right_area {
+    position:absolute;
+    top:100px;
+    left:500px;
+}
+
+a:link {
+    color:#aaf;
+    text-decoration:none;
+}
+
+a:visited {
+    color:#c8f;
+    text-decoration:underline;
+}
+
+#titlelogo, #titlebar {    
+    display:inline-block;
+    margin:0;
+    padding:0;
+}
+#titlebar h1 {
+    font-size:34px;
+    margin:0;
+    margin-left:8px;
+    padding:0;
+}
+#titlebar h4 {
+    margin:0;
+    margin-left:12px;
+    font-size:13px;
+    padding:0;
+    font-weight:normal;
+}
+
+p.gogo {
+    font-size:90%;
+    padding-bottom:0;
+    margin-bottom:0;
+}
+
+input[type=button] {
+    background:transparent;
+    font-family: Helvetica, Verdana, sans-serif;
+    font-size:95%;
+    font-weight:bold;
+    color:#464545;
+    width:160px;
+    height:47px;
+    border:none;
+    cursor:pointer;
+}
+
+
+#join_classroom {
+    background-image:url('images/join.png');
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;        
+}
+#join_classroom:hover {
+    background-color:#aaa; 
+    background-image:none;
+    color:#fff;
+}
+
+
+div.input_row {
+    margin-top: 0.5em;
+    position: relative;    
+    margin-bottom: 0.5em;
+}
+div.input_row label {
+    color:#888;
+    font-size:100%;
+    position: absolute;
+    left:10px;
+    top:15px;
+    cursor:text;
+}
+
+#bottom_area {
+    position: relative;
+}
+input[type=text], input[type=email] {
+    width: 350px;
+    height:40px;
+    padding:0;
+    padding-left:8px;
+    font-size:100%;
+    font-family: Helvetica, Verdana, sans-serif;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;    
+    border:none;
+}
+
+#email_help {
+    display:none;
+    width: 240px;
+    position:absolute;
+    top:-10px;
+    left:-265px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    background-color:rgb(136,187,231);  
+    font-weight:bold;
+    font-size:12px;
+    padding:10px;
+
+}
+
+#shareddatakey {
+    width: 192px;
+}
+
+textarea {
+    width: 350px;
+    height:72px;
+    font-size:100%;
+    padding:8px;
+    padding-right:0;
+    font-family: Helvetica, Verdana, sans-serif;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;    
+    border:none;    
+}
+
+#note1, #note2, #note3, #note4 {
+    position:absolute;
+    font-weight:bold;
+    width: 100px;
+    font-size:12px;
+    text-align:center;
+}
+#note1 {
+    color:white;
+    left:16px;
+    top:80px;
+}
+#note2 {
+    left:170px;
+    top:160px;
+    color:#2276C6;
+}
+#note3 {
+    left:90px;
+    top:302px;
+    color:#2276C6;
+}
+#note4 {
+    left:280px;
+    top:384px;
+    color:#2276C6;
+}
+
+
+div#footer {
+    position:absolute;
+    text-align:center;
+    font-size:80%;
+    bottom:10px;
+    left:400px;
+}
+
+#tips {
+    display:inline-block;
+    width:200px;
+    font-size:80%;
+    color:#2276C6;
+}
+
+#create_classroom {
+    display:inline-block;
+    background-image:url('images/join.png');
+    width:160px;
+    height:47px;
+    top:-12px;
+    position:relative;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;        
+}
+#create_classroom:hover {
+    background-color:#aaa; 
+    background-image:none;
+    color:#fff;
+}
+
+#progress {
+    position: fixed;
+    right:10px;
+    top:10px;
+    width:160px;
+    height:90px;
+    display:none;
+    font-size:62pt;
+    text-align:center;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;        
+}
+
+#itec_link {
+    position:absolute;
+    font-size:80%;
+    bottom:10px;
+    left:720px;
+}
+
+</style>
+
+</head>
+
+<body>
+<div id="language_column">
+suomi | english
+</div>
+<img src="images/teams_old.png" id="titlelogo" width="52" height="52" alt="" /><div id="titlebar"><h1>TeamUp</h1>
+<h4 class="i18n">Form teams based on skills and interests, record teams' progress.</h4></div>
+
+<div id="left_area">
+    <img src="images/4bubbles.png" width="396" height="436" />
+     <p id="note1" class="i18n">Add people</p>
+     <p id="note2" class="i18n">Choose topics</p>
+     <p id="note3" class="i18n">Form teams</p>
+     <p id="note4" class="i18n">Record progress</p>
+</div>
+
+<div id="right_area">
+<form>
+<input type="hidden" id="userid" name="userid" id="userid" value=""/>
+<input type="hidden" id="locale" name="locale" value="en-EN"/>
+ 
+<p class="gogo"><strong class="i18n">Already in a classroom?</strong> <span class="i18n">Go to it!</span></p>
+<div class="input_row">
+    <label class="i18n">Classroom name</label><input type="text" id="shareddatakey" name="shareddatakey" value="" />
+    <input type="button" id="join_classroom" class="i18n-value" value="Go to classroom" disabled="1" />
+</div>
+<div id="classroom_not_available" class="i18n">Sorry, no such classroom.</div>
+
+<div id="bottom_area">
+
+<p class="gogo"><strong class="i18n">New to TeamUp?</strong> <span class="i18n">Create new classroom</span>!</p>
+<div class="input_row">
+    <label class="i18n">Classroom name</label><input type="text" id="new_classroom_key" name="new_classroom_key" size="20" value="" />
+</div>
+    <div id="classroom_already_exists" class="i18n">Classroom with same name already exists. Choose another name.</div>
+    <div style="display:none" id="bad_classroom_name" class="i18n">Missing or invalid class name. Too short or too long.</div>
+<div class="input_row">
+    <label class="i18n">Your email address</label><input type="email" id="email" name="email" value="" />
+    <div id="email_help" class="i18n">We use your email address only for sending you a link to access the classroom as a teacher.</div> 
+</div>
+<div class="input_row">
+    <label class="i18n">First names of people*</label><textarea id="names_list" name="names_list"></textarea> 
+</div>
+<p id="tips">* <span class="i18n">Separate names with commas.</span> <br/><span class="i18n">First names are preferred for privacy.</span></p> 
+<input type="button" id="create_classroom" class="i18n-value" value="Create classroom" />  
+<p id="debugger"></p>
+<p id="flash_version"></p> 
+
+<div style="height:80px;"></div>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=114766928630002&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<div class="fb-like" data-href="http://teamup.aalto.fi/" data-send="true" data-width="450" data-show-faces="true" data-colorscheme="dark"></div>
+
+</div>
+</form>
+</div>
+<div id="progress">&#x25b6;</div>
+</div>
+<div id="footer"> <a href="https://docs.google.com/present/view?id=dfmx7dv4_172c394r98t" target="_other">Teacher's manual</a> | contact | privacy policy | terms</div> <a id="itec_link" href="http://itec.eun.org/" alt="iTEC"><img src="images/itec_logo.png" width="128" height="68"></a>
+</body>
+</html>

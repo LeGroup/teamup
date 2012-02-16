@@ -1,0 +1,86 @@
+{
+"Language code": "fr-FR",
+"Translator": "Monica Macedo",
+"Translator email": "monica.macedo@cndp.fr",
+"Class": "Groupe-classe",
+"Teams": "Équipes",
+
+"Team": "Équipe",
+"Team notes": "Annotations de l'équipe",
+"Teacher": "Enseignant",
+"Learner": "Élève",
+"Start new teams": "Créer de nouvelles équipes",
+
+"Add/edit learners": "Ajouter/modifier des élèves",
+"Options": "Options",
+"Vote for topics": "Options: voter pour un thème",
+"Take your photo": "Prennez votre photo",
+"Collect topics of interest and vote": "Recueillir les thèmes d'intérêt et voter",
+
+"enter topic": "proposer un thème",
+"[ enter topic ]": "[ proposer un thème ]",
+"Bring together": "Mettre en contact",
+"Hobbies": "Passe-temps",
+"Gender": "Gendre",
+
+"Languages": "Langues",
+"Girl": "Fille",
+"Boy": "Garçon",
+"No gender": "Pas de genre",
+"Sunny": "Ensoleillé",
+
+"Half-cloudy": "Partiellement nuageux",
+"Cloudy": "Nuageux",
+"Bee": "Abeille",
+"Book": "Livre",
+"Craft": "Travaux manuels",
+
+"Digital": "Numérique",
+"Fire": "Feu",
+"Sleepy": "Somnolent",
+"Spice": "Épice",
+"Ball": "Ballon",
+
+"Quiet": "Silencieux",
+"Loud": "Bruyant",
+"Keep this photo": "Conserver cette photo",
+"Try again": "Essayer à nouveau",
+"Cancel": "Annuler",
+
+"play": "Jouer",
+"pause": "Pause",
+"stop": "Arrêter",
+"mute": "Muet",
+"unmute": "Arrêter 'muet'",
+
+"Next": "",
+"Previous": "",
+"Team size": "Taille de l'équipe",
+"Always show names": "Toujours afficher les prénoms",
+"Remove current teams": "Supprimer les équipes actuelles",
+
+"Reset teams": "Supprimer toutes les équipes",
+"Language": "Langue",
+"Teacher address": "Mél de l'enseignant",
+"Learner address": "Mél de l'élève",
+"Add learner": "Ajouter un élève",
+
+"Remove learner": "Supprimer l'élève",
+"Are you sure you want to permanently remove learner from class?": "Êtes-vous sûr de supprimer définitivement cet élève de la classe ?",
+"Add language": "Ajouter une langue",
+"Record a newsflash": "Enregistrer un bulletin d'informations",
+"What we did.": "Ce que nous avons fait.",
+
+"What we will do.": "Ce que nous allons faire.",
+"Any problems?": "Un problème ?",
+"Record a 60 second newsflash.": "Enregistrez un bulletin d'informations de 60 secondes",
+"Click the record button.": "Appuyez sur le boutton 'enregistrer'",
+"After the countdown, your picture is taken,<br> then the recording starts.": "Après le compte à rebours, votre photo sera prise, <br> ensure débutera l'enregistrement.",
+
+"Answer the questions below the recorder.": "Répondez à la question sous l'enregistreur.",
+"Listen to your recording, save your recording or record again.": "Écoutez votre enregistrement, sauvegardez votre enregistrement ou enregistrer à nouveau.",
+"Are you sure you want to reset teams? If you reset, the following teams cannot no more access their newsflashes": "Êtes-vous sûr de vouloir supprimer les équipes ? Si vous les supprimez, les équipes suivantes ne pourront plus accéder à leurs bulletins d'informations",
+"Download": "Télécharger",
+"Remove teams": "Supprimer les équipes",
+
+"Photo is in unknown format (.jpg, .png, .gif allowed) or too large.": "Format de photo inconnu (seuls formats acceptés : .jpg, .png, .gif) ou trop grand"}

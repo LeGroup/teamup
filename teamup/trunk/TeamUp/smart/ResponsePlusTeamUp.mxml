@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   width="64" height="64" backgroundColor="0x1d1d1c"
+			   applicationComplete="applicationCompleted()"
+			   >
+	<s:Graphic id="theGraphic" click="theGraphic_clicked(null)">
+		<s:Ellipse id="theEllipse" left="8" top="8" width="48" height="48">
+			<s:stroke>
+				<s:SolidColorStroke id="theEllipseStroke" color="0x3d3d3c" weight="1" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor id="theEllipseFill" color="0x4d4d4c" />
+			</s:fill>
+		</s:Ellipse>
+	</s:Graphic>
+	<fx:Script><![CDATA[
+		import com.smarttech.response.teamup.*;
+		
+		import flash.external.ExternalInterface;
+
+		public static const BACKGROUND_COLOR:uint = 0x1d1d1c;
+		public static const RED_STROKE:uint = 0xb22222; // Firebrick
+		public static const RED_FILL:uint = 0xf45000; // OrangeRed
+		public static const YELLOW_STROKE:uint = 0xdaa520; // Goldenrod
+		public static const YELLOW_FILL:uint = 0xffd700; // Gold
+		public static const GREEN_STROKE:uint = 0x32cd32; // LimeGreen
+		public static const GREEN_FILL:uint = 0x7cfc00; // LawnGreen
+		public static const TRANSPARENT:int = 0;
+		public static const RED:int = 1;
+		public static const YELLOW:int = 2;
+		public static const GREEN:int = 3;
+		public static const TIMER_INTERVAL:Number = 83; // 12 fps
+		public static const TICKER_DURATION:int = 18; // approximately 1.5 seconds
+		private var m_timerTicker:int = 0;
+		private var m_timerInterval:uint = 0;
+		private var m_class:ActivatedClass = null;
+		private var m_assessment:Assessment = null;
+		
+		
+		private function colorize(color:int):void {
+			var stroke:uint = BACKGROUND_COLOR;
+			var fill:uint = BACKGROUND_COLOR;
+			if(color == GREEN) {
+				stroke = GREEN_STROKE;
+				fill = GREEN_FILL;
+			} else if(color == YELLOW) {
+				stroke = YELLOW_STROKE;
+				fill = YELLOW_FILL;
+			} else if(color == RED) {
+				stroke = RED_STROKE;
+				fill = RED_FILL;
+			}
+			theEllipseStroke.color = stroke;
+			theEllipseFill.color = fill;
+		}
+		
+		private function timerTicked():void {
+			if(m_timerTicker > 0) {
+				m_timerTicker--;
+				if(m_timerTicker == 0) {
+					colorize(GREEN);
+				}
+			}
+		}
+		
+		private function applicationCompleted():void {
+			if(ExternalInterface.available) {
+				ExternalInterface.addCallback("startVoting", startVoting);
+				ExternalInterface.addCallback("finishVoting", finishVoting);
+				colorize(TRANSPARENT);
+				Utils.newid(null);
+				m_timerInterval = setInterval(timerTicked, TIMER_INTERVAL);
+			} else {
+				colorize(RED);
+			}
+		}
+		
+		private function theGraphic_clicked(ev:MouseEvent):void {
+		  startVoting(8);
+		}
+		
+		private function assessment_statusChanged(a:Assessment):void {
+			if(a.status == Assessment.STARTED) {
+				colorize(GREEN);
+			} else if(a.status == Assessment.STOPPED) {
+				colorize(RED);
+				m_class.disconnect();
+			} else {
+				colorize(YELLOW);
+			}
+		}
+		
+		private function assessment_submitted(a:Assessment):void {
+			var recentlySubmitted:Array = a.pull();
+			if(recentlySubmitted != null) {
+				for each(var student:Student in recentlySubmitted) {
+					voteClicker(student.monogram, student.choice, student.givenName, student.familyName);
+				}
+			}
+		}
+		
+		private function class_statusChanged(ac:ActivatedClass):void {
+			if(ac.status == ActivatedClass.CONNECTED) {
+				var numberOfChoices:int = int(ac.tag);
+				m_assessment = new Assessment(ac,numberOfChoices);
+				m_assessment.onstatuschange = assessment_statusChanged;
+				m_assessment.onsubmit = assessment_submitted;
+				m_assessment.start();
+			} else if(ac.status == ActivatedClass.CONNECTING) {
+				colorize(YELLOW);
+			} else {
+				colorize(RED);
+			}
+		}
+		
+		public function startVoting(numberOfChoices:int):void {
+			if(numberOfChoices < 1) {
+				numberOfChoices = 1;
+			} else if(numberOfChoices > 8) {
+				numberOfChoices = 8;
+			}
+			m_class = new ActivatedClass();
+			m_class.onstatuschange = class_statusChanged;
+			m_class.tag = numberOfChoices;
+			m_class.connect();
+		}
+		
+		public function finishVoting():void {
+			if(m_assessment != null) {
+				m_assessment.stop();
+			}
+			if(m_class != null) {
+				m_class.disconnect();
+			}
+		}
+		
+		public function voteClicker(clickerId:String, choice:int, givenName:String, familyName:String):void {
+			if(ExternalInterface.available) {
+				ExternalInterface.call("voteClicker", clickerId, choice, givenName, familyName);
+				colorize(YELLOW);
+				m_timerTicker = TICKER_DURATION;
+			}
+		}
+	]]></fx:Script>
+</s:Application>

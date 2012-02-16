@@ -1,0 +1,86 @@
+{
+"Language code": "et-ET",
+"Translator": "Ingrid Maadvere",
+"Translator email": "ingrid@tiigrihype.ee",
+"Class": "Klass",
+"Teams": "Rühmad",
+
+"Team": "Rühm",
+"Team notes": "Rühma märkmed",
+"Teacher": "Õpetaja",
+"Learner": "Õpilane",
+"Start new teams": "Loo uus rühm",
+
+"Add/edit learners": "Lisa/muuda õpilasi",
+"Options": "Võimalused",
+"Vote for topics": "Hääleta teemade poolt",
+"Take your photo": "Tee foto",
+"Collect topics of interest and vote": "Sisesta huvipakkuvad teemad ja hääleta",
+
+"enter topic": "siseta teema",
+"[ enter topic ]": "[ sisesta teema ]",
+"Bring together": "Rühmita",
+"Hobbies": "Hobid",
+"Gender": "Sugu",
+
+"Languages": "Keeled",
+"Girl": "Tüdruk",
+"Boy": "Poiss",
+"No gender": "Sugu puudub",
+"Sunny": "Päikseline",
+
+"Half-cloudy": "Osaliselt pilves",
+"Cloudy": "Pilves",
+"Bee": "Mesilane",
+"Book": "Raamat",
+"Craft": "Meisterdamine",
+
+"Digital": "Digitaalne",
+"Fire": "Tuli",
+"Sleepy": "Unine",
+"Spice": "Vürts",
+"Ball": "Pall",
+
+"Quiet": "Vaikne",
+"Loud": "Vali",
+"Keep this photo": "Kasuta seda fotot",
+"Try again": "Proovi uuesti",
+"Cancel": "Tühista",
+
+"play": "mängi",
+"pause": "paus",
+"stop": "stopp",
+"mute": "heli välja",
+"unmute": "heli sisse",
+
+"Next": "Järgmine",
+"Previous": "Eelmine",
+"Team size": "Rühma suurus",
+"Always show names": "Näita alati nimesid",
+"Remove current teams": "Eemalda praegused rühmad",
+
+"Reset teams": "Kustuta rühmad",
+"Language": "Keel",
+"Teacher address": "Õpetaja aadress",
+"Learner address": "Õpilase aadress",
+"Add learner": "Lisa õpilane",
+
+"Remove learner": "Eemalda õpilane",
+"Are you sure you want to permanently remove learner from class?": "Kas oled kindel, et tahad õpilase klassist kustutada?",
+"Add language": "Lisa keel",
+"Record a newsflash": "Salvesta sõnum",
+"What we did.": "Mis tehtud?",
+
+"What we will do.": "Mis teoksil?",
+"Any problems?": "Probleemid",
+"Record a 60 second newsflash.": "Salvesta 60sekundiline sõnum.",
+"Click the record button.": "Klõpsa salvestaja nupul.",
+"After the countdown, your picture is taken,<br> then the recording starts.": "Pärast numbrite lugemist, on foto tehtud, <br> ja algab salvestamine.",
+
+"Answer the questions below the recorder.": "Vasta salvestaja all olevatele küsimustele.",
+"Listen to your recording, save your recording or record again.": "Kuula oma sõnumit, salvesta sõnum või salvesta uuesti.",
+"Are you sure you want to reset teams? If you reset, the following teams cannot no more access their newsflashes": "Kas oled kindel, et soovid tühistada rühmad? Sellisel juhul ei ole kättesaadvad enam nende sõnumid",
+"Download": "Lae alla",
+"Remove teams": "Eemalda rühmad",
+
+"Photo is in unknown format (.jpg, .png, .gif allowed) or too large.": "Foto on tundmatus formaadis (lubatud on .jpg, .png, .gif) või liiga suur."}

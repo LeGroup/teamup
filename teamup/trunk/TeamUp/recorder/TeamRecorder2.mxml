@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="init()" width="480" height="410" frameRate="30" backgroundColor="#1D1D1C">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+
+	
+	<fx:Script>
+		<![CDATA[
+            import slider.SliderTrack;
+        	import org.as3wavsound.WavSound;
+        	import org.as3wavsound.WavSoundChannel;
+        	import org.bytearray.micrecorder.MicRecorder;
+        	import org.bytearray.micrecorder.encoder.WaveEncoder;
+        	import org.bytearray.micrecorder.events.RecordingEvent;
+        	import fr.kikko.lab.ShineMP3Encoder;
+            import com.adobe.images.JPGEncoder;            
+            import ru.inspirit.net.MultipartURLLoader;
+            import flash.net.URLVariables;
+            import flash.net.URLLoader;
+            import flash.net.URLRequest;
+            import flash.net.URLRequestMethod;
+            import flash.events.Event;
+            import flash.events.IOErrorEvent;
+            import flash.system.Security;
+
+            import flash.external.ExternalInterface;
+            import mx.core.FlexGlobals;
+            import mx.controls.sliderClasses.SliderThumb;
+            import mx.core.BitmapAsset;
+			private var soundBytes:ByteArray = new ByteArray();
+			private var _file:FileReference; 
+			private var mymic:Microphone;
+			private var playback_channel:WavSoundChannel;
+			private var micTimer:Timer;
+			private var playTimer:Timer;
+            private var preparationTimer:Timer;
+            private var recTimer:Timer;
+            //private var stillTimer:Timer;
+            private var flashTimer:Timer;
+            private var uploaderTimer:Timer;
+            private var prep_counter:Number;
+            private var volume:Number = .5;
+            private var wavEncoder:WaveEncoder = new WaveEncoder( volume );
+            private var recorder:MicRecorder;
+    		private var sound:WavSound; //WavSound
+    		private var record_len:Number;
+    		private var mp3Encoder:ShineMP3Encoder;
+    		private var _bitmapData:BitmapData;
+    		private var _flash:BitmapData;
+    		private var _image:ByteArray;
+    		private var jpegEncoder:JPGEncoder= new JPGEncoder(80);
+    		private var camera:Camera;
+            private var video:Video;
+            private var still:Bitmap;
+            private var photoArray:Array;
+            private var photoBMArray:Array;
+            private var still_index:Number;
+            private var thumb_label:TextField;
+            private var countdown:TextField;
+            private var thumb:SliderThumb;
+            private var thumb_g:UIComponent;
+            private var rec_btn:UIComponent;
+            private var half_size_str:String;
+            private var half_size:Boolean;
+            private var camw:Number;
+            private var camh:Number;
+            private var size_reduction:Number;
+            private var sound_position:Number;
+            private var drag_start_value:Number;
+            private var recording:Boolean;
+            private var playing:Boolean;
+            private var dragging:Boolean;
+            
+
+            [Embed(source="small_play.png")]
+            [Bindable]
+            public var playClass:Class;
+            private var play_btn:BitmapAsset = new playClass() as BitmapAsset;
+            [Embed(source="orange-camera.png")]
+            [Bindable]
+            public var cameraIconClass:Class;
+            private var camera_icon:BitmapAsset = new cameraIconClass() as BitmapAsset;
+            [Embed(source="camera-recording.png")]
+            [Bindable]
+            public var smallCameraClass:Class;
+            private var small_camera_icon:BitmapAsset = new smallCameraClass() as BitmapAsset;
+            
+            //[Embed(source="bubble-orange.png")]
+            //[Bindable]
+            //public var bubbleClass:Class;
+            //private var bubble_orange:BitmapAsset = new bubbleClass() as BitmapAsset;
+
+            private function getFlashVars():void {
+                // get flashvars, class name and recording id to forward to server                
+                half_size_str=FlexGlobals.topLevelApplication.parameters.half_size;
+                half_size= (half_size_str=='1' || half_size_str=='true') ? true : false;
+            }
+			
+			private function init():void {
+                _display.visible=true;
+                getFlashVars();
+			    //Security.loadPolicyFile(server_path+'crossdomain.php');
+
+                if (half_size) {
+                    _display.text="half sizing everything";
+                    camw=480;
+                    camh=360;
+                    size_reduction=50;
+                    //uic.width=camw;
+                    //uic.height=camh;
+                    //still.width=camw;
+                    //still.height=camh;
+                    stop_rec_btn.y-=size_reduction;
+                    stop_play_btn.y-=size_reduction;
+                    timeSlider.y-=size_reduction;
+                    recording_bar.y-=size_reduction;
+                    encoding_container.y-=size_reduction/2;
+                    //encoding.y-=size_reduction/2;
+                } else {
+                    _display.text="full size";
+                    camw=480;
+                    camh=360;
+                    size_reduction=0;
+                }
+
+				// Get Microphone
+				mymic = Microphone.getMicrophone();
+				mymic.rate = 22;
+				mymic.setSilenceLevel(0);
+				
+				mymic.setUseEchoSuppression(true);
+				mymic.soundTransform = new SoundTransform(0,0);
+				mymic.setLoopBack(true);
+				
+				recorder= new MicRecorder( wavEncoder, mymic );
+				
+                // get Camera
+                video= new Video(camw,camh);
+                camera = Camera.getCamera();
+                if (camera) {
+                    camera.setMode(camw,camh,12,false);
+                    camera.setQuality(0,100);
+                    video.attachCamera(camera);
+                }
+                uic.addChild(video);
+                
+                // set slider thumb
+                                
+                thumb=timeSlider.getThumbAt(0);
+                thumb_g=new UIComponent();
+                
+                thumb_g.graphics.beginFill(0xFF2300);
+                thumb_g.graphics.drawRect(-9,-32,18,18);
+           	    thumb_g.graphics.endFill();
+                
+    			thumb_label = new TextField();
+    			thumb_label.x=-10;
+    			thumb_label.y=-32;
+    			thumb_label.width=36;
+    			thumb_label.height=18;
+    			//lbl.autoSize = TextFieldAutoSize.CENTER;
+                thumb_label.background = false;
+                thumb_label.border = false;
+    
+                var format:TextFormat = new TextFormat();
+                format.font = "Arial";
+                format.color = '0xffffff';
+                format.size = 12;
+                format.bold = true;
+                format.underline = false;
+    
+                thumb_label.defaultTextFormat = format;
+                thumb_label.text='60';
+
+                small_camera_icon.x=54;
+                small_camera_icon.y=386-size_reduction;
+                small_camera_icon.width=19;
+                small_camera_icon.height=13;
+                uic.addChild(small_camera_icon);
+
+    			countdown = new TextField();
+    			countdown.x=220;
+    			countdown.y=150-(size_reduction/2);
+    			countdown.width=80;
+    			countdown.height=80;
+                countdown.background = false;
+                countdown.border = false;
+
+                camera_icon.width=64;
+                camera_icon.height=43;
+                camera_icon.x=220;
+                camera_icon.y=240-(size_reduction/2);
+                camera_icon.visible=false;
+    
+                format = new TextFormat();
+                format.font = "Arial";
+                format.color = '0xE0460E';
+                format.size = 64;
+                format.bold = true;
+                format.underline = false;
+    
+                countdown.defaultTextFormat = format;
+                countdown.text='3';
+                countdown.visible=false;
+
+
+                rec_btn= new UIComponent();
+                rec_btn.x=5;
+                rec_btn.y=360-size_reduction;
+                rec_btn.width=40;
+                rec_btn.height=40;
+                rec_btn.graphics.beginFill(0xA3A2A2);
+                rec_btn.graphics.drawEllipse(0,0,40,40);
+           	    rec_btn.graphics.endFill();
+                rec_btn.graphics.beginFill(0xE0471F);
+                rec_btn.graphics.drawEllipse(10,10,20,20);
+           	    rec_btn.graphics.endFill();
+                uic.addChild(rec_btn);
+				rec_btn.addEventListener(MouseEvent.ROLL_OUT,function ():void {rec_btn.alpha=1;});
+				rec_btn.addEventListener(MouseEvent.ROLL_OVER,function ():void {rec_btn.alpha=0.7;});
+                
+
+                play_btn.visible=false;
+                play_btn.x=-4;
+                play_btn.y=-31;
+
+                thumb_g.addChild(thumb_label);
+                uic.addChild(countdown);
+                uic.addChild(camera_icon)
+                thumb_g.addChild(play_btn);                
+                thumb.addChild(thumb_g);
+                thumb.depth=150;
+
+                thumb.enabled=true;
+                
+                // set Buttons			
+				rec_btn.addEventListener(MouseEvent.CLICK,startRecord);
+				stop_rec_btn.addEventListener(MouseEvent.CLICK,stopRecording);
+				stop_rec_btn.enabled=false;
+				stop_rec_btn.visible=false;
+				stop_play_btn.addEventListener(MouseEvent.CLICK,stopPlaying);
+				stop_play_btn.enabled=false;
+				stop_play_btn.visible=false;
+    			recorder.addEventListener(RecordingEvent.RECORDING, onRecording);
+    			recorder.addEventListener(Event.COMPLETE, onRecordComplete);
+				
+				_flash=new BitmapData(camw,camh,false, 0xFFFFFF);
+				sound_position=0;
+				
+				// set Timers
+				
+				micTimer = new Timer(100);
+				micTimer.addEventListener(TimerEvent.TIMER, miclevel);
+				micTimer.start();
+				prep_counter=3;
+                preparationTimer = new Timer(1000,prep_counter);
+                preparationTimer.addEventListener(TimerEvent.TIMER, prepareAnnouncement);
+                preparationTimer.addEventListener(TimerEvent.TIMER_COMPLETE, prepareComplete);                
+                flashTimer=new Timer(10,1);
+                flashTimer.addEventListener(TimerEvent.TIMER_COMPLETE, addStill);
+                recTimer = new Timer(60000,1);
+                recTimer.addEventListener(TimerEvent.TIMER_COMPLETE, stopRecording);
+				playTimer = new Timer(50);
+				playTimer.addEventListener(TimerEvent.TIMER, showPlayProgress);
+                ExternalInterface.addCallback("save", doSave);
+			}
+			
+			// chain of events in photo taking should be:
+			//   take photo
+       		//   show flash screen
+			//   start flash timer->
+			//       hide flash screen
+			//       show still    
+			//       start still timer->
+			//            hide still
+
+            // Taking photo
+			
+			private function switchStill(bmp:Bitmap):void {
+                if (still!=null) {
+                    if (still_screen.contains(still)) {
+                        still_screen.removeChild(still);
+                    }
+                }
+                still = bmp;
+                still_screen.addChild(still);
+			}
+
+            private function takePhoto():void {
+                flashTimer.reset();                
+                flashTimer.start(); // addStill
+                switchStill(new Bitmap(_flash))
+                still_screen.visible=true;
+                _bitmapData=new BitmapData(camw, camh);
+                _bitmapData.draw(video);
+            }
+
+            private function addStill(e:TimerEvent):void {
+                var bm:Bitmap=new Bitmap(_bitmapData);
+                switchStill(bm);
+                video.visible=false;
+                still_screen.visible=true;
+                photoBMArray.push(bm);
+                _image = jpegEncoder.encode(_bitmapData);
+                _bitmapData=null;
+                photoArray.push(_image);
+            }
+			
+			// Recording 
+			
+			private function startRecord(e:Event):void {
+
+                // make sure that vumeter is on
+                micTimer.start();
+                video.visible=true;
+
+                // make sure that camera is attached
+                if (camera) {
+                    video.attachCamera(camera);
+                }
+
+                // clear existing recording
+                photoArray=new Array();
+                photoBMArray=new Array();
+                                             
+                // show stop button
+                stop_rec_btn.enabled=true;
+                stop_rec_btn.visible=true;
+                
+                // hide others
+                rec_btn.enabled=false;
+                rec_btn.visible=false;
+                play_btn.visible=false;
+                stop_play_btn.enabled=false;
+                stop_play_btn.visible=false;
+
+                save_msg.visible=false;
+                still_screen.visible=false;             
+
+                // mode
+                recording=true;
+                dragging=false;
+                playing=false; 
+
+                // start preparations
+                prep_counter=3;
+    		    _display.text = 'Prepare...'
+    		    thumb_label.visible=false;
+    		    if (camera) {
+        		    camera_icon.visible=true;
+    		    }
+    		    countdown.visible=true;
+    		    countdown.text=prep_counter.toString();
+    		    preparationTimer.reset();
+                preparationTimer.start(); // prepareAnnouncement, prepareComplete
+			}
+			
+			private function prepareAnnouncement(e:TimerEvent):void {
+    		    prep_counter--;
+    		    countdown.text= prep_counter.toString();			     
+			}
+
+            private function prepareComplete(e:TimerEvent):void {
+                countdown.visible=false;
+    		    camera_icon.visible=false;
+    		    thumb_label.visible=true;
+
+                // change audio bar color
+                soundLevel1.setStyle('chromeColor',"0xaa0000");
+
+                recorder.record();
+                if (camera) {
+                    takePhoto();
+                }                
+                // start photo timers and rec timer 
+                recTimer.reset();
+                recTimer.start(); // stop
+            }
+			
+			private function stopRecording(e:Event):void {
+			    recorder.stop();
+                video.attachCamera(null);
+
+                // mode
+                recording=false;
+                dragging=false;
+                playing=false; 
+
+                // stop timers 
+			    recTimer.stop();
+			    flashTimer.stop();
+			    
+                soundLevel1.setStyle('chromeColor',"0xaaaa00");
+                soundLevel1.visible=false;
+                micTimer.stop();
+
+                sound_position=0;
+                timeSlider.value=0;
+                still_screen.visible=true;
+                countdown.visible=false;
+    		    camera_icon.visible=false;
+			    stop_rec_btn.enabled=false;
+			    stop_rec_btn.visible=false;
+			    stop_play_btn.enabled=false;
+			    stop_play_btn.visible=false;
+			    thumb_label.visible=false;
+			    play_btn.visible=false;
+			    rec_btn.enabled=false;
+			    rec_btn.visible=true;			    			    
+			}
+
+
+            // Post process
+			
+            private function doEncode():void {
+			    mp3Encoder = new ShineMP3Encoder(recorder.output);
+    			mp3Encoder.addEventListener(Event.COMPLETE, mp3EncodeComplete);    			mp3Encoder.addEventListener(ProgressEvent.PROGRESS, mp3EncodeProgress);
+    			mp3Encoder.addEventListener(ErrorEvent.ERROR, mp3EncodeError);
+    			mp3Encoder.start();						
+                encoding_container.visible=true;
+            }
+            
+    		private function mp3EncodeProgress(event : ProgressEvent) : void {
+    		    encoding.setProgress(event.bytesLoaded,100);
+    		}
+    
+    		private function mp3EncodeError(event : ErrorEvent) : void {    			
+    			_display.text = 'Encode error:' + event.text;
+    		}
+            
+
+            // Playback
+
+            private function thumbPress(e:Event):void {
+                if (recording) {return;}
+                if (playing) {stopPlaying(e);playing=true;}
+                play_btn.visible=false;
+                thumb_label.text=timeSlider.value.toFixed(0);
+                drag_start_value=Math.floor(timeSlider.value);
+                thumb_label.visible=true;
+                dragging=true;
+                
+            }
+
+            private function thumbDrag(e:Event):void {
+                if (recording) {return;} // shouldn't happen 
+                thumb_label.text=timeSlider.value.toFixed(0);
+                if (timeSlider.value*1000 < sound.length) {
+                    sound_position=timeSlider.value*1000;
+                } else {
+                    sound_position=sound.length;
+                }
+            }
+            private function thumbRelease(e:Event):void {
+                if (recording) {return;} // shouldn't happen 
+                if (playing) {stopPlaying(e);return;}
+
+    			timeSlider.value=sound_position/1000;
+    			dragging=false;
+    			if (drag_start_value==Math.floor(timeSlider.value)) {
+    			     // if we didn't drag, then this is proper click
+        			 doPlay();
+    			} else {
+                    // we dragged, show play button but don't do anything else.
+                    play_btn.visible=true;
+                    thumb_label.visible=false;
+    			}
+            }
+			
+			private function doPlay():void {
+    			still_index=0;
+    			if (camera) {
+        			still_screen.visible=true;  
+    			}  			
+                soundLevel1.setStyle('chromeColor',"0x00aa00");
+                soundLevel1.visible=true;
+
+                playing=true;
+                recording=false;
+                dragging=false;
+
+    			stop_play_btn.enabled=true;
+    			stop_play_btn.visible=true;    			
+    			stop_rec_btn.enabled=false;
+    			stop_rec_btn.visible=false;    			
+    			rec_btn.enabled=false;
+    			rec_btn.visible=false;
+			    save_msg.visible=false;
+    			
+    			play_btn.visible=false;
+    			thumb_label.visible=true;
+    			
+    			micTimer.stop();
+    			playTimer.reset();
+    			playTimer.start();
+
+    			playback_channel=sound.play(sound_position);
+    			_display.text = 'Playback started...';
+    			playback_channel.addEventListener(Event.SOUND_COMPLETE, autoStopPlaying);
+			}
+			
+			private function autoStopPlaying(e:Event):void {
+			    playTimer.stop();
+                thumb_label.visible=false;
+                play_btn.visible=true;
+
+                // mode
+                recording=false;
+                dragging=false;
+                playing=false; 
+    			
+                timeSlider.value=0;
+                sound_position=0;
+                still_screen.visible=true;
+                
+                soundLevel1.setStyle('chromeColor',"0xaaaa00");
+                countdown.visible=false;
+    		    camera_icon.visible=false;
+
+			    stop_rec_btn.enabled=false;
+			    stop_rec_btn.visible=false;
+			    stop_play_btn.enabled=false;
+			    stop_play_btn.visible=false;
+			    play_btn.visible=true;
+			    rec_btn.enabled=true;
+			    rec_btn.visible=true;
+                micTimer.start();
+			}
+			
+			private function stopPlaying(e:Event):void {
+                playTimer.stop();
+                thumb_label.visible=false;
+                play_btn.visible=true;
+                
+                _display.text='Stopped.';
+                playback_channel.stop();
+
+                // mode
+                recording=false;
+                dragging=false;
+                playing=false; 
+
+                sound_position=timeSlider.value*1000;
+                
+                soundLevel1.setStyle('chromeColor',"0xaaaa00");
+                soundLevel1.visible=false;
+                countdown.visible=false;
+    		    camera_icon.visible=false;
+			    stop_rec_btn.enabled=false;
+			    stop_rec_btn.visible=false;
+			    stop_play_btn.enabled=false;
+			    stop_play_btn.visible=false;
+			    play_btn.visible=true;
+			    rec_btn.enabled=true;
+			    rec_btn.visible=true;
+			    			    
+			}
+
+            private function showPlayProgress(e:TimerEvent):void {
+                timeSlider.value=playback_channel.position/1000;
+                thumb_label.text=timeSlider.value.toFixed(0);
+				soundLevel1.setProgress(Math.abs(playback_channel.leftPeak),1);
+            }
+
+            // this should be the only function to use those path parameters 
+			private function doSave(server_path:String, class_name:String, group_name:String ) : void {
+                _display.text = 'Sending file...';                
+
+                save_msg.visible= true;
+                save_msg.text= 'Sending...';
+
+                var ml:MultipartURLLoader = new MultipartURLLoader();
+                ml.addEventListener(Event.COMPLETE, onReady);
+                //ml.addEventListener(ProgressEvent.PROGRESS, onProgress);              
+                ExternalInterface.call("uploadingRecording");
+                                
+                function onReady(e:Event):void {
+                    save_msg.visible=false;
+                    // notify teamup that we are done
+            		ExternalInterface.call("finishedRecording", class_name+'/'+group_name);
+                }
+                function onError(evt:IOErrorEvent):void {
+                    save_msg.text="error:"+evt;
+                    //ExternalInterface.call("photo_error", "error:"+evt);
+                };
+                function forceFinish(event : Event) : void {
+                    // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
+                    // and the files are there. Send end notification.
+                    save_msg.visible=false;
+            		ExternalInterface.call("finishedRecording", class_name+'/'+group_name);
+                }
+            
+        		function onProgress(event : ProgressEvent) : void {
+        		    //encoding.label='Sending...';
+                    encoding_container.visible=true;
+        		    encoding.label=''+event.bytesLoaded;
+        		    encoding.setProgress(event.bytesLoaded,100);
+        		}
+
+                // simple string data
+                ml.addVariable('class_id', class_name);
+                ml.addVariable('record_id', group_name);
+                
+                if (photoArray.length>0) {
+                      ml.addFile(photoArray[0], 'photo.jpg', 'photo', 'image/jpeg');
+                }
+                ml.addFile(mp3Encoder.mp3Data, 'voice.mp3', 'voice', 'audio/mpeg');                 
+
+                try {
+                    ml.load(server_path+"varloader.php", false);  
+                } catch (error:Error) {
+                    save_msg.text= error.message + error.toString();
+                } finally {};
+                
+				uploaderTimer = new Timer(10000);
+				uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
+                uploaderTimer.reset();                      
+                uploaderTimer.start();                      
+			}
+
+			
+			private function mp3EncodeComplete(event : Event) : void {
+                mp3Encoder.removeEventListener(ProgressEvent.PROGRESS, mp3EncodeProgress);
+    			mp3Encoder.removeEventListener(Event.COMPLETE, mp3EncodeComplete);    			mp3Encoder.removeEventListener(ErrorEvent.ERROR, mp3EncodeError);
+                _display.text = 'Finished: ' + (mp3Encoder.mp3Data.length/1024).toFixed(1)+' kb.';
+                encoding_container.visible=false;
+    			sound = new WavSound(recorder.output);
+
+                rec_btn.enabled=true;
+                play_btn.visible=true;
+                stop_rec_btn.enabled=false;
+                stop_rec_btn.visible=false;
+                stop_play_btn.enabled=false;
+                stop_play_btn.visible=false;
+
+        		ExternalInterface.call("encodingComplete");
+            
+			}
+			
+			private function miclevel(event:TimerEvent):void {
+				soundLevel1.setProgress(mymic.activityLevel,100);
+			}
+
+    		private function onRecording(event:RecordingEvent):void {
+    			_display.text = "Recording : " + (event.time/1000).toFixed(1) + " s.";
+    			record_len=event.time;
+                timeSlider.value=event.time/1000;
+                thumb_label.text=(61-(event.time/1000)).toFixed(0);
+                recording_bar.width=((event.time/1000)/60)*timeSlider.width;
+    			
+    		}
+			
+    		private function onRecordComplete(event:Event):void {
+    			_display.text = "Record : " + (record_len/1000).toFixed(1) + " s.";
+    			doEncode();
+    		}
+		//labelOffset="-5"	labels="[0,'','',60]" sliderThumbClass="{CSpSliderThumb}" 
+		// upSkin="@Embed(source='record.png')" overSkin="@Embed(source='record_hr.png')" downSkin="@Embed(source='record_pr.png')"
+		// chromeColor="0xaaaa00" chromeColor="0x008844"
+		]]>
+	</fx:Script>
+
+    <mx:UIComponent id="uic" x="0" y="8" width="480" height="360" />
+    <mx:UIComponent id="still_screen" x="0" y="8" width="480" height="360" visible="false">
+	</mx:UIComponent>	    
+	<mx:Button x="5" y="370" width="40" height="40" label="" id="stop_rec_btn" icon="@Embed(source='stop.png')" chromeColor="0x0095E8"/>
+	<mx:Button x="5" y="370" width="40" height="40" label="" id="stop_play_btn" icon="@Embed(source='stop.png')" chromeColor="0x0095E8"/>
+	<mx:Label x="120" y="100" height="240" width="240" fontSize="36" text="" visible="false" id="save_msg" color="0xFF2300"/>
+	<mx:Label color="0xffffff" x="100" y="416" id="_display" text="00:00:00"/>
+	<mx:Label color="0xffffff" x="10" y="100" id="_error" visible="false" text=""/>
+	<mx:HSlider id="timeSlider" x="74" y="392" width="410" height="10" maximum="60" trackSkin="{SliderTrack}" thumbSkin="@Embed(source='invisible.png')" depth="50" thumbDrag="thumbDrag(event)" showDataTip="false" thumbPress="thumbPress(event)" thumbRelease="thumbRelease(event)" liveDragging="true" />
+	<mx:Box id="recording_bar" x="76" y="388" width="0" height="3" backgroundColor="#FF2300" depth="51" alpha="1" />
+	<mx:ProgressBar id="soundLevel1" direction="right" x="0" y="0" width="480" height="16" mode="manual" label="" chromeColor="0xaaaa00"  />
+    <mx:Box id="encoding_container" visible="false" x="30" y="150" width="416" height="60" backgroundColor="#555555" alpha="0.8">
+	<mx:ProgressBar id="encoding" x="40" y="170" width="410" mode="manual" label="Encoding..." fontSize="18" chromeColor="0x008844" color="0xdddddd"/>
+	</mx:Box>
+	
+	
+</s:Application>
+

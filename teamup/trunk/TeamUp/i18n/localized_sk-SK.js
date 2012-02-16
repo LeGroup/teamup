@@ -1,0 +1,86 @@
+{
+"Language code": "Slovak",
+"Translator": "Miroslav Michalko",
+"Translator email": "michalko@elfa.sk",
+"Class": "Trieda",
+"Teams": "Tímy",
+
+"Team": "Tím",
+"Team notes": "Tímové poznámky",
+"Teacher": "Učiteľ",
+"Learner": "Študent",
+"Start new teams": "Vytvoriť nové tímy",
+
+"Add/edit learners": "Pridať/upraviť študentov",
+"Options": "Možnosti",
+"Vote for topics": "Hlasovať za témy",
+"Take your photo": "Urobte si foto",
+"Collect topics of interest and vote": "Zozbierať aktuálne témy a hlasovať",
+
+"enter topic": "vložte tému",
+"[ enter topic ]": "[ vložte tému ]",
+"Bring together": "Zozbierať",
+"Hobbies": "Koníčky",
+"Gender": "Pohlavie",
+
+"Languages": "Jazyky",
+"Girl": "Dievča",
+"Boy": "Chlapec",
+"No gender": "Bez pohlavia",
+"Sunny": "Slnečno",
+
+"Half-cloudy": "Polojasno",
+"Cloudy": "Zamračené",
+"Bee": "Včela",
+"Book": "Kniha",
+"Craft": "Plavidlo",
+
+"Digital": "Digitalny",
+"Fire": "Oheň",
+"Sleepy": "Ospalý",
+"Spice": "Korenie",
+"Ball": "Lopta",
+
+"Quiet": "Tichý",
+"Loud": "Hlučný",
+"Keep this photo": "Uchovať túto fotografiu",
+"Try again": "Skúsiť znova",
+"Cancel": "Zrušiť",
+
+"play": "prehrať",
+"pause": "pozastaviť",
+"stop": "stop",
+"mute": "stíšiť",
+"unmute": "nahlas",
+
+"Next": "Ďalší",
+"Previous": "Predchádzajúci",
+"Team size": "Veľkosť tímu",
+"Always show names": "Stále zobrazuj mená",
+"Remove current teams": "Odstrániť aktuálne tímy",
+
+"Reset teams": "Resetovať tímy",
+"Language": "Jazyk",
+"Teacher address": "Adresa učiteľa",
+"Learner address": "Adresa študenta",
+"Add learner": "Pridať študenta",
+
+"Remove learner": "Odstrániť študenta",
+"Are you sure you want to permanently remove learner from class?": "Ste si istí, že chcete natrvalo odstrániť študenta z triedy?",
+"Add language": "Pridať jazyk",
+"Record a newsflash": "Nahrať novinku",
+"What we did.": "Čo sme urobili.",
+
+"What we will do.": "Čo budeme robiť.",
+"Any problems?": "Problémy?",
+"Record a 60 second newsflash.": "Nahrať 60-sekundovú novinku.",
+"Click the record button.": "Kliknite na tlačidlo nahrávania.",
+"After the countdown, your picture is taken,<br> then the recording starts.": "Po odpočítavaní sa vezme váš obraz,<br> následne sa spustí nahrávanie.",
+
+"Answer the questions below the recorder.": "Odpovedzte na otázku pod rekordérom.",
+"Listen to your recording, save your recording or record again.": "Vypočute si vašu nahrávku, uložte vašu nahrávku alebo ju zaznamenajte znova.",
+"Are you sure you want to reset teams? If you reset, the following teams cannot no more access their newsflashes": "Ste si istý, že chcete resetovať tímy? Ak ich zresetujete, nasledujúce tímy nebudú môcť pristupovať k svojím novinkám.",
+"Download": "Stiahnuť",
+"Remove teams": "Odstrániť tímy",
+
+"Photo is in unknown format (.jpg, .png, .gif allowed) or too large.": "Fotografia je v neznámom formáte (.jpg, .png, .gif sú povolené) alebo je príliš veľká."}

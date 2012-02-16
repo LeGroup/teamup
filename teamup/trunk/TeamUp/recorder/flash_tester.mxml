@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#1D1D1C" color="#aaaaaa" >
+	<mx:VBox width="100%" horizontalCenter="0" verticalCenter="0" horizontalAlign="center" >
+		<mx:Label fontSize="16" fontWeight="bold"
+		text="Flash Player Version : {Capabilities.version}"/> 
+		<mx:Label fontSize="16" fontWeight="bold"
+		text="Flash Player Debugger Version" visible="{Capabilities.isDebugger}"
+		includeInLayout="{!Capabilities.isDebugger}"/>
+		<mx:Label fontSize="16" fontWeight="bold"
+		text="Flash Player Release Version" visible="{!Capabilities.isDebugger}"
+		includeInLayout="{!Capabilities.isDebugger}"/>  
+	</mx:VBox> 
+</mx:Application> 
