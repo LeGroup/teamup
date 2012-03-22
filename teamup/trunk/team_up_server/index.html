@@ -38,7 +38,7 @@ function setInstanceParams() {
         return;
     }    
     data.task='set_params';
-    $.get('bridge.php', data, function(success) {
+    $.post('bridge.php', data, function(success) {
         if (success=='ok') {
             $('#progress').css('background','#aa0').show();
             go_there();
@@ -50,7 +50,7 @@ function setInstanceParams() {
 }
 
 function validate_class_name(name) {
-    name=$.trim(name.replace(/[\\%\+<>\n\t\r]/g, ''));
+    name=$.trim(name.replace(/[\\%\+*<>\n\t\r]/g, ''));
     return name
 }
 
@@ -401,6 +401,14 @@ a:visited {
     font-weight:normal;
 }
 
+#big_alert {
+    background:#ff0000;
+    font-size:30px;
+    padding:1em;
+    text-align:center;
+    display:none;
+}
+
 p.gogo {
     font-size:90%;
     padding-bottom:0;
@@ -607,7 +615,8 @@ suomi | english
     <label class="i18n">Classroom name</label><input type="text" id="shareddatakey" name="shareddatakey" value="" />
     <input type="button" id="join_classroom" class="i18n-value" value="Go to classroom" disabled="1" />
 </div>
-<div id="classroom_not_available" class="i18n">Sorry, no such classroom.</div>
+<div id="classroom_not_available" class="i18n">Sorry, no such classroom 
+or cannot reach the server.</div>
 
 <div id="bottom_area">
 
