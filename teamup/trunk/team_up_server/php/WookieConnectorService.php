@@ -173,6 +173,55 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 		return new HTTP_Response($response, $http_response_header);
 	}
 
+	/**
+	 * Get instance of a widget. This function is added to provide a way to just check existence of an instance without having to create one
+	 *
+	 * @param Widget|String instance of widget or guid
+	 * @return WidgetInstance WidgetInstance if successful, otherwise false
+	 * @throws WookieConnectorException
+	 */
+
+	public function getInstance($Widget_or_GUID) {
+		try {
+			if($Widget_or_GUID instanceof Widget) {
+				$guid = $Widget_or_GUID->getIdentifier();
+			} else {
+				$guid = $Widget_or_GUID;
+			}
+			if($guid == '') {
+				throw new WookieConnectorException("No GUID nor Widget object");
+			}
+			$requestUrl = $this->getConnection()->getURL().'widgetinstances';
+			$request.= '&api_key='.$this->getConnection()->getApiKey();
+			$request.= '&userid='.$this->getUser()->getLoginName();
+			$request.= '&shareddatakey='.$this->getConnection()->getSharedDataKey();
+			$request.= '&widgetid='.$guid;
+		    if($locale = $this->getLocale()) {
+                $request .= '&locale='.$locale;
+            }
+
+			if(!$this->checkURL($requestUrl)) {
+				throw new WookieConnectorException("URL for supplied Wookie Server is malformed: ".$requestUrl);
+			}
+			$response = $this->do_request($requestUrl, $request, 'GET');
+            if($response->getStatusCode() == 404) {
+                return false;
+            }
+            if($response->getStatusCode() == 403) {
+                throw new WookieConnectorException("Invalid API key"); 
+            }
+
+			$instance = $this->parseInstance($guid, $response->getResponseText());
+			if($instance) {
+			  $this->WidgetInstances->put($instance);
+			}
+			return $instance;
+		} catch (WookieConnectorException $e) {
+			$this->getLogger()->write($e->toString());
+		}
+		return false;
+	}
+
 
 	/**
 	 * Get or create an instance of a widget.
