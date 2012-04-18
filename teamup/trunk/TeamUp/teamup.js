@@ -537,7 +537,8 @@ CONTROLLER.stateUpdated=function(){
     var changes=[];
     var state=wave.getState();
     if (!state) return;
-    keys=state.getKeys();
+    var keys=state.getKeys();
+    var key, existing, update, change, obj;
     debug('received '+keys.length+' objects');
 
     for (var i=0;i<keys.length;i++) {
@@ -574,7 +575,7 @@ CONTROLLER.stateUpdated=function(){
                 // ((could I just overwrite every object now?))
                 // no, we don't want to update everything in UI, we need to know how much to update.
                 change=false;
-                for (pkey in existing) {
+                for (var pkey in existing) {
                     if (existing[pkey]!==update[pkey]) {
                         if ($.isArray(existing[pkey]) || $.isArray(update[pkey])) {
                             if (existing[pkey].length != update[pkey].length) {
@@ -617,10 +618,10 @@ CONTROLLER.stateUpdated=function(){
             }
         }
     }
-    teams_changed=false;
-    people_changed=false;
-    order_changed=false;
-    topics_changed=false;
+    var teams_changed=false;
+    var people_changed=false;
+    var order_changed=false;
+    var topics_changed=false;
     debug(''+changes.length+' changed objects found.');
     // check the totality of changes AND make sure that CATALOG points to the new version from now on.
     for (var i=0;i<changes.length;i++) {
@@ -637,7 +638,7 @@ CONTROLLER.stateUpdated=function(){
         }
     }
     // update LISTS  -- look at the keys in flattened list and replace them with respective CATALOG objects.
-    new_pupils=state.get('PUPILS');
+    var new_pupils=state.get('PUPILS');
     if (new_pupils) {
         new_pupils=$.parseJSON(new_pupils);
         debug('PUPILS updated:'+new_pupils.length);
@@ -661,7 +662,7 @@ CONTROLLER.stateUpdated=function(){
         debug('no PUPILS in state nor names list, strange situation.');
         LEARNER_VIEW.create_person(['Learner1','Learner2']);                
     }
-    new_teams=state.get('TEAMS');
+    var new_teams=state.get('TEAMS');
     if (new_teams) {
         new_teams=$.parseJSON(new_teams);
         var size_before_catalog_update = new_teams.length;
@@ -677,7 +678,7 @@ CONTROLLER.stateUpdated=function(){
     } else {
         debug('no TEAMS in state');
     }
-    new_topics=state.get('TOPICS');
+    var new_topics=state.get('TOPICS');
     if (new_topics) {
         new_topics=$.parseJSON(new_topics);
         debug('TOPICS updated'+new_topics.length);
@@ -739,7 +740,8 @@ CONTROLLER.checkConsistency=function() {
         }
     }
     // Remove duplicated team members
-    temp_d={};
+    var temp_d={};
+    var team;
     for (var i=0;i<TEAMS.length;i++) {
         team=TEAMS[i];
         for (var j=0;j<team.members.length;j++) {
@@ -754,6 +756,7 @@ CONTROLLER.checkConsistency=function() {
     }
     // Check that given votes and available votes match
     temp_d={};
+    var vote_count;
     for (var i=0;i<TOPICS.length;i++) {
         topic=TOPICS[i];
         for (var j=0;j<topic.voters.length;j++) {
@@ -772,6 +775,7 @@ CONTROLLER.checkConsistency=function() {
             }
         }
     }
+    var pupil, votes_given;
     for (var i=0;i<PUPILS.length;i++) {
         pupil=PUPILS[i];
         votes_given= temp_d[pupil.uid] || 0;
@@ -825,7 +829,7 @@ CONTROLLER.setOption=function(option_key, value) {
 // they also contain whole objects, so they have to be flattened to uids before sending. 
 CONTROLLER.addArray=function(array_key, changed_array) {
     debug('** adding '+array_key+' to state upload');
-    packed=[]; 
+    var packed=[]; 
     for (var n=0;n<changed_array.length;n++) { 
         packed.push(changed_array[n].uid); 
     } 
@@ -874,7 +878,7 @@ $(document).ready(function(){
     $('body').css({height:$(window).height()});
 
 
-    params=getUrlVars();
+    var params=getUrlVars();
     if (params.debug_mode) {
         DEBUG_MODE=true;
     }
@@ -975,7 +979,7 @@ $(document).ready(function(){
 
     // Interests and voting functionalities
     // more themes get added dynamically, so this needs to be done repeatedly.
-    INTERESTS.draw_topics();
+    INTERESTS.draw_topics(false);
     $('#reset_votes').click(INTERESTS.reset_votes);
     // Setting criteria and teaming up! 
     $("#team_up_button").click(CRITERIA.confirm_before_teaming).keyup(function(e){if(e.keyCode==13) $(this).click()});
@@ -1074,7 +1078,8 @@ function isType(obj, type_string) {
 
 // turn general Object into specific class instance (Team, Pupil or Topic)
 function restore_json_object(json_obj) {
-    obj=$.parseJSON(json_obj);
+    var new_obj;
+    var obj=$.parseJSON(json_obj);
     if (obj.type=='Team') {
         new_obj= new Team(true);
     } else if (obj.type=='Pupil') {
@@ -1088,7 +1093,7 @@ function restore_json_object(json_obj) {
         return json_obj;
     }
     
-    for (key in obj) {
+    for (var key in obj) {
         new_obj[key] = obj[key];
     }
     CATALOG[new_obj.uid]=new_obj;
@@ -1116,11 +1121,11 @@ function getData(ui_obj) {
         debug('**** GET DATA CALLED WITH EMPTY UI OBJECT: '+$(ui_obj));
         return;
     }
-    key=$(ui_obj).data('teamup_data');
+    var key=$(ui_obj).data('teamup_data');
     if (!key) {
         debug('**** GET DATA FOUND NO KEY: #'+ui_obj[0].id);
     }
-    obj= CATALOG[key];
+    var obj= CATALOG[key];
     if (obj==undefined) {
         debug('**** GET DATA FOUND NOTHING (==UNDEFINED): #'+ui_obj[0].id);
     }
@@ -1195,7 +1200,7 @@ function fs_friendly_string(s) {
 }
 
 function guess_language(){
-    params=getUrlVars();
+    var params=getUrlVars();
     if (params.locale) {
       return params.locale;
     } else if (wave_enabled) {
@@ -1209,7 +1214,7 @@ function guess_language(){
 
 function localize(){
     /* Ensure language code is in the format aa-AA. */
-	lang = OPTIONS.language.replace(/_/, '-').toLowerCase();
+	var lang = OPTIONS.language.replace(/_/, '-').toLowerCase();
 	if (lang.length > 3) {
 		lang = lang.substring(0, 3) + lang.substring(3).toUpperCase();
 	} else if (lang.length == 2) {
@@ -1227,8 +1232,9 @@ function localize(){
         complete: function(data) {
             // Change all of the static strings in index.html
             debug('changing anyway');
-            localizedStrings=$.parseJSON(data.responseText);
-            text_ids=['i18n_class','i18n_teams','keep_photo','try_again_photo','cancel_photo','label_team_size','label_show_names',
+            var place;
+            var localizedStrings=$.parseJSON(data.responseText);
+            var text_ids=['i18n_class','i18n_teams','keep_photo','try_again_photo','cancel_photo','label_team_size','label_show_names',
             'i18n_interests_heading','i18n_grouping_heading','team_up_button',
             'i18n-play','i18n-pause','i18n-stop','i18n-mute','i18n-unmute',
             'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems','record_note',
@@ -1280,7 +1286,7 @@ function localize(){
 
 // debug 
 function str(myObj) {
-    s='';
+    var s='';
     for (myKey in myObj){
         s+=myKey+':'+myObj[myKey]+', ';
     }
@@ -1294,8 +1300,8 @@ function str(myObj) {
 
 function savedPhoto(path) {
     debug('Received a photo');
-    pup=PUPILS[THIS_PERSON];
-    old_src=pup.img_src;
+    var pup=PUPILS[THIS_PERSON];
+    var old_src=pup.img_src;
     pup.img_src=SERVER_URL+'uploads/'+path+'_photo.jpg?r='+Math.floor(Math.random()*10000);
     debug('new img_src:'+pup.img_src);
     $("img.large_portrait").attr('src', pup.img_src);   
@@ -1334,7 +1340,7 @@ function finishedRecording(path) {
     $('#recorder_save_help').hide();
     debug('Received a record');
     // Create an empty note but don't catalog it yet
-    note = new TeamNote(false);
+    var note = new TeamNote(false);
     note.audio_url=SERVER_URL+'uploads/'+path+'_rec.mp3';
     note.photos.push(SERVER_URL+'uploads/'+path+'_pic.jpg');
     // Give it a proper uid before cataloging
@@ -1366,7 +1372,7 @@ function uploadingRecording() {
 // send flash the exact parameters of what to save and where.
 function keep_photo() {
     debug('saving photo...');
-    pup=PUPILS[THIS_PERSON];
+    var pup=PUPILS[THIS_PERSON];
     var server_path=SERVER_URL;
     var class_name=fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
     var user_uid= fs_friendly_string(pup.uid);
@@ -1434,7 +1440,7 @@ function voteClicker(clickerId,choice, givenName, familyName){
     // recognize the voter and add vote if possible  
     //
     debug('Received vote: '+clickerId+'; '+choice+'; '+givenName+'; '+familyName);
-    pupil=null; 
+    var pupil=null; 
     // The easiest matches are those where we already have clicker_ids for each pupil. 
     for(var i = 0; i < PUPILS.length; i++){
         if (PUPILS[i].clicker_id==clickerId) {
@@ -1557,13 +1563,13 @@ function go_right_slider(event) {
 }
 
 function slide_left(icon_query_string){
-        slider=$('div.bottom_inner')
-        icon_width=$(slider).find(icon_query_string).first().width()+10;
+        var slider=$('div.bottom_inner')
+        var icon_width=$(slider).find(icon_query_string).first().width()+10;
         slider.animate({scrollLeft: '-='+icon_width*7},400, 'easeInQuad');
 }
 function slide_right(icon_query_string){
-        slider=$('div.bottom_inner')
-        icon_width=$(slider).find(icon_query_string).first().width()+10;
+        var slider=$('div.bottom_inner')
+        var icon_width=$(slider).find(icon_query_string).first().width()+10;
         slider.animate({scrollLeft: '+='+icon_width*7},400, 'easeInQuad');
 }
 
@@ -1617,7 +1623,7 @@ TEAM_NOTES.hide = function(){
 
 
 TEAM_NOTES.view_learner = function (event) {
-    person=getData($(this))
+    var person=getData($(this))
     TEAM_NOTES.hide();
     if (!MODERATOR) $('div.bottom').hide();
     LEARNER_VIEW.create_person(person);
@@ -1658,7 +1664,8 @@ TEAM_NOTES.create_team_notes= function(team) {
     //debug('create_team_notes calling setData');
     setData(tt, team);
     var place=$('#team_member_faces');
-    place.html('');    
+    place.html('');
+    var s, obj, member;   
     for (var i=0;i<team.members.length;i++) {
         member=CATALOG[team.members[i]];
         s='<div class="team_face" alt="'+member.name+'" title="'+member.name+'">';
@@ -1674,12 +1681,12 @@ TEAM_NOTES.create_team_notes= function(team) {
         obj.dblclick(TEAM_NOTES.view_learner);
         
     }
-    notes=$('#available_recordings');
+    var notes=$('#available_recordings');
     notes.html('');
     var dt;
     notes.width(team.notes.length*142);
 
-
+    var note, dt;
     for (var i=0;i<team.notes.length;i++) {
         note=CATALOG[team.notes[i]];
         s='<div class="note_thumbnail">';
@@ -1702,7 +1709,7 @@ TEAM_NOTES.create_team_notes= function(team) {
         setData(obj, note);
         obj.find('span.remove_note').click(TEAM_NOTES.remove_note);
     }
-    half_size=($(window).height()<532);
+    var half_size=($(window).height()<532);
     if (half_size) {
         $('#player').css('top',-50);
         $('div.note_questions').css('top',-74);
@@ -1729,6 +1736,7 @@ TEAM_NOTES.create_team_notes= function(team) {
     }
 }
 TEAM_NOTES.remove_note=function(event, confirmed) {
+    var note;
     if (!confirmed) {
         note=getData($(this).parent('div.note_thumbnail'));
         if (!note) {
@@ -1814,11 +1822,10 @@ TEAM_NOTES.record_mode= function(event) {
 }
 
 TEAM_NOTES.prepare_audio= function() {
-    note=getData($('#note_viewer'));
+    var note=getData($('#note_viewer'));
+    var rec=''
     if (note!=null) {
         rec=note.audio_url;
-    } else {
-        rec='';
     }
     $('#note_viewer_object').jPlayer("setMedia", {mp3:rec});
 }
@@ -1827,10 +1834,10 @@ TEAM_NOTES.save_note= function() {
     var recorder = swfobject.getObjectById('TeamRecorder');
     var team=getData($('#team_title'));
 
-    note_id=new Date().getTime().toString().substring(5);
-    server_path=SERVER_URL;
-    class_uid= fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
-    note_uid= fs_friendly_string(team.uid)+'_note_'+note_id;
+    var note_id=new Date().getTime().toString().substring(5);
+    var server_path=SERVER_URL;
+    var class_uid= fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
+    var note_uid= fs_friendly_string(team.uid)+'_note_'+note_id;
 
     if (recorder.save !== undefined) {
         debug('Found recorder');
@@ -1856,9 +1863,9 @@ CLASSROOM.select_team_view = function(event) {
 }
 
 CLASSROOM.populate_class= function() {
-    place=$('div.class_area');
+    var place=$('div.class_area');
     place.html('');
-    
+    var pup,s,obj;
     for (var i=0; i<PUPILS.length; i++) {
         pup=PUPILS[i];
         s='<div class="face" id="pup'+pup.uid+'"><label>'+pup.name+'</label><img src="'+pup.img_src+'" width="100" height="100" /><span class="away ui-icon ui-icon-closethick">&nbsp;</span></div>';
@@ -1880,7 +1887,7 @@ CLASSROOM.populate_class= function() {
 
     $('div.face').dblclick(CLASSROOM.view_learner);
     $('span.away').click(function(event) {
-        face=$(this).closest("div");
+        var face=$(this).closest("div");
         face.addClass('away');
         event.stopImmediatePropagation();
         face.click(function(event) {
@@ -1892,8 +1899,8 @@ CLASSROOM.populate_class= function() {
 CLASSROOM.drag_drop = function (event, ui) {
     debug('dropped');
     if (TEAM_VIEW) return CLASSROOM.switch_team(event, ui);
-    source=getData(ui.helper);
-    target=getData($(this));
+    var source=getData(ui.helper);
+    var target=getData($(this));
     debug(source.uid);
     debug(target.uid);
     if (source.uid!=target.uid) {
@@ -1919,12 +1926,12 @@ CLASSROOM.drag_drop = function (event, ui) {
 
 CLASSROOM.drag_over = function (event, ui) {
     if (TEAM_VIEW) return;
-    w=$(this).width()/4;
+    var w=$(this).width()/4;
     $(this).animate({left:'+='+w})
 }
 CLASSROOM.drag_out = function (event, ui) {
     if (TEAM_VIEW) return;
-    w=$(this).width()/4;
+    var w=$(this).width()/4;
     $(this).animate({left:'-='+w})
 
 }
@@ -1947,7 +1954,7 @@ CLASSROOM.adjust_for_learners= function (event) {
 
 
 CLASSROOM.view_learner = function (event) {
-    person=getData($(this))
+    var person=getData($(this))
     CLASSROOM.hide();
     LEARNER_VIEW.create_person(person);
     if (!MODERATOR) $('div.bottom').hide();
@@ -1997,26 +2004,26 @@ CLASSROOM.build_class_view = function (animate) {
         $('#team_view').show();
     }            
     TEAM_VIEW=false;
-    box_width=$(window).width()-60;
-    box_height=$(window).height()-230;
+    var box_width=$(window).width()-60;
+    var box_height=$(window).height()-230;
 
-    icon_width=$('div.face').first().outerWidth();
-    box_ratio=box_width/box_height;
-    per_row=Math.floor(Math.sqrt(Math.ceil(PUPILS.length*box_ratio)));
-    new_size_x=(box_width/per_row);
-    new_size_y=box_height/Math.ceil(PUPILS.length/per_row);
+    var icon_width=$('div.face').first().outerWidth();
+    var box_ratio=box_width/box_height;
+    var per_row=Math.floor(Math.sqrt(Math.ceil(PUPILS.length*box_ratio)));
+    var new_size_x=(box_width/per_row);
+    var new_size_y=box_height/Math.ceil(PUPILS.length/per_row);
     if (new_size_x<new_size_y) {
         new_size=new_size_x;
     } else {
         new_size=new_size_y;
     }
     if (new_size>255) new_size=255;
-    padding=new_size/20;
+    var padding=new_size/20;
     new_size-=padding;
     //$('#team_view').html('h:'+box_height+' cols:'+per_row+' rows:'+Math.ceil(PUPILS.length/per_row));
 
-    x=60;
-    y=88;
+    var x=60;
+    var y=88;
     if (animate){
         $('div.face').animate({width:new_size, height:new_size});
         $('div.face img').animate({width:new_size, height:new_size});
@@ -2032,8 +2039,9 @@ CLASSROOM.build_class_view = function (animate) {
     }
     $('div.face label').css({'font-size':new_size+'%', width:new_size});
     //$('div.face').droppable('enable');   
-    step=icon_width+5;
-    col=0;
+    var step=icon_width+5;
+    var col=0;
+    var face;
     for (i=0;i<PUPILS.length;i++) {
         col++;
         face=PUPILS[i].getFace('pup');
@@ -2062,19 +2070,20 @@ CLASSROOM.build_team_view = function(animate) {
             return;
         }
     } 
-    box_width=$(window).width()-60;
-    box_height=$(window).height()-230;
+    var box_width=$(window).width()-60;
+    var box_height=$(window).height()-230;
 
     // calculate optimal space for displaying teams:    
-    height_factor=Math.cos((Math.PI/180)*30)
-    left_margin=30;
-    top_margin=80;
+    var height_factor=Math.cos((Math.PI/180)*30)
+    var left_margin=30;
+    var top_margin=80;
     
-    cols=0;
-    rows=0;
-    r=0;
-    r_t=0;
-    fitted=true;    
+    var cols=0;
+    var rows=0;
+    var r=0;
+    var r_t=0;
+    var fitted=true;
+    var row_t, extra_nodes, wmax, hmax;    
     for (col_t=1;col_t<8;col_t++) {
         row_t=Math.ceil(TEAMS.length/col_t);
         // there is a possibility of more rows appearing
@@ -2114,15 +2123,15 @@ CLASSROOM.build_team_view = function(animate) {
     
     $('div.team_box').show();
     $('span.team_name').show();
-    x=left_margin;
-    y=top_margin;
-    center=r/2;
-    dist=r/3;
-    icon_size=r/4;
-    font_size=''+(Math.ceil(r/4)+10)+'%';
-    icon_center=icon_size/2;
-    table_size=0.75*r
-    table_border=0.25*r/2
+    var x=left_margin;
+    var y=top_margin;
+    var center=r/2;
+    var dist=r/3;
+    var icon_size=r/4;
+    var font_size=''+(Math.ceil(r/4)+10)+'%';
+    var icon_center=icon_size/2;
+    var table_size=0.75*r
+    var table_border=0.25*r/2
     if (animate){
         $('div.face').animate({width:icon_size, height:icon_size});        
         $('div.face img').animate({width:icon_size, height:icon_size});
@@ -2141,8 +2150,8 @@ CLASSROOM.build_team_view = function(animate) {
     $('div.face label').css({'font-size':font_size, width:icon_size});    
     //$('div.face').droppable('disable');   
     
-    even=true;
-    
+    var even=true;
+    var tteam, team_box, radstep2, rad2, new_x, new_y, member, face;
     for (i=0;i<TEAMS.length;i++) {        
         tteam=TEAMS[i];
         tteam.center_x=x+center;
@@ -2202,8 +2211,9 @@ CLASSROOM.build_team_view = function(animate) {
 // moderator only
 CLASSROOM.create_random_teams= function() {
     debug('Creating random teams');
-    free_pupils=PUPILS.slice(0);
-    teams_count=PUPILS.length/OPTIONS.team_size;
+    var free_pupils=PUPILS.slice(0);
+    var teams_count=PUPILS.length/OPTIONS.team_size;
+    var nt, member;
     while (free_pupils.length>0) {
         for (i=0;i<teams_count;i++) {
             if (free_pupils.length>0) {
@@ -2232,7 +2242,7 @@ CLASSROOM.create_random_teams= function() {
 
 CLASSROOM.reset_teams= function(confirmed) {
     if (!confirmed) {
-        team_names='';
+        var team_names='';
         debug('Checking if teams have newsflashes...');
         for( var i=0;i<TEAMS.length;i++) {
             if (TEAMS[i].notes.length>0) {
@@ -2267,7 +2277,8 @@ CLASSROOM.redraw_team_labels= function() {
     }
 
     $('div.team_box').remove();
-    place=$('div.class_area');
+    var place=$('div.class_area');
+    var team_name, team_name_input;
     for (i=0;i<TEAMS.length;i++){
         team_name=TEAMS[i].name;
         place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><div class="recordings_button" title="'+i18n('Team notes')+'"><img src="icons/rec.png" width="48" height="48" alt="" /><span class="available_recordings">0</span></div><img class="team_table" src="images/circle2.png" alt="" width="164" height="152" /></div>');
@@ -2285,11 +2296,10 @@ CLASSROOM.redraw_team_labels= function() {
         $(this).prev('span.team_name').show();
         $(this).hide();
     });
-    
     $("input.team_name").change(function(event) {
         debug('team name changed');
-        team=getData($(this).closest(".team_box"));
-        new_name=$(this).val().replace('>','').replace('<','');
+        var team=getData($(this).closest(".team_box"));
+        var new_name=$(this).val().replace('>','').replace('<','');
         team.name=new_name;
         $(this).val(new_name)
         debug('team name:'+new_name); 
@@ -2315,9 +2325,9 @@ CLASSROOM.update_faces= function() {
 
 // moderator only?
 CLASSROOM.switch_team=function (event, ui) {
-    person=getData(ui.helper);
+    var person=getData(ui.helper);
     var found=false;
-    target=getData(event.target);
+    var target=getData(event.target);
     if (target.type=='Pupil') {
         for (var i=0;i<TEAMS.length;i++){
             team=TEAMS[i];
@@ -2332,6 +2342,7 @@ CLASSROOM.switch_team=function (event, ui) {
     } else {
         debug('target team in switch: '+target.uid);
     }
+    var team;
     for (var i=0;i<TEAMS.length;i++){
         team=TEAMS[i];
         for (var j=0;j<team.members.length;j++){
@@ -2379,7 +2390,7 @@ CLASSROOM.go_learner_view= function(event) {
 }
 
 CLASSROOM.go_team_notes= function(event) {
-    team=getData($(this).closest('.team_box'));
+    var team=getData($(this).closest('.team_box'));
     TEAM_NOTES.create_team_notes(team);
     CLASSROOM.hide();
     $('div.recordings').show('slide', {direction:'down'},300);
@@ -2445,11 +2456,12 @@ INTERESTS.draw_topics = function(animate) {
     debug('redrawing topics');
     var s='';
     var r='';
+    var topic, is_empty, val, li, pupil, obj, mini_face, x_delta;
     if (animate) {
-        old_votes={};
+        var old_votes={};
         $('div.smallFace').each(function() { old_votes[this.id]=true; }); 
     }
-    place=$('ol#topics');
+    var place=$('ol#topics');
     place.html('');
     
     for (var i=0;i<TOPICS.length;i++) {
@@ -2502,21 +2514,25 @@ INTERESTS.draw_topics = function(animate) {
 }
 
 INTERESTS.store_topic = function(event) {
-    name=$(this).val().replace('<','').replace('>','');
-    topic=getData($(this).parent('li'));
+    var name=$(this).val().replace('<','').replace('>','');
+    var topic=getData($(this).parent('li'));
     topic.name=name;
-    CONTROLLER.addChange(topic);
-    $(this).removeClass('empty');
-    if (TOPICS[TOPICS.length-1].uid==topic.uid && name!='') {
-        debug('Adding a new empty topic');
-        new_topic=new Topic('');
-        TOPICS.push(new_topic);
-        CONTROLLER.addChange(new_topic);
-        CONTROLLER.addArray('TOPICS', TOPICS);
+    debug('Renaming topic '+topic.uid+' to '+topic.name);
+    if (name.length>0) {
+        $(this).removeClass('empty');
+        if (TOPICS[TOPICS.length-1].uid==topic.uid && name!='') {
+            debug('Adding a new empty topic');
+            var new_topic=new Topic('');
+            TOPICS.push(new_topic);
+            CONTROLLER.addChange(new_topic);
+            CONTROLLER.addArray('TOPICS', TOPICS);
+        }    
+    } else {
+        CONTROLLER.addChange(topic);
     }    
-    $(this).parent('li').next().find('input').focus();
     CONTROLLER.sendChanges();
-    INTERESTS.draw_topics();
+    INTERESTS.draw_topics(false);
+    $('#'+topic.uid).parent('li').next().find('input').focus(); // focus to next field 
 }
 
 
@@ -2556,7 +2572,7 @@ INTERESTS.prev = function(){
 
 INTERESTS.init_interest_dragging = function() {
     //$('div.people_picker_face').bind('dragstart', function(event) { event.preventDefault() });
-    face=$('div.people_picker_face');
+    var face=$('div.people_picker_face');
     face.draggable({helper:function(event) {return INTERESTS.create_small_face_from_draggable(this);}, revert: "invalid", cursorAt:{left:21, top:21}, scroll:false});
     face.disableSelection();
     $('div.people_picker_face img').disableSelection();
@@ -2579,8 +2595,8 @@ INTERESTS.init_interest_dragging = function() {
             $('#topics li').addClass('markSelectable');
             $('#topics li').click(function (event) {
                 debug('adding '+getData(selected_face).name+' to '+getData(this).text);
-                person=getData(selected_face);
-                topic=getData(this);
+                var person=getData(selected_face);
+                var topic=getData(this);
                 topic.addVoter(person);
                 person.votes_available--;
                 selected_face.find('span.votes').html(person.votes_available);
@@ -2599,8 +2615,8 @@ INTERESTS.init_interest_dragging = function() {
 }
 
 INTERESTS.create_small_face_from_draggable = function(face) {
-    small_face=$(face).clone(false);
-    img=$(small_face).find('img');
+    var small_face=$(face).clone(false);
+    var img=$(small_face).find('img');
     small_face.removeClass('people_picker_face');
     small_face.addClass('smallFace');
     img.attr({height:32, width:32});
@@ -2612,9 +2628,9 @@ INTERESTS.remove_vote = function (event, ui) {
         return;
     }
     debug('removing a vote');    
-    person=getData(ui.helper);
+    var person=getData(ui.helper);
     person.votes_available++;
-    topic=getData($(this).parent('li'));
+    var topic=getData($(this).parent('li'));
     topic.removeVoter(person);
     ui.helper.remove();
     $('#picker_'+person.uid).find('span.votes').html(person.votes_available);
@@ -2624,7 +2640,8 @@ INTERESTS.remove_vote = function (event, ui) {
 }
 
 INTERESTS.add_vote = function(event, ui) {
-    person=getData(ui.draggable);
+    var person=getData(ui.draggable);
+    var topic, source, source_li;
 
     if ($(ui.draggable).hasClass('people_picker_face')) {
         if (person.votes_available==0) {
@@ -2642,7 +2659,6 @@ INTERESTS.add_vote = function(event, ui) {
         // moving a vote
         debug('moving a vote');
         source_li=$(ui.draggable).parent();
-        person=getData(ui.draggable);
         source=getData(source_li)
         source.removeVoter(person);
         topic=getData(this);
@@ -2679,9 +2695,9 @@ INTERESTS.update_people_votes = function() {
 }
 
 INTERESTS.populate_people_picker = function() {
-    place=$('div.people_picker');
+    var place=$('div.people_picker');
     place.html('');
-    
+    var s, obj;
     for (var i=0; i<PUPILS.length; i++) {
         s='<div class="people_picker_face" alt="'+PUPILS[i].name+'" title="'+PUPILS[i].name+'" id="picker_'+PUPILS[i].uid+'">';
         s+='<img src="'+PUPILS[i].img_src+'" width="100" height="100" />';
@@ -2724,7 +2740,7 @@ LEARNER_VIEW.create_new_person= function(event) {
 
 LEARNER_VIEW.create_person_page= function() {
     finish_photoshoot();
-    pup=PUPILS[THIS_PERSON];
+    var pup=PUPILS[THIS_PERSON];
     $('#namebox').val(pup.name);
     $('img.large_portrait').attr('src', pup.img_src);
     $('img.large_portrait').show();
@@ -2734,7 +2750,7 @@ LEARNER_VIEW.create_person_page= function() {
 }
 
 LEARNER_VIEW.create_person= function(person){
-
+    var pup, cr;
     if (isType(person, 'Pupil')) {
         for (var i=0; i<PUPILS.length; i++) {
             if (PUPILS[i].uid==person.uid) {
@@ -2774,16 +2790,17 @@ LEARNER_VIEW.create_person= function(person){
 }
 
 LEARNER_VIEW.update_property_choices= function() {
-    props=ALL_GENDERS.criteria.concat(ALL_LEVELS.criteria, ALL_HOBBIES.criteria, ALL_LANGUAGES.criteria, ALL_FRIENDS.criteria);
+    var props=ALL_GENDERS.criteria.concat(ALL_LEVELS.criteria, ALL_HOBBIES.criteria, ALL_LANGUAGES.criteria, ALL_FRIENDS.criteria);
     $('div.people_properties').width(props.length*74);
     LEARNER_VIEW.populate_person_properties(props);
     LEARNER_VIEW.init_property_dragging();
 }
 
 LEARNER_VIEW.update_person_properties= function(new_prop) {
-    pup=PUPILS[THIS_PERSON];
+    var pup=PUPILS[THIS_PERSON];
     // data rows 
     // hobbies
+    var prop, div, s;
     if (MODERATOR || OPTIONS.show_icons) {
         div=$('div.hobbies');
         div.html('');
@@ -2931,7 +2948,8 @@ LEARNER_VIEW.update_person_properties= function(new_prop) {
 }
 
 LEARNER_VIEW.click_icon= function(event) {
-    prop=getData(this);
+    var prop=getData(this);
+    var person, other_person;
     if (isType(prop, 'Friend')) {
         person=PUPILS[THIS_PERSON];
         person.removeFriend(prop)
@@ -2970,9 +2988,10 @@ LEARNER_VIEW.get_all_props= function() {
 
 LEARNER_VIEW.jump_to_person= function(event) {
     event.stopImmediatePropagation();
-    prop=getData(this);
+    var prop=getData(this);
     if (isType(prop, 'Friend') || isType(prop, 'Enemy')) {
-        person_uid=prop.person;
+        var person_uid=prop.person;
+        var THIS_PERSON;
         debug(person_uid);
         for (i=0; i<PUPILS.length; i++) {            
             if (person_uid==PUPILS[i].uid) {
@@ -2991,14 +3010,14 @@ LEARNER_VIEW.init_property_dragging= function() {
     $('div.property_picker_item').disableSelection();
     $('div.property_picker_item img').disableSelection();
     $('div.property_picker_item').click(function(event) {
-        prop=getData(this);
-        person=PUPILS[THIS_PERSON];
+        var prop=getData(this);
+        var person=PUPILS[THIS_PERSON];
         if (isType(prop, 'Friend')) {
             if (prop.person==person.uid) {
                 return;   
             }
             person.addFriend(prop);
-            my_friend=CATALOG[prop.person];
+            var my_friend=CATALOG[prop.person];
             my_friend.addFriend(person);
             CONTROLLER.addChange(person);
             CONTROLLER.addChange(my_friend);
@@ -3016,8 +3035,9 @@ LEARNER_VIEW.init_property_dragging= function() {
 }
 
 LEARNER_VIEW.open_language_panel= function(event) {
-    lp=$('#language-panel');
-    s='';
+    var lp=$('#language-panel');
+    var s='';
+    var lang;
     for (var key in LANGUAGE_CODES) {
         lang=LANGUAGE_CODES[key];
         s+='<div class="language_item" alt="'+lang+'" title="'+lang+'" id="lang_'+key+'"><img src="'+ALL_LANGUAGES.img_src+'" width="64" height="64" /><label class="lang_label">'+key+'</label></div>';  //charAt(0).toUpperCase()+key.slice(1,3)
@@ -3028,7 +3048,7 @@ LEARNER_VIEW.open_language_panel= function(event) {
 }
 
 LEARNER_VIEW.add_language_option= function(event) {
-    lang_code=this.id.slice(5);
+    var lang_code=this.id.slice(5);
     debug('looking for:'+lang_code);
     for (var li=0;li<ALL_LANGUAGES.criteria.length;li++) {
         debug(ALL_LANGUAGES.criteria[li].lang_code)
@@ -3049,14 +3069,14 @@ LEARNER_VIEW.add_property= function(event, ui) {
         return;
     }
     // dragging a new property to person
-    prop=getData(ui.draggable);
-    person=PUPILS[THIS_PERSON];
+    var prop=getData(ui.draggable);
+    var person=PUPILS[THIS_PERSON];
     if (isType(prop, 'Friend')) {
         if (prop.person==person.uid) {
             return;   
         }
         person.addFriend(prop);
-        my_friend=CATALOG[prop.person];
+        var my_friend=CATALOG[prop.person];
         my_friend.addFriend(person);
         CONTROLLER.addChange(person);
         CONTROLLER.addChange(my_friend);
@@ -3075,17 +3095,17 @@ LEARNER_VIEW.remove_property= function(event, ui) {
         return;
     }
     debug("removing person property")
-    prop=getData(ui.helper);
-    person=PUPILS[THIS_PERSON];
+    var prop=getData(ui.helper);
+    var person=PUPILS[THIS_PERSON];
     if (isType(prop, 'Friend')) {
-        my_friend=CATALOG[prop.person];
+        var my_friend=CATALOG[prop.person];
         person.removeFriend(my_friend);
         my_friend.removeFriend(person);
         CONTROLLER.addChange(person);
         CONTROLLER.addChange(my_friend);
         CONTROLLER.sendChanges();
     } else if (isType(prop, 'Enemy')) {
-        my_enemy=CATALOG[prop.person];
+        var my_enemy=CATALOG[prop.person];
         person.removeEnemy(my_enemy);
         my_enemy.removeEnemy(person);
         CONTROLLER.addChange(person);
@@ -3102,12 +3122,12 @@ LEARNER_VIEW.remove_property= function(event, ui) {
 
 
 LEARNER_VIEW.populate_person_properties= function(props) {
-    place=$('div.people_properties');
+    var place=$('div.people_properties');
     place.html('');
     if (!MODERATOR) {
         return;
     }
-
+    var class_name, s, prop, obj;
     for (var i=0; i<props.length; i++) {
         prop=props[i];
         if (isType(prop, 'AddLanguageButton')) {
@@ -3175,7 +3195,7 @@ LEARNER_VIEW.delete_learner= function() {
 // Criterion page
 
 CRITERIA.show= function(dir){
-    crits=CRITERIA.available_criteria();
+    var crits=CRITERIA.available_criteria();
     $('div.criteria_picker').width(crits.length*74);
     CRITERIA.populate_criteria_picker(crits);
     CRITERIA.init_dragging();
@@ -3226,6 +3246,7 @@ CRITERIA.prev = function(){
 
 
 CRITERIA.add_unifying_crit = function(event, ui){
+    var index;
     if (this.id=='crit_place_1') {
         index=0;
     } else if (this.id=='crit_place_2') {
@@ -3233,7 +3254,7 @@ CRITERIA.add_unifying_crit = function(event, ui){
     } else if (this.id=='crit_place_3') {
         index=2;
     }
-    crit=getData(ui.draggable);
+    var crit=getData(ui.draggable);
     if (ui.draggable.hasClass('criteria_picker_item')) {
         ui.draggable.hide();
     }
@@ -3248,6 +3269,7 @@ CRITERIA.add_unifying_crit = function(event, ui){
         UNIFYING_CRITERIA.splice(index,0,crit);
     }
     // Criteria list can contain only 3 items, rest are put back to criteria picker. 
+    var obj;
     if (UNIFYING_CRITERIA.length>3) {
         for (var i=3;i<UNIFYING_CRITERIA.length;i++) {
             obj=UNIFYING_CRITERIA[i];
@@ -3259,6 +3281,7 @@ CRITERIA.add_unifying_crit = function(event, ui){
 }
 
 CRITERIA.create_crit_icons = function() {
+    var place, obj, jq_obj;
     for (var i=0;i<UNIFYING_CRITERIA.length;i++) {
         place=$('#crit_place_'+(i+1));
         obj=UNIFYING_CRITERIA[i];
@@ -3274,8 +3297,7 @@ CRITERIA.create_crit_icons = function() {
 }
 
 CRITERIA.remove_unifying_crit = function(event, ui){
-    
-    crit=getData(ui.helper);
+    var crit=getData(ui.helper);
     debug(crit.name);
     debug(crit.uid);
     $('#cp_'+crit.name).show();
@@ -3289,13 +3311,14 @@ CRITERIA.remove_unifying_crit = function(event, ui){
             
 
 CRITERIA.available_criteria = function() {
-    crit_list=[]
-    friends=false;
-    hobbies=false;
-    levels=false;
-    languages=false;
-    gender=false;
-    votes=false;
+    var crit_list=[]
+    var friends=false;
+    var hobbies=false;
+    var levels=false;
+    var languages=false;
+    var gender=false;
+    var votes=false;
+    var pup;
     for (i=0; i<PUPILS.length; i++) {
         pup=PUPILS[i];
         if (pup.friends.length>0) friends=true;
@@ -3316,9 +3339,9 @@ CRITERIA.available_criteria = function() {
 
 
 CRITERIA.populate_criteria_picker = function(crits) {
-    place=$('div.criteria_picker');
+    var place=$('div.criteria_picker');
     place.html('');
-    var s;
+    var s, critgroup, crit_item;
     debug('populating criteria picker');
     for (var i=0; i<crits.length; i++) {
         critgroup=crits[i];
@@ -3336,7 +3359,7 @@ CRITERIA.populate_criteria_picker = function(crits) {
 }
 
 CRITERIA.confirm_before_teaming = function(event) {
-    team_names='';
+    var team_names='';
     debug('Checking if teams have newsflashes...');
     for( var i=0;i<TEAMS.length;i++) {
         if (TEAMS[i].notes.length>0) {
@@ -3387,7 +3410,7 @@ function team_up() {
     for (var j=0;j<splitting_criteria.length;j++) {
         splitting_criteria[j].weight=neg_weight;
     };
-    vote_weight=ALL_VOTES.weight/VOTES_PER_PERSON;
+    var vote_weight=ALL_VOTES.weight/VOTES_PER_PERSON;
     debug('Vote weight:'+vote_weight)
 
     // Next sort the TOPICS by their votes.
