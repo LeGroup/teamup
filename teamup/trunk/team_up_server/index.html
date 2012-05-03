@@ -620,17 +620,19 @@ left:230px;
 }
 
 #progress {
-    position: fixed;
-    right:10px;
-    top:10px;
-    width:160px;
-    height:90px;
+    position: absolute;
     display:none;
-    font-size:62pt;
+    right:-20px;
+    top:10px;
+    width:20px;
+    height:20px;
+    font-size:12pt;
     text-align:center;
-    border-radius: 10px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;        
+    border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    background:#600;
+    color:#aaa;      
 }
 
 </style>
@@ -646,6 +648,7 @@ left:230px;
 <div id="top-corner">
     <label class="i18n">Classroom name</label><input type="text" id="shareddatakey" name="shareddatakey" value="" />
     <input type="button" id="join_classroom" class="i18n-value" value="Go to classroom" disabled="1" />
+    <div id="progress">&#x25b6;</div>
 </div>
 <div id="classroom_not_available" class="i18n">Sorry, no such classroom 
 or cannot reach the server.</div>
@@ -696,7 +699,6 @@ or cannot reach the server.</div>
 
 <div class="fb-like" data-href="http://teamup.aalto.fi/" data-send="true" data-width="450" data-show-faces="true" data-colorscheme="dark"></div>
 </div>
-<div id="progress">&#x25b6;</div>
 </div>
 </div>
 </div>
