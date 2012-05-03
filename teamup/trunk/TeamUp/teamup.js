@@ -28,9 +28,6 @@ var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'
 var VOTES_PER_PERSON = 3;
 var DEFAULT_IMAGE = 'images/defaultUser.png';
 
-var wave_enabled = false;
-if (typeof wave !== 'undefined') { wave_enabled = true }
-
 var PARAMS = null; // class creation parameters send by server, shouldn't change once initialized
 var PRIVATE_STATE = {}; // Moodle launch will set private state values, which should only be read once.
 var TEAM_VIEW = false; // classroom is showing teams (round tables) or class (grid)
@@ -57,7 +54,7 @@ var demo_note = null;
 var update_counter = 0;
 
 var create_uid = function(){
-    if (wave_enabled && CONTROLLER.user.id) {
+    if (CONTROLLER.user.id) {
         return CONTROLLER.user.id+_create_uid();
     } else {
         return ''+_create_uid();
@@ -456,7 +453,7 @@ ALL_VOTES.img_src='icons/vote.png';
 
 
 // ********* FILLING WITH DEMO CONTENT ******
-if (!wave_enabled) {
+if (CONTROLLER.offline) {
     
     // fill Array pupils with Pupils. These pupils should be created from data from LMS or something. 
     names=['Jukka','Tarmo','Oscar','Teemu','Jyri','Wilhelm','Knuth','Ringo','Peter','Ted','Nico','Leyla','Sam','Anne','Diana','Tiina','Bianca','Zarrin','Diniella','Cindy','Sarah R','Jasmin','Sarah N','Maria', 'Jafar','Daniel','Simin','Anna'];
@@ -494,364 +491,6 @@ if (!wave_enabled) {
 
 // **** Widgetizing TeamUP -- user changes should send view changes and view changes should be reflected for users
 // reacting to view changes for user is handled by CONTROLLER. 
-var CONTROLLER = {};
-CONTROLLER.delta={};
-CONTROLLER.init= function() {
-    if (wave_enabled && wave.isInWaveContainer()) {
-        CONTROLLER.availablePeopleChanged();
-        CONTROLLER.updateUser();
-        wave.setStateCallback(CONTROLLER.stateUpdated);
-        wave.setParticipantCallback(CONTROLLER.availablePeopleChanged);
-        //debug(Object.keys(wave));
-    }
-}
-CONTROLLER.user={};
-CONTROLLER.updateUser=function(){
-	if (wave.getViewer() != null){
-		CONTROLLER.user.id = wave.getViewer().getId();
-		CONTROLLER.user.username = wave.getViewer().getDisplayName() || CONTROLLER.user.id;
-		CONTROLLER.user.thumbnail  = wave.getViewer().getThumbnailUrl();
-		debug('Viewer identifiend');
-	}
-	if (CONTROLLER.user.thumbnail == "" || CONTROLLER.user.thumbnail == null) CONTROLLER.user.thumbnail = "anon.png";
-	if (CONTROLLER.user.username == null || CONTROLLER.user.username == ""){
-		CONTROLLER.user.username = "anonymouse";        
-		CONTROLLER.user.id = "anonymous";
-		debug('No viewer object');
-	}
-	// Moodle plugin creates private properties:
-	//PRIVATE_STATE=wave.getPrivateState();
-    debug('user.id:'+CONTROLLER.user.id);
-    debug('user.username:'+CONTROLLER.user.username);
-    //debug(Object.keys(Widget));
-}
-
-// stateUpdated has lots of work to do.
-// it gets the whole state each time and has to decide which objects in CATALOG need to be updated
-// those objects are updated or if missing, created and added to CATALOG.
-// then there are arrays of objects: PUPILS, TEAMS and TOPICS. In state these are arrays of keys, but when read and updated, they are
-// restored with aid of CATALOG to arrays of objects. 
-CONTROLLER.stateUpdated=function(){
-    if (!wave_enabled) return;
-    update_counter++;
-    var changes=[];
-    var state=wave.getState();
-    if (!state) return;
-    var keys=state.getKeys();
-    var key, existing, update, change, obj;
-    debug('received '+keys.length+' objects');
-
-    for (var i=0;i<keys.length;i++) {
-        key=keys[i];
-        if (key=='deleted') {
-            // this holds list of uids for objects that should be deleted
-            continue;
-        } else if (key=='TOPICS' || key=='TEAMS' || key=='PUPILS') {
-            // ignore these arrays. they will be checked and updated later when each new object has uid.
-            continue;
-        } else if (key=='PARAMS') {
-            // PARAMS need to be loaded only once per instance.
-            if (!PARAMS) {
-                debug('*** Loading PARAMS ***')
-                CONTROLLER.setParams(state.get(key));
-                if (MODERATOR) {
-                    $('#i18n-teacher').show()
-                } else {
-                    $('#i18n-teacher').hide()
-                }                
-                $('#i18n-offline').hide();
-                $('#class_name_hint').text(PARAMS.class_key);
-            }
-        } else if (key=='SHOW_ICONS') {
-            OPTIONS.show_icons=$.parseJSON(state.get(key));
-        } else {
-            existing=CATALOG[key];
-            update=restore_json_object(state.get(key));
-            if (!update) 
-                // somehow broken object. better skip it.
-                continue; 
-            if (existing) {
-                // old version exists and needs to be compared for changes. 
-                // ((could I just overwrite every object now?))
-                // no, we don't want to update everything in UI, we need to know how much to update.
-                change=false;
-                for (var pkey in existing) {
-                    if (existing[pkey]!==update[pkey]) {
-                        if ($.isArray(existing[pkey]) || $.isArray(update[pkey])) {
-                            if (existing[pkey].length != update[pkey].length) {
-                                debug('length difference in '+pkey+': old:'+existing[pkey].length+' new:'+update[pkey].length);
-                                existing[pkey]=update[pkey];
-                                debug('replaced old '+pkey+':'+existing[pkey].length+' with new:'+update[pkey].length); 
-                                change=true;
-                            } else {
-                                for (var k=0;k<existing[pkey].length;k++) {
-                                    if (existing[pkey][k]!=update[pkey][k]) {
-                                        debug('array content changed in '+pkey+': old ['+k+']:'+existing[pkey][k]+' new:'+update[pkey][k]);
-                                        change=true;
-                                        existing[pkey]=update[pkey];
-                                        break;
-                                    }
-                                }
-                            }                                 
-                        } else {
-                            change=true;
-                            existing[pkey]=update[pkey];
-                            debug('general difference in '+pkey+': old:'+existing[pkey]+' new:'+update[pkey]);
-                        }                        
-                    } 
-                } 
-                if (change) {
-                    debug('change in '+existing.uid);
-                    changes.push(existing);
-                }
-            } else {
-                // create new object based on flat_new
-                // add it to relevant lists and catalogs
-                debug('downloading new '+update.uid);
-                if (isType(update, 'Pupil')) {
-                    cr=new Friend(update);
-                    ALL_FRIENDS.add(cr);
-                    cr=new Enemy(update);
-                    ALL_ENEMIES.add(cr);
-                }
-                changes.push(update);
-            }
-        }
-    }
-    var teams_changed=false;
-    var people_changed=false;
-    var order_changed=false;
-    var topics_changed=false;
-    debug(''+changes.length+' changed objects found.');
-    // check the totality of changes AND make sure that CATALOG points to the new version from now on.
-    for (var i=0;i<changes.length;i++) {
-        obj=changes[i];
-        CATALOG[obj.uid]=obj;
-        if (obj.type=='Pupil') {
-            people_changed=true;
-            }
-        if (obj.type=='Topic') {
-            topics_changed=true;
-            }
-        if (obj.type=='Team') {
-            teams_changed=true;
-        }
-    }
-    // update LISTS  -- look at the keys in flattened list and replace them with respective CATALOG objects.
-    var new_pupils=state.get('PUPILS');
-    if (new_pupils) {
-        new_pupils=$.parseJSON(new_pupils);
-        debug('PUPILS updated:'+new_pupils.length);
-        for (var p=0;p<new_pupils.length;p++) {
-            if (PUPILS[p] && new_pupils[p]!=PUPILS[p].uid) {order_changed=true;}
-            new_pupils[p]=CATALOG[new_pupils[p]];
-        }
-        PUPILS=new_pupils;
-    // If there are still no PUPILs even after the first update, then create them from parameters send by launcher
-    } else if (PARAMS && PARAMS.names_list.length>0) {
-        var names=PARAMS.names_list.split(',');
-        var clean_names=[];
-        for (var i=0;i<names.length;i++) {
-            clean=$.trim(names[i]);
-            if (clean.length>0) {
-                clean_names.push(clean);
-            }
-        }    
-        LEARNER_VIEW.create_person(clean_names);
-    } else {
-        debug('no PUPILS in state nor names list, strange situation.');
-        LEARNER_VIEW.create_person(['Learner1','Learner2']);                
-    }
-    var new_teams=state.get('TEAMS');
-    if (new_teams) {
-        new_teams=$.parseJSON(new_teams);
-        var size_before_catalog_update = new_teams.length;
-        debug('TEAMS updated:'+new_teams.length);
-        for (var p=0;p<new_teams.length;p++) {
-            new_teams[p]=CATALOG[new_teams[p]];
-        }
-        if (size_before_catalog_update==new_teams.length) {
-            TEAMS=new_teams; 
-        } else {
-            debug("Couldn't find all teams in catalog. Didn't update teams.");
-        }
-    } else {
-        debug('no TEAMS in state');
-    }
-    var new_topics=state.get('TOPICS');
-    if (new_topics) {
-        new_topics=$.parseJSON(new_topics);
-        debug('TOPICS updated'+new_topics.length);
-        for (var p=0;p<new_topics.length;p++) {
-            new_topics[p]=CATALOG[new_topics[p]];
-        }
-        TOPICS=new_topics;
-    } else if (TOPICS.length==0) {
-        debug('>>>> Creating initial topics'); 
-        TOPICS=[new Topic(''), new Topic(''), new Topic('')];
-        for (var i=0;i<TOPICS.length;i++) {
-            CONTROLLER.addChange(TOPICS[i]);
-        }
-        CONTROLLER.addArray('TOPICS',TOPICS);
-        topics_changed=true;
-    }
-
-    CONTROLLER.checkConsistency();
-
-    if (people_changed) {
-        CLASSROOM.update_faces();
-        if (view==LEARNER_VIEW) {
-            LEARNER_VIEW.update_person_properties()
-        } 
-    }
-    if (order_changed) {
-       if (view==CLASSROOM && !TEAM_VIEW) {
-            CLASSROOM.build_class_view(true);
-        }
-    }
-    if (teams_changed) {
-        if (view==CLASSROOM && TEAM_VIEW) {
-            debug('* rebuilding team view *');
-            CLASSROOM.build_team_view(true);
-        }
-        if (TEAMS.length>0) {
-            $('#team_view').show();    
-        }
-    }
-    if (topics_changed) {
-        if (view==INTERESTS) {
-            INTERESTS.draw_topics(true);
-            INTERESTS.update_people_votes();           
-        } else {
-            INTERESTS.draw_topics(false);
-        }
-    }
-}
-
-CONTROLLER.checkConsistency=function() {
-    // Additional cleaning and verification
-    // Remove bad pupil instances
-    debug('Checking consistency...');
-    for (var i=0;i<PUPILS.length;i++) {
-        if (PUPILS[i].type!='Pupil') {
-            debug('Empty or malformed pupil. Fixed it.');
-            PUPILS.splice(i,1);
-            i--;
-        }
-    }
-    // Remove duplicated team members
-    var temp_d={};
-    var team;
-    for (var i=0;i<TEAMS.length;i++) {
-        team=TEAMS[i];
-        for (var j=0;j<team.members.length;j++) {
-            if (temp_d[team.members[j]]) {
-                debug('Duplicate team member. Fixed it.');
-                team.members.splice(j,1);
-                j--;
-            } else {
-                temp_d[team.members[j]]=team.members[j];
-            }
-        }
-    }
-    // Check that given votes and available votes match
-    temp_d={};
-    var vote_count;
-    for (var i=0;i<TOPICS.length;i++) {
-        topic=TOPICS[i];
-        for (var j=0;j<topic.voters.length;j++) {
-            vote_count=temp_d[topic.voters[j]];
-            if (vote_count) {
-                vote_count++;
-                if (vote_count>VOTES_PER_PERSON) {
-                    debug('too many votes given by '+topic.voters[j]+'. Fixed it.');
-                    topic.voters.splice(j,1);
-                    debug(topic.voters);
-                } else {
-                    temp_d[topic.voters[j]]=vote_count;
-                }
-            } else {
-                temp_d[topic.voters[j]]=1;
-            }
-        }
-    }
-    var pupil, votes_given;
-    for (var i=0;i<PUPILS.length;i++) {
-        pupil=PUPILS[i];
-        votes_given= temp_d[pupil.uid] || 0;
-        if (pupil.votes_available+votes_given!=VOTES_PER_PERSON) {
-            pupil.votes_available=VOTES_PER_PERSON-votes_given;
-            debug('Votes given and available do not match for '+pupil.uid+'. Fixed it.');
-        }
-    }
-}
-
-CONTROLLER.availablePeopleChanged=function() {
-}    
-
-CONTROLLER.setParams=function(param_json) {
-    debug(param_json);
-    PARAMS=$.parseJSON(param_json);
-    debug('class_key:'+PARAMS.class_key);
-    debug('moderator_id:'+PARAMS.moderator_id);		
-    debug('names_list:'+PARAMS.names_list);		
-    debug('teacher_url:'+PARAMS.teacher_url);		
-    debug('learner_url:'+PARAMS.learner_url || PARAMS.student_url);		
-    debug('moderator_email:'+PARAMS.moderator_email);
-    MODERATOR=(PARAMS.moderator_id==CONTROLLER.user.id);
-    if (MODERATOR) {
-        debug('**** MODERATOR ****');
-        $('#teacher_url').val(PARAMS.teacher_url);
-    }
-    $('#learner_url').val(PARAMS.learner_url || PARAMS.student_url);
-    if (!MODERATOR) CLASSROOM.adjust_for_learners();
-    //if (getUrlVars().first) $('#teacher-panel').dialog('open');     
-
-    
-}
-
-CONTROLLER.addChange=function(changed_object) {
-    if (!changed_object) {
-        debug('**** ADD CHANGE CALLED WITH AN EMPTY OBJECT');
-    }
-    debug('Added change '+changed_object.uid);
-    CATALOG[changed_object.uid]=changed_object;
-    if (!wave_enabled) return;
-    CONTROLLER.delta[changed_object.uid]=JSON.stringify(changed_object);
-}
-
-CONTROLLER.setOption=function(option_key, value) {
-    debug('Changed option '+option_key+' to '+value);
-    CONTROLLER.delta[option_key]=JSON.stringify(value);
-}
-
-// arrays are different to objects as they need a given key, they don't have an uid that can be used.
-// they also contain whole objects, so they have to be flattened to uids before sending. 
-CONTROLLER.addArray=function(array_key, changed_array) {
-    debug('** adding '+array_key+' to state upload');
-    var packed=[]; 
-    for (var n=0;n<changed_array.length;n++) { 
-        packed.push(changed_array[n].uid); 
-    } 
-    CONTROLLER.delta[array_key]=JSON.stringify(packed); 
-}
-
-    
-CONTROLLER.sendChanges=function() {
-    CONTROLLER.checkConsistency();
-    if (!wave_enabled) 
-    {
-        debug('*** sending changes called (offline) ***');
-        CONTROLLER.delta={};
-        return;
-    }
-    if (wave_enabled) {
-        debug('*** sending changes ***');
-        wave.getState().submitDelta(CONTROLLER.delta);        
-        CONTROLLER.delta={};
-    }
-}
-
 
 // **********************************
 
@@ -908,16 +547,16 @@ $(document).ready(function(){
     OPTIONS.language=guess_language();
     localize();
     if (top !== self) $('#leave_iframe').show();
-    if (!wave_enabled && getUrlVars().first) $('#teacher-panel').dialog('open');     
-    if (!wave_enabled) $('#debug').hide();
+    if (CONTROLLER.offline && getUrlVars().first) $('#teacher-panel').dialog('open');     
+    if (CONTROLLER.offline) $('#debug').hide();
     // Start with an empty class
-    if ((!wave_enabled) && TOPICS.length==0) {
+    if (CONTROLLER.offline && TOPICS.length==0) {
         debug('>>>> Creating initial topics'); 
         TOPICS=[new Topic(''), new Topic(''), new Topic('')];
         for (var i=0;i<TOPICS.length;i++) {
             CONTROLLER.addChange(TOPICS[i]); 
         }
-        CONTROLLER.addArray('TOPICS',TOPICS); // this will not do anything without wave_enabled, but just for completeness sake 
+        CONTROLLER.addArray('TOPICS',TOPICS); // this will not do anything when offline but just for completeness sake 
     }
 
     
@@ -1054,7 +693,7 @@ $(document).ready(function(){
 
     LEARNER_VIEW.update_property_choices();
     // CLASSROOM has already been before we know if the user is moderator or not.
-    if (!wave_enabled && !MODERATOR) CLASSROOM.adjust_for_learners();
+    if (CONTROLLER.offline && !MODERATOR) CLASSROOM.adjust_for_learners();
 
     if (SMART_ENABLED) {
         smart_clicker_enable()
@@ -1201,15 +840,7 @@ function fs_friendly_string(s) {
 
 function guess_language(){
     var params=getUrlVars();
-    if (params.locale) {
-      return params.locale;
-    } else if (wave_enabled) {
-        debug('Trying Widget.locale: '+Widget.locale);        
-        return widget.locale || navigator.language || navigator.userLanguage;
-    } else {
-        debug('Guessing language, taking browser language');
-        return navigator.language || navigator.userLanguage;
-    }
+    return params.locale || CONTROLLER.getLocale() || navigator.language || navigator.userLanguage;
 }
 
 function localize(){
@@ -1975,14 +1606,13 @@ CLASSROOM.view_learner = function (event) {
 
 CLASSROOM.join_classroom = function (event) {
     CLASS_KEY=$.trim($('#class_key').val());
-    CONTROLLER.stateUpdated();
+    CONTROLLER.fullUpdate();
     $('#welcome-panel').dialog('close');
 }
 
 CLASSROOM.prepare_new_classroom = function (event) {
     var names_string=$('#names_field').val();
     CLASS_KEY=$.trim($('#new_class_key').val());
-    //if (wave_enabled && CLASS_KEY
     var names=names_string.split(',');
     var clean_names=[];
     for (var i=0;i<names.length;i++) {
@@ -2220,7 +1850,6 @@ CLASSROOM.create_random_teams= function() {
                 if (TEAMS.length<=i) {                    
                     nt=new Team();
                     nt.name=i18n('Team')+' '+(i+1);
-                    //if (!wave_enabled) nt.notes.push(demo_note.uid);
                     TEAMS.push(nt);
                     member=random_pick(free_pupils)
                 } else {
