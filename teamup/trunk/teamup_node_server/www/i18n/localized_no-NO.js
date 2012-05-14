@@ -1,0 +1,86 @@
+
+{
+"Language code":"no-NO",
+"Translator":"Vibeke Guttormsgaard",  
+"Translator email": "vg@iktsenteret.no",
+"Class" :    "Klasse",
+"Teams" :    "Team",
+"Team" :     "Team",
+"Team notes" : "Teamnotater",
+
+"Start new teams" :     "Opprett nytt team",
+"Add/edit students":    "Legg til/rediger elever",
+"Options":              "Innstillinger",
+
+"Collect topics of interest and vote" :     "foreslå et emne for avstemning",
+"[ enter topic ]":                              "[ legg til emne ]",
+
+"Group together":   "Gruppér",
+"Hobbies":          "Fritidsinteresser",
+"Gender":           "Kjønn",
+"Languages":        "Språk",
+"Girl":             "Jente",
+"Boy":              "Gutt",
+"No gender":        "kjønn ikke oppgitt",
+"Sunny":            "Solskinn",
+"Half-cloudy":      "Lettskyet",
+"Cloudy":           "Overskyet",
+"Bee":              "Bie",
+"Book":             "Bok",
+"Craft":            "Håndverk",
+"Digital":          "Digital",
+"Fire":             "Ild",
+"Sleepy":           "Søvnig",
+"Spice":            "Krydder", 
+"Ball":             "Ball",
+"Quiet":            "Stille",
+"Loud":             "Bråkete",
+
+"Keep this photo":  "Bruk bilde",
+"Try again":        "Prøv igjen",
+"Cancel":           "Avbryt",
+
+"play": "Spill av",
+"pause":"Pause",
+"stop": "Stopp",
+"mute": "Lyd av",
+"unmute":"Lyd på",
+
+"Team size" :           "Teamstørrelse",
+"Always show names" :   "Vis navn",
+"Remove current teams" : "Fjern eksisterende team",
+"Reset teams" : "Reset team",
+
+"Add student":  "Legg til elev",
+"Add language": "Legg til språk",
+
+"Record a newsflash":    "Ta opp nyhetsklipp",
+"What we did.":     "Hva vi gjorde.",
+"What we will do.": "Hva vi skal gjøre.",
+"Any problems?":    "Hva var utfordringene?",
+
+"Playing newsflash": "Spiller nyhetsklipp",
+"Recording a newsflash": "Tar opp nyhetsklipp",
+"After the first countdown, your picture is taken.": "Bildet blir tatt etter første nedtelling",
+"Then a newsflash is recorded. It can be max. 60 seconds long.": "Deretter blir nyhetsklippet tatt opp. Det kan ikke være lengre enn 60 sekunder.",
+"Try to record: <br/> What you did. <br/> What you will do. <br/> Any problems you faced.": "Forsøk å ta opp: <br/> Hva dere gjorde. <br/> Hva dere skal gjøre. <br/> Hvilke utfordringer møtte dere?.",
+"Have fun!": "Lykke til!",
+"Play your newsflash to ensure it is good.": "Spill av nyhetsklippet ditt, for å sjekke at det fungerer.",
+"Then save it (click blue 'save' -button) or try recording it again." : "Deretter lagrer du klippet (klikk den blå knappen for å lagre) eller ta opp på nytt.",
+  
+
+"Join existing classroom": "Bli med i eksisterende klasserom",
+"Join classroom": "Bli med i klasserom",
+"Create new classroom": "Opprett nytt klasserom",
+"Unique name for the classroom:": "Gi klasserommet et navn",
+"Prepare the class by giving first names of the students:": "Sett opp klasserommet ved å legge inn fornavnet til elevene",
+"Separate names with comma (,).<br/> First names are preferred for student privacy.": "Skill navnene med komma (,). <br/> Fornavn foretrekkes av personvernhensyn.",
+
+
+"Classroom with this name already exists. Please try another name.": "Et klasserom med dette navnet finnes allerede. Velg et annet navn.",
+"Classroom with given code doesn't exist.": "Klasserom med denne koden finnes ikke.",
+"Removing teams will remove all of their newsflashes. Do you want to download the photos and audio to your machine before removing teams?": "Ved å fjerne et team, fjernes også alle nyhetsklippene deres. Vil du laste ned bilder og opptak til maskinen din, før du fjerner teamet?",
+"Download": "Last ned",
+"Remove teams": "Fjern team",
+"Cancel": "Avbryt",
+"Photo is in unknown format (.jpg, .png, .gif allowed) or too large.": "Bilde er i ukjent format (.jpg, .png, .gif tillatt) eller for stort."}
