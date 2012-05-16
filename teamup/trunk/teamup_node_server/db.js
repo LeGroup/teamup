@@ -5,16 +5,15 @@ var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
 
 DataProvider = function(host, port) {
-  this.db= new Db('node-teamup', new Server(host, port, {auto_reconnect: true, strict: true}, {}));
+  this.db= new Db('teamup', new Server(host, port, {auto_reconnect: true}), {strict: true});
   this.db.open(function(){});
 };
-
 
 DataProvider.prototype.getCollection= function(classroom_id, callback) {
   console.log('Reaching classroom '+classroom_id);  
   this.db.collection(classroom_id, function(error, classroom) {
     if( error ) {
-        console.log('error');
+        console.log('Not found/error');
         callback(error);
     }
     else {
@@ -24,29 +23,25 @@ DataProvider.prototype.getCollection= function(classroom_id, callback) {
   });
 };
 
-DataProvider.prototype.findAll = function(callback) {
-    this.getCollection(function(error, classroom) {
-      if( error ) callback(error)
-      else {
-        classroom.find().toArray(function(error, results) {
-          if( error ) callback(error)
-          else callback(null, results)
+DataProvider.prototype.createClassroom= function(data, callback) {  
+  console.log('Creating classroom '+data.c);  
+  this.db.createCollection(data.c, function(error, classroom) {
+    if( error ) {
+        console.log('Error creating collection');
+        callback(error);
+    }
+    else {
+        console.log('Classroom created');
+        // setting classroom properties
+        classroom.save({uid:'setup', class_key:data.c, email:data.e, locale:data.l, teacher:data.u, teacher_link:data.tl, student_link:data.sl, names:data.n, version:1}, function (err) {
+            if (err) console.log("Error saving settings")
+            else {
+                console.log("Saved settings"); 
+                callback(null);
+            }
         });
-      }
-    });
-};
-
-
-DataProvider.prototype.findById = function(id, callback) {
-    this.getCollection(function(error, classroom) {
-      if( error ) callback(error)
-      else {
-        classroom.findOne({_id: new ObjectID(id)}, function(error, result) {
-          if( error ) callback(error)
-          else callback(null, result)
-        });
-      }
-    });
+    }
+  });
 };
 
 DataProvider.prototype.filterOldObjects = function(objectarray, classroom, callback) {
