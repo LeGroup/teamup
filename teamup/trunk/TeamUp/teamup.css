@@ -19,9 +19,10 @@ body {
 	font-size: 120%;
 	margin: 0;
 	padding: 0;
-	background: #1D1D1C;
+	background: #2D2D2C;
 	color: #9D9FA0;
     height:100%;
+    width:100%;
 }
 
 a, a:link, a:visited {
@@ -47,9 +48,9 @@ h1 {
 }
 
 table {
+    position:relative;
     margin-left:auto;
     margin-right:auto;
-    padding-left:60px;
     margin-top:0;
 }
 
@@ -82,19 +83,138 @@ td.right {
     background: #777;
 }
 
-
-
-div.top {
+div.header {
     position:absolute;
     top:0px;
     width:100%;
+    height:62px;
+    background:#262626;
+    margin:0px;
+    padding:0px;    
 }
+div.header_inner {
+    float:left;
+    margin-left:16px;
+    padding-top:15px;
+    padding-bottom:18px;
+    padding:0px;
+}
+
+#grid_button, #teams_button {
+    -webkit-border-radius: 3px;
+    display:inline-block;
+	font-size: 1.2em;
+	font-weight: bold;
+	color: #9D9FA0;
+	margin-left:8px;
+    cursor:pointer;
+    padding-right:4px;
+}
+
+#grid_button:hover, #teams_button:hover {
+    background: #3C3C3C;
+}
+
+#grid_button:active, #teams_button:active {
+    background: #535353;
+}
+
+#classname {
+	margin-left:36px;
+    display:inline-block;
+	font-size: 1.2em;
+	font-style: italic;
+	color: #9D9FA0;
+
+}
+
+#prefs_button {
+    -webkit-border-radius: 3px;
+    position: absolute;
+    top:12px;
+    right:17px;
+    cursor:pointer;
+    width:39px;
+    height:39px;
+    background-image:url('images/options-1.png');
+    background-repeat:none;
+    
+}
+
+#prefs_button:hover {
+    background: #3C3C3C;
+    background-image:url('images/options-2.png');
+}
+
+#prefs_button:active {
+    background: #535353;
+    background-image:url('images/options-3.png');
+}
+
+
+#admin_tag {
+    position: absolute;
+    top:62px;
+    right:12px;
+    width:50px;
+    height:33px;
+    background-image:url('images/admin.png');
+    background-repeat:none;
+    font-size:10px;
+    font-weight:bold;
+    padding-top:10px;
+    text-align:center;
+	color: #2D2D2C;
+	z-index:600;
+}
+
+
+
+#new_teams, #interests_next, #criteria_next {
+    -webkit-border-radius: 3px;
+    padding:4px;
+    margin-right:20px;
+    cursor:pointer;
+}
+
+#new_teams:hover, #interests_next:hover, #criteria_next:hover {
+    background: #3C3C3C;
+}
+
+#new_teams:active, #interests_next:active, #criteria_next:active {
+    background: #535353;
+}
+
+#new_person {
+    display:inline-block;
+    position:relative;
+    top:10px;
+    cursor:pointer;
+    width:48px;
+    height:39px;
+    
+    background-image:url('images/add-profile-1.png');
+    background-repeat:none;
+    
+}
+
+#new_person:hover {
+    background: #3C3C3C;
+    background-image:url('images/add-profile-2.png');
+}
+
+#new_person:active {
+    background: #535353;
+    background-image:url('images/add-profile-3.png');
+}
+
+
 div.bottom {
     position: fixed;
     width: 100%;
     bottom:0px;
     min-height: 120px;
-	background: #1D1D1C;
+	background: #2D2D2C;
 	z-index:150;
     
 /*    padding-left: 48px;
@@ -109,8 +229,10 @@ div.nav {
     text-align: center;
     width: 48px;
     position: absolute;
-    top:0;
-    height: 100%;
+    top:100;
+    height: 48px;
+    font-size:22pt;
+    line-height: 48px;
 	margin: 0;
 	z-index: 210;	
     cursor:pointer;
@@ -126,9 +248,6 @@ img.selected, span.selected img {
     border: 4px solid #dd8;
 }
 
-div.top div.nav img {
-    margin-top: 260px;
-}
 
 div.bottom div.nav img {
     margin-top: 35px;
@@ -138,48 +257,26 @@ div.bottom_inner {
     overflow: auto;
 }
 
-div.left_nav {
+div.left_nav, div.left_menu_nav {
     left:0px;
-    background-image:url('images/nav_bg_left.png');
-    background-repeat:repeat-y; 
 }
-div.left_nav:active,div.left_nav:hover, div.left_menu_nav:active,div.left_menu_nav:hover {
-    background-image:url('images/nav_bg_left_hl.png');
+div.left_nav:hover, div.left_menu_nav:hover, div.right_nav:hover, div.right_menu_nav:hover {
+    background: #3C3C3C;
+}
+div.left_nav:active, div.left_menu_nav:active, div.right_nav:active, div.right_menu_nav:active {
+    background: #535353;
 }
 
-div.right_nav {
+div.right_nav, div.right_menu_nav {
     right:0px;
-    background-image:url('images/nav_bg_right.png');
-    background-repeat:repeat-y; 
-}
-div.right_nav:active, div.right_menu_nav:active, div.right_nav:hover, div.right_menu_nav:hover {
-    background-image:url('images/nav_bg_right_hl.png');
-}
-
-div.left_menu_nav {
-    border-top: 1px solid black;
-    left:0px;
-    background-image:url('images/nav_bg_left.png');
-    background-repeat:repeat-y; 
-}
-
-div.right_menu_nav {
-    border-top: 1px solid black;
-    right:0px;
-    background-image:url('images/nav_bg_right.png');
-    background-repeat:repeat-y; 
 }
 
 div.main_area {
+    position:absolute;
+    top:62px;
     width:100%;
 }
 
-div.menu {
-    border-top: 1px solid black;    
-    padding: 0px;
-    padding-left:48px;
-    padding-right:48px;
-}
 
 div.menu_button {    
     padding-top: 6px;
@@ -202,7 +299,7 @@ div.menu_button:hover {
 div.nav_buttons {
     position:absolute;
     right: 54px;
-    bottom: 6px;
+    bottom: 39px;
 }
 
 #debug {
@@ -217,20 +314,6 @@ div.nav_buttons {
     color:#00aa00;
     z-index:300;
     display:none;
-}
-
-#home_button {
-    float:left;
-    display:none;
-    width:48px;
-    height:48px;
-    background-image:url('images/class48.png');
-    cursor:pointer;
-    background-repeat:none;
-}
-
-#home_button:hover {
-    background-image:url('images/class_hover48.png');
 }
 
 
@@ -249,22 +332,6 @@ div.class_area {
     min-height:600px;
 }
 
-#class_view, #team_view {
-    cursor:pointer;
-}
-
-#class_view:hover, #team_view:hover {
-    background-color: #4D4D4C;
-    color: #E7E7E7;
-}
-
-span.selected:hover {
-    background-color: transparent !important;
-}
-
-h1 span.selected {
-    color: #E7E7E7;
-}
 
 #location_info {
     position:absolute;
@@ -739,7 +806,7 @@ div.jp-volume-bar-value {
 /* Topics of interest and vote (INTERESTS) */
 
 div.interests {
-    width: 90%;
+    width: 100%;
     height: 100%;
     overflow: auto;
     display:none;
@@ -903,6 +970,7 @@ div.smallFace label {
 div.criteria {
     overflow: hidden;
     display:none;
+    width:100%;
 }
 
 td.criteria_background {
@@ -928,8 +996,8 @@ div.criteria div#team_up_button {
     background-image:url('images/teamup_button.png');
     margin-top:50px;
     margin-right: auto;
-    width:350px;
-    height:350px;
+    width:250px;
+    height:250px;
     border: 3px solid #aaa;
     border-radius: 20px;
     -moz-border-radius: 20px;
@@ -937,7 +1005,7 @@ div.criteria div#team_up_button {
     cursor:pointer;
     font-size: 160%;
     text-align:center;
-    line-height:300px;
+    line-height:250px;
 }
 
 div.criteria div#team_up_button:hover {
@@ -1053,7 +1121,6 @@ div.person {
 }
 
 #add_person, #remove_person {
-    display:none;
     text-align:center;
     margin-right:4px;
     float:left;

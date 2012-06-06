@@ -38,7 +38,6 @@ if (typeof wave!== 'undefined') {
     // then there are arrays of objects: PUPILS, TEAMS and TOPICS. In state these are arrays of keys, but when read and updated, they are
     // restored with aid of CATALOG to arrays of objects. 
     CONTROLLER.stateUpdated=function(){
-        update_counter++;
         var changes=[];
         var state=wave.getState();
         if (!state) return;

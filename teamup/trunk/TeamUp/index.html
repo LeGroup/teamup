@@ -27,6 +27,7 @@
 <script language="javascript" type="text/javascript" src="swfobject.js"></script>
 <script language="javascript" type="text/javascript" src="jquery.jplayer.min.js"></script>
 <script language="javascript" type="text/javascript" src="jquery.ui.touch.js"></script>
+<script language="javascript" type="text/javascript" src="socket.io/socket.io.min.js"></script>
 <script language="javascript" type="text/javascript" src="controller_offline.js"></script>
 <script language="javascript" type="text/javascript" src="controller_widget.js"></script>
 <script language="javascript" type="text/javascript" src="teamup.js"></script>
@@ -69,172 +70,189 @@
 <div id="debug">Debug messages<br/></div>
 <div id="location_info"><span id="class_name_hint"><span id="i18n-offline">offline</span> </span> <span id="i18n-teacher">Teacher</span></div>
 <div id="leave_iframe"><img src="images/fullscreen.png" width="32" height="32"/></div>
-<div class="top">
-    <div class="nav left_nav" tabindex="54" title=""><img src="images/nav_left.png" width="40" height="48" /></div>
-    <div class="main_area">
-        <div class="classroom">
-            <h1><span id="class_view" class="selected" tabindex="1"><img src="images/class.png" width="48" height="48" alt="class" valign="middle" /> <span id="i18n_class">Class</span></span> <span id="team_view" tabindex="2"><img src="images/teams.png" width="48" height="48" alt="teams" valign="middle" /> <span id="i18n_teams">Teams</span></span>
-</h1>
-            <div class="class_area"></div>
+
+<div class="header">
+    <div class="header_inner">
+        <div id="grid_button">
+            <img src="images/class.png" width="29" height="29" alt="grid" valign="middle" /> <span id="i18n_grid">Grid</span>
         </div>
-        <div class="person">
-            <table><tr>
-            <td class="center">
-                <div class="portrait">
-                    <img src="" class="large_portrait" width="320" />
-                    <div class="namebox"></div>
-                    <input id="namebox" type="text" size="40" value="" />
-                </div>
-                <div class="photoshoot">
-                    <div id="PhotoBooth">Requires Flash 10.3 or greater with camera support.</div>
-                	<div id="save_portrait">
-                        <div class="menu_button" id="keep_photo">Keep this photo</div>
-                        <div class="menu_button" id="try_again_photo">Try again</div>
-                        <div class="menu_button" id="cancel_photo">Cancel</div>
-                    </div>
-                </div>
-                <label id="camera_toggle" title="Take your photo"><img src="icons/camera.png" alt="Camera" height="48" width="48"/></label>
-                <input type="file" name="file" id="face-file" style="display:none" /> 
-            </td>
-            <td>
-            <div class="hobbies"></div>
-            <div class="clear"></div>
-            <div class="level"></div>
-            <div class="clear"></div>
-            <div class="languages"></div>
-            <div class="clear"></div>
-            <div class="friends"></div>
-            <div class="clear"></div>
-            <div class="gender"></div>
-            <div class="clear"></div>
-            </td>
-            </tr>
-            </table>
+        <div id="teams_button">
+            <img src="images/teams.png" width="29" height="29" alt="teams" valign="middle" /> <span id="i18n_teams">Teams</span>
         </div>
-        <div class="options">
-            <div class="main_options">
-            <h1 id="i18n_options">Options</h1>
-            
-            <p><label for="team_size" id="label_team_size">Team size</label><select id="team_size" name="team_size"><option>2</option><option>3</option><option selected="1">4</option><option>5</option><option>6</option></select></p>
-            <p><label for="show_names" id="label_show_names">Always show names</label><input type="checkbox" id="show_names" name="show_names" value="1"/></p>
-            <p><label for="reset_teams" id="label_reset_teams">Remove current teams</label><input type="button" id="reset_teams" name="reset_teams" value="Reset teams"/>
-            <p><label for="language_setting" id="label_language">Language</label><select name="language_select" id="language_select"></select>
-            <p><label for="teacher_url" id="label_teacher_url">Teacher address</label><input type="text" id="teacher_url" name="teacher_url" size="60" readonly="1" value="" /></p>
-            <p><label for="learner_url" id="label_learner_url">Learner address</label><input type="text" id="learner_url" name="learner_url" size="60" readonly="1" value="" /></p>
-            <p><label for="show_notes_for_learners" id="label_show_notes">Allow learners to see mental notes</label><input type="checkbox" id="show_icons" name="show_icons" value="1"/></p>
-            <p style="display:none"><label for="clicker_selection" id="label_clicker">Use clickers for voting</label><select id="clicker_select" name="clicker_select"><option>None</option><option>SMART</option></select></p>
+        <h1 id="classname">Classname</h1>
+    </div>
+    <div id="prefs_button"></div>
+    <div id="admin_tag">admin</div>
+</div>
+
+<div class="nav left_nav" tabindex="54" title="">&#x25C0;</div>
+<div class="main_area">
+    <div class="classroom">
+        <div class="class_area"></div>
+        <div class="nav_buttons">
+            <span id="new_teams"><span id="i18n_new_teams">new teams</span> </span> 
+            <span id="new_person"> </span>
+        </div>
+    </div>
+    <div class="person">
+        <table><tr>
+        <td class="center">
+            <div class="portrait">
+                <img src="" class="large_portrait" width="320" />
+                <div class="namebox"></div>
+                <input id="namebox" type="text" size="40" value="" />
             </div>
-        </div>
-        <div class="interests">
-            <h1><span id="i18n_interests_heading">Collect topics of interest and vote</span> </h1>
-            <ol id="topics">
-            </ol>
-        <span id="reset_votes">Reset votes</span>
-        </div>
-        <div class="criteria">
-            <table><tr><td class="criteria_background centered">
-                <h1 id="i18n_grouping_heading">Bring together</h1>
-                <div class="placeholder" id="crit_place_1">1</div>
-                <div class="placeholder" id="crit_place_2">2</div>
-                <div class="placeholder" id="crit_place_3">3</div>
-            </td>
-            <td class="centered">
-                <div id="team_up_button" tabindex="5">Team UP!</div>
-            </td>
-            </tr>
-            </table>
-        </div>
-        <div class="recordings">
-            <table width="100%"><tr>
-            <td valign="top" width="360">
-                <h1 id="team_title">Team name</h1>
-
-                <div id="team_member_faces"></div>
-                <div class="clear"></div>
-                <div id="note_viewer_help">
-                    <div id="record_note">Record a newsflash</div>
+            <div class="photoshoot">
+                <div id="PhotoBooth">Requires Flash 10.3 or greater with camera support.</div>
+            	<div id="save_portrait">
+                    <div class="menu_button" id="keep_photo">Keep this photo</div>
+                    <div class="menu_button" id="try_again_photo">Try again</div>
+                    <div class="menu_button" id="cancel_photo">Cancel</div>
                 </div>
-                <div id="note_recorder_help" style="display:none">
-                    <p id="recording_help_1">Record a 60 second newsflash.</p>
-                    <p id="recording_help_2">Click the record button.</p>
-                    <p id="recording_help_3">After the countdown, your picture is taken,<br/> then the recording starts.</p>
-                    <p id="recording_help_4">Answer the questions below the recorder.</p>
-                </div>
-                <div id="recorder_save_help" style="display:none">
-                    <div id="save_note">Save this note</div>                    
-                    <p id="recording_help_5">Listen to your recording, save your recording or record again.</p>
-                </div>
-
-            </td>
-            
-            <td class="centered">
-
-                <div id="note_viewer">
-                <div id="note_viewer_object" class="jp-jplayer"></div>               
-                   <div id="player_interface" class="jp-interface">
-                    
-                    <div id="note_photo">
-                     <img src="" alt="" id="note_photo_img" width="480" height="360" />
-                     <label>00:00</label>
-                     <div id="vol_control">
-                        <img src="images/mute.png" width="18" height="15" alt="mute" title="mute" class="jp-mute" id="i18n-mute" tabindex="1"/>
-                        <img src="images/unmute.png" width="18" height="15" alt="unmute" title="unmute" class="jp-unmute" id="i18n-unmute" tabindex="1"/>
-                        <div class="jp-volume-bar"><div class="jp-volume-bar-value"></div></div>
-                     </div>
-                     <div id="note_photo_empty">∅</div>
-                    </div>
-                    <div id="player">
-                     <div id="player_button">
-                       <img src="images/play-arrow.png" width="11" height="22" class="jp-play" id="i18n-play" alt="play" title="play" tabindex="1"/>
-                       <img src="images/pause.png" width="21" height="20" class="jp-pause" id="i18n-pause" alt="pause" title="pause" tabindex="1"/>
-                     </div>
-                     <div class="jp-full-minute-bar"><div id="play_marker">60</div>
-                     <div id="length_bar"></div>
-                     <div id="outer_length_bar"></div>
-                         <span class="separator" style="left:28px;" /> </span>
-                         <span class="separator" style="left:156px;" /> </span>
-                         <span class="separator" style="left:300px;" /> </span>
-                     </div>
-                            <div class="jp-progress">
-                              <div class="jp-seek-bar">
-                                <div class="jp-play-bar"></div>
-                              </div>
-                            </div>
-                    </div>
-
-                          </div>
-                                     
-                </div>
-                <div id="note_recorder">
-                    <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
-            	</div>
-                <div class="note_questions">
-                    <span id="i18n-what-we-did" style="left:40px;">What we did.</span>
-                    <span id="i18n-what-we-will-do" style="left:175px;">What we will do.</span>
-                    <span id="i18n-any-problems" style="left:310px;">Any problems?</span>
-                </div>
-            </td>
-            </tr>
-           </table>
-        
-        </div>
+            </div>
+            <label id="camera_toggle" title="Take your photo"><img src="icons/camera.png" alt="Camera" height="48" width="48"/></label>
+            <input type="file" name="file" id="face-file" style="display:none" /> 
+        </td>
+        <td>
+        <div class="hobbies"></div>
+        <div class="clear"></div>
+        <div class="level"></div>
+        <div class="clear"></div>
+        <div class="languages"></div>
+        <div class="clear"></div>
+        <div class="friends"></div>
+        <div class="clear"></div>
+        <div class="gender"></div>
+        <div class="clear"></div>
+        </td>
+        </tr>
+        </table>
+        <div class="nav_buttons">
+            <div id="add_person" label="Add learner" title="Add learner" tabindex="41">+</div>
+            <div id="remove_person" label="Remove learner" title="Remove learner" tabindex="42">-</div>
+        </div>        
 
     </div>
-    <div class="nav_buttons">
-        <div id="add_person" label="Add learner" title="Add learner" tabindex="41">+</div>
-        <div id="remove_person" label="Remove learner" title="Remove learner" tabindex="42">-</div>
-        <div id="home_button" alt="Class" title="Class" tabindex="43"></div> 
-    </div>        
-    <div class="nav right_nav" tabindex="55" title=""><img src="images/nav_right.png" width="40" height="48" /></div>
+    <div class="options">
+        <div class="main_options">
+        <h1 id="i18n_options">Options</h1>
+        
+        <p><label for="team_size" id="label_team_size">Team size</label><select id="team_size" name="team_size"><option>2</option><option>3</option><option selected="1">4</option><option>5</option><option>6</option></select></p>
+        <p><label for="show_names" id="label_show_names">Always show names</label><input type="checkbox" id="show_names" name="show_names" value="1"/></p>
+        <p><label for="reset_teams" id="label_reset_teams">Remove current teams</label><input type="button" id="reset_teams" name="reset_teams" value="Reset teams"/>
+        <p><label for="language_setting" id="label_language">Language</label><select name="language_select" id="language_select"></select>
+        <p><label for="teacher_url" id="label_teacher_url">Teacher address</label><input type="text" id="teacher_url" name="teacher_url" size="60" readonly="1" value="" /></p>
+        <p><label for="learner_url" id="label_learner_url">Learner address</label><input type="text" id="learner_url" name="learner_url" size="60" readonly="1" value="" /></p>
+        <p><label for="show_notes_for_learners" id="label_show_notes">Allow learners to see mental notes</label><input type="checkbox" id="show_icons" name="show_icons" value="1"/></p>
+        <p style="display:none"><label for="clicker_selection" id="label_clicker">Use clickers for voting</label><select id="clicker_select" name="clicker_select"><option>None</option><option>SMART</option></select></p>
+        </div>
+    </div>
+    <div class="interests">
+        <h1><span id="i18n_interests_heading">Collect topics of interest and vote</span> </h1>
+        <ol id="topics"></ol>
+        <span id="reset_votes">Reset votes</span>
+        <div class="nav_buttons">
+            <div id="interests_next" label="Select criteria" title="Select criteria" tabindex="41"><span id="i18n_next">next</span> &nbsp;&nbsp;&#x25B6;</div>
+        </div>        
+
+    </div>
+    <div class="criteria">
+        <table><tr><td class="criteria_background centered">
+            <h1 id="i18n_grouping_heading">Bring together</h1>
+            <div class="placeholder" id="crit_place_1">1</div>
+            <div class="placeholder" id="crit_place_2">2</div>
+            <div class="placeholder" id="crit_place_3">3</div>
+        </td>
+        <td class="centered">
+            <div id="team_up_button" tabindex="5">Team UP!</div>
+        </td>
+        </tr>
+        </table>
+        <div class="nav_buttons">
+            <div id="criteria_next" label="Go to teams" title="Select criteria" tabindex="41"><span id="i18n_teams">teams</span> &nbsp;&nbsp;&#x25B6;</div>
+        </div>        
+    </div>
+    <div class="recordings">
+        <table><tr>
+        <td valign="top" width="360">
+            <h1 id="team_title">Team name</h1>
+
+            <div id="team_member_faces"></div>
+            <div class="clear"></div>
+            <div id="note_viewer_help">
+                <div id="record_note">Record a newsflash</div>
+            </div>
+            <div id="note_recorder_help" style="display:none">
+                <p id="recording_help_1">Record a 60 second newsflash.</p>
+                <p id="recording_help_2">Click the record button.</p>
+                <p id="recording_help_3">After the countdown, your picture is taken,<br/> then the recording starts.</p>
+                <p id="recording_help_4">Answer the questions below the recorder.</p>
+            </div>
+            <div id="recorder_save_help" style="display:none">
+                <div id="save_note">Save this note</div>                    
+                <p id="recording_help_5">Listen to your recording, save your recording or record again.</p>
+            </div>
+
+        </td>
+        
+        <td class="centered">
+
+            <div id="note_viewer">
+            <div id="note_viewer_object" class="jp-jplayer"></div>               
+                <div id="player_interface" class="jp-interface">
+                
+                <div id="note_photo">
+                    <img src="" alt="" id="note_photo_img" width="480" height="360" />
+                    <label>00:00</label>
+                    <div id="vol_control">
+                    <img src="images/mute.png" width="18" height="15" alt="mute" title="mute" class="jp-mute" id="i18n-mute" tabindex="1"/>
+                    <img src="images/unmute.png" width="18" height="15" alt="unmute" title="unmute" class="jp-unmute" id="i18n-unmute" tabindex="1"/>
+                    <div class="jp-volume-bar"><div class="jp-volume-bar-value"></div></div>
+                    </div>
+                    <div id="note_photo_empty">∅</div>
+                </div>
+                <div id="player">
+                    <div id="player_button">
+                    <img src="images/play-arrow.png" width="11" height="22" class="jp-play" id="i18n-play" alt="play" title="play" tabindex="1"/>
+                    <img src="images/pause.png" width="21" height="20" class="jp-pause" id="i18n-pause" alt="pause" title="pause" tabindex="1"/>
+                    </div>
+                    <div class="jp-full-minute-bar"><div id="play_marker">60</div>
+                    <div id="length_bar"></div>
+                    <div id="outer_length_bar"></div>
+                        <span class="separator" style="left:28px;" /> </span>
+                        <span class="separator" style="left:156px;" /> </span>
+                        <span class="separator" style="left:300px;" /> </span>
+                    </div>
+                        <div class="jp-progress">
+                            <div class="jp-seek-bar">
+                            <div class="jp-play-bar"></div>
+                            </div>
+                        </div>
+                </div>
+
+                        </div>
+                                    
+            </div>
+            <div id="note_recorder">
+                <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
+        	</div>
+            <div class="note_questions">
+                <span id="i18n-what-we-did" style="left:40px;">What we did.</span>
+                <span id="i18n-what-we-will-do" style="left:175px;">What we will do.</span>
+                <span id="i18n-any-problems" style="left:310px;">Any problems?</span>
+            </div>
+        </td>
+        </tr>
+        </table>
+    
+    </div>
+
 </div>
+<div class="nav right_nav" tabindex="55" title="">&#x25B6;</div>
+
 <div class="bottom">
     <div class="nav left_menu_nav disabled"><img src="images/nav_left.png" width="40" height="48" /></div>
     <div class="bottom_inner">
-        <div class="menu">
-            <div class="menu_button" id="start_teams" tabindex="31">Start new teams</div>
-            <div class="menu_button" id="edit_learners" tabindex="32">Add/edit learners</div>
-            <div class="menu_button" id="options" tabindex="33">Options</div>
-        </div>
         <div class="people_picker">
             <h1>People picker</h1>
         </div>
@@ -248,6 +266,7 @@
             <h1>Available recordings</h1>
         </div>
     </div>
+
     <div class="nav right_menu_nav disabled"><img src="images/nav_right.png" width="40" height="48" /></div>
 </div>
 </form>
