@@ -58,13 +58,6 @@ if (typeof wave!== 'undefined') {
                 if (!PARAMS) {
                     debug('*** Loading PARAMS ***')
                     CONTROLLER.setParams(state.get(key));
-                    if (MODERATOR) {
-                        $('#i18n-teacher').show()
-                    } else {
-                        $('#i18n-teacher').hide()
-                    }                
-                    $('#i18n-offline').hide();
-                    $('#class_name_hint').text(PARAMS.class_key);
                 }
             } else if (key=='SHOW_ICONS') {
                 OPTIONS.show_icons=$.parseJSON(state.get(key));
@@ -308,12 +301,16 @@ if (typeof wave!== 'undefined') {
         if (MODERATOR) {
             debug('**** MODERATOR ****');
             $('#teacher_url').val(PARAMS.teacher_url);
+            $('#admin_tag').show();
+        } else {
+            CLASSROOM.adjust_for_learners();
         }
-        $('#learner_url').val(PARAMS.learner_url || PARAMS.student_url);
-        if (!MODERATOR) CLASSROOM.adjust_for_learners();
-        //if (getUrlVars().first) $('#teacher-panel').dialog('open');     
-    
         
+        $('#learner_url').val(PARAMS.learner_url || PARAMS.student_url);
+        //if (getUrlVars().first) $('#teacher-panel').dialog('open');     
+        $('#i18n-offline').hide();
+        $('#classname').text(PARAMS.class_key);
+        $(document).attr('title', 'TeamUP - '+PARAMS.class_key);
     }
     
     CONTROLLER.addChange=function(changed_object) {

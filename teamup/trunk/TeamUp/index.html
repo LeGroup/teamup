@@ -17,11 +17,11 @@
     along with this program.  If not, see http://www.gnu.org/licenses/. --> 
 <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-<title>TeamUp!</title>
+<title>TeamUp - demo</title>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css" href="teamup.css"/>
 <link rel="stylesheet" type="text/css" href="jquery-ui.css"/>
-<script language="javascript" type="text/javascript" src="jquery-1.6.2.min.js"></script>
+<script language="javascript" type="text/javascript" src="jquery-1.7.2.min.js"></script>
 <script language="javascript" type="text/javascript" src="jquery.json.js"></script>
 <script language="javascript" type="text/javascript" src="jquery-ui-1.8.16.custom.min.js"></script>
 <script language="javascript" type="text/javascript" src="swfobject.js"></script>
@@ -73,63 +73,71 @@
 
 <div class="header">
     <div class="header_inner">
-        <div id="grid_button">
+        <div class="button" id="grid_button">
             <img src="images/class.png" width="29" height="29" alt="grid" valign="middle" /> <span id="i18n_grid">Grid</span>
         </div>
-        <div id="teams_button">
+        <div class="button" id="teams_button">
             <img src="images/teams.png" width="29" height="29" alt="teams" valign="middle" /> <span id="i18n_teams">Teams</span>
         </div>
         <h1 id="classname">Classname</h1>
     </div>
-    <div id="prefs_button"></div>
+    <div class="button" id="prefs_button"></div>
     <div id="admin_tag">admin</div>
 </div>
 
-<div class="nav left_nav" tabindex="54" title="">&#x25C0;</div>
+<div class="nav left_nav button" tabindex="54" title=""></div>
 <div class="main_area">
     <div class="classroom">
         <div class="class_area"></div>
         <div class="nav_buttons">
-            <span id="new_teams"><span id="i18n_new_teams">new teams</span> </span> 
-            <span id="new_person"> </span>
+            <span class="button" id="new_teams"><span id="i18n_new_teams">new teams</span> </span> 
+            <span class="button" id="new_person"> </span>
         </div>
     </div>
     <div class="person">
         <table><tr>
-        <td class="center">
-            <div class="portrait">
-                <img src="" class="large_portrait" width="320" />
-                <div class="namebox"></div>
-                <input id="namebox" type="text" size="40" value="" />
-            </div>
-            <div class="photoshoot">
-                <div id="PhotoBooth">Requires Flash 10.3 or greater with camera support.</div>
-            	<div id="save_portrait">
-                    <div class="menu_button" id="keep_photo">Keep this photo</div>
-                    <div class="menu_button" id="try_again_photo">Try again</div>
-                    <div class="menu_button" id="cancel_photo">Cancel</div>
+            <td class="center">
+                <div class="portrait">
+                    <img src="" class="large_portrait" width="221" />
+                    <div class="namebox"><input id="namebox" type="text" size="40" value="" />
+    </div>
                 </div>
-            </div>
-            <label id="camera_toggle" title="Take your photo"><img src="icons/camera.png" alt="Camera" height="48" width="48"/></label>
-            <input type="file" name="file" id="face-file" style="display:none" /> 
-        </td>
-        <td>
-        <div class="hobbies"></div>
-        <div class="clear"></div>
-        <div class="level"></div>
-        <div class="clear"></div>
-        <div class="languages"></div>
-        <div class="clear"></div>
-        <div class="friends"></div>
-        <div class="clear"></div>
-        <div class="gender"></div>
-        <div class="clear"></div>
-        </td>
+                <div class="photoshoot">
+                    <div id="PhotoBooth">Requires Flash 10.3 or greater with camera support.</div>
+                </div>
+            </td>
+            <td rowspan="2" valign="top" id="right_side_of_camera">
+            	<div id="save_portrait">
+                    <div class="button" id="keep_photo">Keep this photo</div>
+                    <div class="button" id="try_again_photo">Try again</div>
+                    <div class="button" id="cancel_photo">Cancel</div>
+                </div>
+                <div class="drag_area">
+                    <div class="hobbies"></div>
+                    <div class="clear"></div>
+                    <div class="level"></div>
+                    <div class="clear"></div>
+                    <div class="languages"></div>
+                    <div class="clear"></div>
+                    <div class="friends"></div>
+                    <div class="clear"></div>
+                    <div class="gender"></div>
+                    <div class="clear"></div>
+                    <div id="drag_hint">Drag icons here</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="center">
+                <div id="camera_button" class="button" title="Take your photo"></div>
+                <input type="file" name="file" id="face-file" style="display:none" /> 
+            </td>
+            <td></td>
         </tr>
         </table>
         <div class="nav_buttons">
-            <div id="add_person" label="Add learner" title="Add learner" tabindex="41">+</div>
-            <div id="remove_person" label="Remove learner" title="Remove learner" tabindex="42">-</div>
+            <div id="add_person" class="button" label="Add learner" title="Add learner" tabindex="41"></div>
+            <div id="remove_person" class="button" label="Remove learner" title="Remove learner" tabindex="42"></div>
         </div>        
 
     </div>
@@ -248,10 +256,10 @@
     </div>
 
 </div>
-<div class="nav right_nav" tabindex="55" title="">&#x25B6;</div>
+<div class="nav right_nav button" tabindex="55" title=""></div>
 
 <div class="bottom">
-    <div class="nav left_menu_nav disabled"><img src="images/nav_left.png" width="40" height="48" /></div>
+    <div class="nav left_menu_nav disabled button"><img src="images/nav_left.png" width="40" height="48" /></div>
     <div class="bottom_inner">
         <div class="people_picker">
             <h1>People picker</h1>
@@ -267,7 +275,7 @@
         </div>
     </div>
 
-    <div class="nav right_menu_nav disabled"><img src="images/nav_right.png" width="40" height="48" /></div>
+    <div class="nav right_menu_nav disabled button"><img src="images/nav_right.png" width="40" height="48" /></div>
 </div>
 </form>
 </body>

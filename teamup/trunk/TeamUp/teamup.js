@@ -22,7 +22,7 @@ var MODERATOR=true;
 var SMART_ENABLED=false;
 
 //var SERVER_URL='http://teamup.aalto.fi/';
-var SERVER_URL='http://localhost:8081/';
+var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
 
 var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'Spanish', 'et-ET':'Estonian', 'fr-FR':'Francais', 'he-HE':'Hebrew', 'hu-HU':'Hungarian', 'it-IT':'Italian','lt-LT':'Lithuanian', 'nl-NL':'Dutch', 'no-NO':'Norwegian', 'pt-PT':'Portuguese','sk-SK':'Slovak', 'tr-TR':'Turkish'};
 
@@ -42,7 +42,7 @@ var my_changes={}; // if changes pile up, do not overwrite last changes
 
 
 TOP_HEIGHT=62;
-BOTTOM_HEIGHT=0; // or 120 
+BOTTOM_HEIGHT=0; // or 96
 WINDOW_HEIGHT=$(window).height();
 
 
@@ -148,13 +148,13 @@ Pupil.prototype.addProperty = function(prop) {
         this.hobbies.push(prop.uid);
         return prop;
     }
-    if (ALL_LEVELS.contains(prop)) {
-        if (prop.uid==this.level) {
-            return null;
-        }
-        this.level=prop.uid;
-        return prop;
-    }
+//    if (ALL_LEVELS.contains(prop)) {
+//        if (prop.uid==this.level) {
+//            return null;
+//        }
+//        this.level=prop.uid;
+//        return prop;
+//    }
     if (ALL_GENDERS.contains(prop)) {
         if (prop.uid==this.gender) {
             return null;
@@ -385,6 +385,7 @@ function Team(no_catalog){
     this.center_x=0;
     this.center_y=0;
     this.notes=[];
+    this.color=[];
     do {
     this.uid='Team_'+create_uid();
     } while (CATALOG[this.uid]);
@@ -438,8 +439,8 @@ OPTIONS.clicker='None';
 
 // Creating criteria. These could also come from somewhere else.
 ALL_HOBBIES=new CriterionGroup('Hobbies');
-ALL_HOBBIES.img_src='icons/bee.png';
-ALL_HOBBIES.set([new Criterion('Bee','icons/bee.png'), new Criterion('Book','icons/book.png'),new Criterion('Craft','icons/craft.png'), new Criterion('Digital','icons/digital.png'), new Criterion('Fire','icons/fire.png'),new Criterion('Sleepy','icons/sleepy.png'), new Criterion('Spice','icons/spice.png')]);
+ALL_HOBBIES.img_src='icons/together-skills.png';
+ALL_HOBBIES.set([new Criterion('Bee','icons/bee.png'), new Criterion('Book','icons/book.png'),new Criterion('Craft','icons/paper.png'), new Criterion('Digital','icons/computer.png'), new Criterion('Fire','icons/fire.png'),new Criterion('Sleepy','icons/home.png'), new Criterion('Spice','icons/chilly.png'), new Criterion('Sport','icons/balls.png'), new Criterion('Hammer', 'icons/hammer.png'), new Criterion('Loud','icons/sound.png'), new Criterion('Silent','icons/sound-low.png'), new Criterion('Sun','icons/sun.png') ]);
 
 ALL_FRIENDS=new CriterionGroup('Friends');
 ALL_FRIENDS.img_src='icons/friend.png';
@@ -447,19 +448,19 @@ ALL_FRIENDS.img_src='icons/friend.png';
 ALL_ENEMIES=new CriterionGroup('Enemies');
 ALL_ENEMIES.img_src='icons/enemy.png';
 
-ALL_LEVELS=new CriterionGroup('Levels');
-ALL_LEVELS.set([new Criterion('Sunny', 'icons/sun.png'), new Criterion('Half-cloudy', 'icons/halfcloud.png'), new Criterion('Cloudy', 'icons/cloud.png')]);
-ALL_LEVELS.img_src='icons/sun.png'
+//ALL_LEVELS=new CriterionGroup('Levels');
+//ALL_LEVELS.set([new Criterion('Sunny', 'icons/sun.png'), new Criterion('Half-cloudy', 'icons/halfcloud.png'), new Criterion('Cloudy', 'icons/cloud.png')]);
+//ALL_LEVELS.img_src='icons/sun.png'
 
 ALL_LANGUAGES=new CriterionGroup('Languages');
 ALL_LANGUAGES.set([new Language('en'), new AddLanguageButton()]);
-ALL_LANGUAGES.img_src='icons/lang_empty.png';
+ALL_LANGUAGES.img_src='icons/together-language.png';
 
 ALL_GENDERS=new CriterionGroup('Gender');
-ALL_GENDERS.img_src='icons/female.png';
-ALL_GENDERS.set([new Criterion('Girl','icons/female.png'), new Criterion('Boy','icons/male.png'),new Criterion('No gender','icons/no_gender.png')]);
+ALL_GENDERS.img_src='icons/together-gender.png';
+ALL_GENDERS.set([new Criterion('Girl','icons/female.png'), new Criterion('Boy','icons/male.png'),new Criterion('No gender','icons/neutral.png')]);
 ALL_VOTES=new CriterionGroup('Votes');
-ALL_VOTES.img_src='icons/vote.png';
+ALL_VOTES.img_src='icons/together-vote.png';
 
 
 // ********* FILLING WITH DEMO CONTENT ******
@@ -570,13 +571,17 @@ $(document).ready(function(){
         //CLASSROOM.resize_display();
         WINDOW_HEIGHT=$(window).height();
         $('div.main_area').css('height', WINDOW_HEIGHT - TOP_HEIGHT);
+        $('div.nav').css('top', WINDOW_HEIGHT/2-24)
+
         if (view==CLASSROOM) { 
             if (TEAM_VIEW){
                 CLASSROOM.build_team_view(false);
             } else {
                 CLASSROOM.build_class_view(false);
             }
-        }
+        } else if (view==LEARNER_VIEW) {
+            $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
+        } 
     });
 
 
@@ -636,7 +641,7 @@ $(document).ready(function(){
         CLASSROOM.update_faces();
         $(this).blur();
     }),
-    $("#camera_toggle").click(function(event) {
+    $("#camera_button").click(function(event) {
         if (camera_on) {
             if (!$(this).hasClass('disabled')) {
                 take_photo();
@@ -773,13 +778,16 @@ function getData(ui_obj) {
         debug('**** GET DATA CALLED WITH EMPTY UI OBJECT: '+$(ui_obj));
         return;
     }
+    if (ui_obj.length>1) {
+        debug('**** getData called with multiple ui objects:'+$(ui_obj));
+    }
     var key=$(ui_obj).data('teamup_data');
     if (!key) {
-        debug('**** GET DATA FOUND NO KEY: #'+ui_obj[0].id);
+        debug('**** GET DATA FOUND NO KEY: #'+ui_obj.id);
     }
     var obj= CATALOG[key];
     if (obj==undefined) {
-        debug('**** GET DATA FOUND NOTHING (==UNDEFINED): #'+ui_obj[0].id);
+        debug('**** GET DATA FOUND NOTHING (==UNDEFINED): #'+ui_obj.id);
     }
     return obj
 }
@@ -815,6 +823,11 @@ function find_index_by_uid(item_uid, obj_array) {
     }
 }
 
+function isVisible(jqobj) {
+    if (jqobj.css('display')!='none') return true;
+    return false;
+}
+
 
 function i18n(str){
     if (localizedStrings == null) return str;
@@ -822,6 +835,79 @@ function i18n(str){
     if (locstr == null || locstr == "") locstr = str;
     return locstr;
 }
+
+function create_colors(n) {
+    var step=1.0/n;
+    var s=.67;
+    var v=.79;
+    var ar=[];
+    var h=0;
+    for (var i=0;i<n;i++) {
+        h+=step;
+        ar.push(hsvToRgb(h,s,v));
+    }
+    //for(var j, x, i = ar.length; i; j = parseInt(Math.random() * i), x = ar[--i], ar[i] = ar[j], ar[j] = x);
+    var l=ar.length;
+    var j;
+    var rr=[];
+    for (var a=0;a<l;a++) {
+        debug(ar[a]);
+    }
+
+    for (var a=0;a<l;a++) {
+        j=parseInt(Math.random()*ar.length);
+        rr.push(ar.splice(j,1));
+    }
+    return rr;    
+}
+
+
+function hsvToRgb(h, s, v){
+    var r, g, b;
+
+    var i = Math.floor(h * 6);
+    var f = h * 6 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+
+    switch(i % 6){
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+
+    return "#" + ((1 << 24) + (Math.ceil(r*255) << 16) + (Math.ceil(g*255) << 8) + Math.ceil(b*255)).toString(16).slice(1);
+}
+
+function hslToRgb(h, s, l){
+    var r, g, b;
+
+    if(s == 0){
+        r = g = b = l; // achromatic
+    }else{
+        function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        }
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    //return [r * 255, g * 255, b * 255];
+    return "#" + ((1 << 24) + (Math.ceil(r*255) << 16) + (Math.ceil(g*255) << 8) + Math.ceil(b*255)).toString(16).slice(1);
+}
+
 
 
 function getUrlVars() {
@@ -906,7 +992,7 @@ function localize(){
             $('#upload-panel').attr('title',i18n($('#upload-panel').attr('title')));
             $('div.left_nav').attr('title',i18n($('div.left_nav').attr('title')));
             $('div.right_nav').attr('title',i18n($('div.right_nav').attr('title')));
-            $('#camera_toggle').attr('title',i18n($('#camera_toggle').attr('title')));
+            $('#camera_button').attr('title',i18n($('#camera_button').attr('title')));
             $('input.topic').each(function () {
             if ($(this).val()=='[ enter topic ]') { 
                 $(this).val(i18n('[ enter topic ]'));
@@ -962,8 +1048,8 @@ function savedPhoto(path) {
 function tookPhoto() {
     //$("div.portrait").show();
     debug('tookPhoto called');
-    $('#camera_toggle').hide();
-    $("#save_portrait").show();
+    $('#camera_button').hide();
+    $("#save_portrait").show('slide',{direction:'left'});
 }
 
 
@@ -1028,19 +1114,38 @@ function redo_photoshoot() {
     if (cam.capture !== undefined) {
         debug('Found photobooth');
         cam.release();  // doesn't call back, just removes the still
+        $('#camera_button').show();
     }    
-    prepare_photoshoot();
-}
-
-function prepare_photoshoot() {
-    $("div.portrait").hide();
-    $("#save_portrait").hide();
-    $("div.photoshoot").show();
-    //$('#camera_toggle').addClass('disabled');
-    $('#camera_toggle').show();
+    $("#save_portrait").hide('slide',{direction:'left'});
     camera_on=true;
 }
 
+function prepare_photoshoot() {
+    debug('preparing photoshoot...');    
+    if (isVisible($('div.photoshoot'))) {
+        if (swfobject.getObjectById('PhotoBooth').capture=== undefined)
+            debug('no capture available');
+        return;
+    }
+    $("div.portrait").hide();
+    $("div.photoshoot").show();
+    $('#camera_button').css('border-color','#a0a000').show();
+    // photo booth params
+    var flashvars={};
+    var fparams={};
+    fparams.bgcolor="#000086";
+    fparams.allowscriptaccess="sameDomain";
+    var fattributes={};
+    fattributes.id='PhotoBooth';
+    fattributes.name='PhotoBooth';
+    swfobject.embedSWF('recorder/PhotoBooth3.swf', 'PhotoBooth', '220', '220', '10.3.0', 'expressInstall.swf', flashvars,fparams,fattributes);
+}
+
+function cameraReady() {
+    debug('cameraReady called...');    
+    $('#camera_button').css('border-color','#00a000').show();
+    camera_on=true;
+}
 
 function take_photo() {
     debug('taking photo...');    
@@ -1049,19 +1154,22 @@ function take_photo() {
         debug('Found photobooth');
         cam.capture();  // will result in 'tookPhoto' call
     }
+    //$('#camera_button').css('border-color','#a00000').show();
+    $('#camera_button').hide();
     camera_on=false;
 }
 
 function finish_photoshoot() {
     $('div.portrait').show();
     $('div.photoshoot').hide();
-    $('#save_portrait').hide();
-    $('#camera_toggle').show();
+    $('#save_portrait').hide('slide',{direction:'left'});
+    $('#camera_button').show();
+    $('#camera_button').css('border-color','transparent').show();
     camera_on=false;
 }
 
 function photo_error(error) {
-    debug(error);
+    debug('photo error:'+error);
 }
 
 // **********************************
@@ -1149,9 +1257,11 @@ function disable_nav() {
 }
 
 function disable_bottom() {
-    $('div.bottom').hide();
-    BOTTOM_HEIGHT=0;
-    $('div.nav_buttons').css('bottom',39+BOTTOM_HEIGHT);
+    if (isVisible($('div.bottom'))) {
+        $('div.bottom').hide();
+        BOTTOM_HEIGHT=0;
+        $('div.nav_buttons').css('bottom',39+BOTTOM_HEIGHT);
+    }
 }
 
 function enable_nav() {
@@ -1161,9 +1271,11 @@ function enable_nav() {
 }
 
 function enable_bottom() {
-    BOTTOM_HEIGHT=120;
-    $('div.bottom').show();
-    $('div.nav_buttons').css('bottom',39+BOTTOM_HEIGHT);
+    if (!isVisible($('div.bottom'))) {
+        BOTTOM_HEIGHT=96;
+        $('div.bottom').show();
+        $('div.nav_buttons').css('bottom',39+BOTTOM_HEIGHT);
+    }
 }    
 
 function go_left(event) {
@@ -1297,7 +1409,7 @@ TEAM_NOTES.create_team_notes= function(team) {
     for (var i=0;i<team.members.length;i++) {
         member=CATALOG[team.members[i]];
         s='<div class="team_face" alt="'+member.name+'" title="'+member.name+'">';
-        s+='<img src="'+member.img_src+'" width="64" height="64" />';
+        s+='<img src="'+member.img_src+'" width="60" height="60" />';
         if (member.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
             s+='<label>'+member.name+'</label>';
         }
@@ -1504,7 +1616,8 @@ CLASSROOM.populate_class= function() {
     var pup,s,obj;
     for (var i=0; i<PUPILS.length; i++) {
         pup=PUPILS[i];
-        s='<div class="face" id="pup'+pup.uid+'"><label>'+pup.name+'</label><img src="'+pup.img_src+'" width="100" height="100" /><span class="away ui-icon ui-icon-closethick">&nbsp;</span></div>';
+        s='<div class="face" id="pup'+pup.uid+'"><label>'+pup.name+'</label><img src="'+pup.img_src+'" width="100" height="100" /></div>';
+        // <span class="away ui-icon ui-icon-closethick">&nbsp;</span>
         place.append(s);
         obj=place.find('#pup'+pup.uid);
         if (OPTIONS.color) {
@@ -1519,17 +1632,26 @@ CLASSROOM.populate_class= function() {
         }
 
     }
+    for (var i=0; i<TEAMS.length; i++) {
+        team=TEAMS[i];
+        for (var j=0; j<team.members.length; j++) {
+            pup=team.members[j];
+            obj=place.find('#pup'+pup.uid);
+            obj.css('border-color',team.color);            
+        }
+    }
+    
     if (MODERATOR) $('div.face').draggable({zIndex:2700}).droppable({greedy:false, over:CLASSROOM.drag_over, out:CLASSROOM.drag_out, drop:CLASSROOM.drag_drop, tolerance:'pointer', scroll:false});
 
     $('div.face').click(LEARNER_VIEW.view_learner);
-    $('span.away').click(function(event) {
-        var face=$(this).closest("div");
-        face.addClass('away');
-        event.stopImmediatePropagation();
-        face.click(function(event) {
-            $(this).removeClass('away');
-        });
-    });
+//    $('span.away').click(function(event) {
+//        var face=$(this).closest("div");
+//        face.addClass('away');
+//        event.stopImmediatePropagation();
+//        face.click(function(event) {
+//            $(this).removeClass('away');
+//        });
+//    });
 }
 
 CLASSROOM.drag_drop = function (event, ui) {
@@ -1573,6 +1695,7 @@ CLASSROOM.drag_out = function (event, ui) {
 }
 
 CLASSROOM.adjust_for_learners= function (event) {
+    $('#admin_tag').hide();
     $('#reset_teams').closest('p').hide();
     $('#team_size').closest('p').hide();
     $('#teacher_url').closest('p').hide();
@@ -1581,6 +1704,7 @@ CLASSROOM.adjust_for_learners= function (event) {
     if (TEAMS.length==0) {
         $('#team_view').hide();    
     }
+
 }
 
 
@@ -1624,7 +1748,7 @@ CLASSROOM.build_class_view = function (animate) {
     if (size>255) size=255;
     var padding=(size-5)/20;
     left_margin= ((box_width-(size*per_row))/2)+30
-    var inner_size=size-padding-5;
+    var inner_size=size-padding-7;
 
     var x=left_margin;
     var y=42;
@@ -1678,7 +1802,7 @@ CLASSROOM.build_team_view = function(animate) {
     // calculate optimal space for displaying teams:    
     var height_factor=Math.cos((Math.PI/180)*30)
     var left_margin=30;
-    var top_margin=32;
+    var top_margin=12;
     
     var cols=0;
     var rows=0;
@@ -1732,25 +1856,25 @@ CLASSROOM.build_team_view = function(animate) {
     var icon_size=r/4;
     var font_size=''+(Math.ceil(r/4)+10)+'%';
     var icon_center=icon_size/2;
-    var table_size=0.75*r
-    var table_border=0.25*r/2
+    var table_size=0.6*r;
+    var table_border=(r-table_size)/2;
     if (animate){
         $('div.face').animate({width:icon_size, height:icon_size});        
         $('div.face img').animate({width:icon_size, height:icon_size});
         $('div.team_box').animate({opacity:1.0},1200);
+        //$('div.team_box').css('background-color', '#550000');
+        $('.team_name').css({left:table_border/2, top:table_border/1.5});
         $('span.team_name').animate({opacity:1.0},1200);
-        $('div.recordings_button').css({width:icon_size*0.75, height:icon_size*0.75});
-        $('div.recordings_button img').css({width:icon_size*0.75, height:icon_size*0.75});
         $('div.team_box img.team_table').css({width:table_size, height:table_size, top:table_border, left:table_border});
     } else {
         $('div.team_box img.team_table').css({width:table_size, height:table_size, top:table_border, left:table_border});
         $('div.team_box').css({opacity:1.0});
-        $('span.team_name').css({opacity:1.0});
-        $('div.recordings_button').css({width:icon_size*0.75, height:icon_size*0.75});
-        $('div.recordings_button img').css({width:icon_size*0.75, height:icon_size*0.75});
+        $('span.team_name').css('opacity',1.0);
+        $('.team_name').css({left:table_border/2, top:table_border/1.5});
         $('div.face').css({width:icon_size, height:icon_size});
         $('div.face img').css({width:icon_size, height:icon_size});
     }
+    $('span.available_recordings').css({left:center+7, top:center-30});
     $('div.face label').css({'font-size':font_size, width:icon_size});    
     //$('div.face').droppable('disable');   
     
@@ -1763,25 +1887,25 @@ CLASSROOM.build_team_view = function(animate) {
         team_box=$('#team_box_'+i);
         //team_box.css({left: x-45, top: y-39})
         team_box.css({left: x, top: y, width: r, height:r}) // , background:'#442222'
-        radstep2=(Math.PI*2)/(tteam.members.length+1);
-        rad2=(Math.PI/6);
+        radstep2=(Math.PI*1.7)/tteam.members.length;
+        rad2=-0.6*Math.PI;
         new_x=Math.round((Math.sin(rad2)*(dist)))+center-icon_center;
         new_y=Math.round((Math.cos(rad2)*(dist)))+center-icon_center;
-        team_box.find('div.recordings_button').css({left: center-(icon_center*0.75), top: center-(icon_center*0.75)});
         if (tteam.notes.length==0) {
-            team_box.find('div.recordings_button span').hide();
+            team_box.find('span.available_recordings').hide();
         } else {
-            team_box.find('div.recordings_button span').show();
-            team_box.find('div.recordings_button span').text(tteam.notes.length)
+            team_box.find('span.available_recordings').show();
+            team_box.find('span.available_recordings').text(tteam.notes.length)
         }
-        team_box.find('input.team_name').css({left: new_x, top: new_y+icon_center-20}).val(tteam.name);
-        team_box.find('span.team_name').css({left: new_x, top: new_y+icon_center-20}).text(tteam.name);
-        rad2=rad2+radstep2;        
+        //team_box.find('input.team_name').css({left: new_x, top: 0new_y+icon_center-20}).val(tteam.name);
+        //team_box.find('span.team_name').css({left: new_x, top: new_y+icon_center-20}).text(tteam.name);
+        //rad2=rad2+radstep2;        
         for (j=0;j<tteam.members.length;j++) {
             member=CATALOG[tteam.members[j]];
             face=member.getFace('pup');
             new_x=Math.round((Math.sin(rad2)*(dist))+tteam.center_x-icon_center);
             new_y=Math.round((Math.cos(rad2)*(dist))+tteam.center_y-icon_center);
+            face.css('border-color',tteam.color);
             if (animate) {
                 face.animate({left:new_x, top:new_y});
             } else {
@@ -1817,6 +1941,7 @@ CLASSROOM.create_random_teams= function() {
     debug('Creating random teams');
     var free_pupils=PUPILS.slice(0);
     var teams_count=PUPILS.length/OPTIONS.team_size;
+    var colors=create_colors(teams_count);
     var nt, member;
     while (free_pupils.length>0) {
         for (i=0;i<teams_count;i++) {
@@ -1824,6 +1949,7 @@ CLASSROOM.create_random_teams= function() {
                 if (TEAMS.length<=i) {                    
                     nt=new Team();
                     nt.name=i18n('Team')+' '+(i+1);
+                    nt.color=colors[i];
                     TEAMS.push(nt);
                     member=random_pick(free_pupils)
                 } else {
@@ -1878,43 +2004,48 @@ CLASSROOM.redraw_team_labels= function() {
         $(this).hide();
         $(this).next('input.team_name').show().focus();
     }
-
     $('div.team_box').remove();
     var place=$('div.class_area');
-    var team_name, team_name_input, icon_size;
-    icon_size=$('div.recordings_button img:first').width() || 48;
+    var team_name, team_name_input;
     for (i=0;i<TEAMS.length;i++){
         team_name=TEAMS[i].name;
-        place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><div class="recordings_button" title="'+i18n('Team notes')+'"><img src="icons/rec.png" width="'+icon_size+'" height="'+icon_size+'" alt="" /><span class="available_recordings">0</span></div><img class="team_table" src="images/circle2.png" alt="" width="164" height="152" /></div>');
+        place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+i18n('Team')+': '+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><span class="available_recordings">0</span><img class="team_table" src="images/teams-stencil-1.png" alt="" width="164" height="152" /></div>');
         team_name_input=$('#team_'+i);
         team_name_input.val(team_name);
         team_name_input.attr('size',(team_name.length>10) ? team_name.length: 10);
-        setData($('#team_box_'+i),TEAMS[i]);
+        var tb=$('#team_box_'+i);
+        tb.find('.team_table').css('background-color',TEAMS[i].color);
+        setData(tb,TEAMS[i]);
     }
     $('div.team_box').droppable({greedy:true, hoverClass:'table_hover', tolerance:'pointer',
         drop: CLASSROOM.switch_team});
-    $('.recordings_button').click(CLASSROOM.go_team_notes);    
+    $('.team_box').click(CLASSROOM.go_team_notes).hover(function(){$(this).find('img.team_table').attr('src', 'images/teams-stencil-2.png')}, function(){$(this).find('img.team_table').attr('src', 'images/teams-stencil-1.png')}); 
+       
     $('span.team_name').click(focus_to_team_input);
     $('span.team_name').focus(focus_to_team_input);
     $('input.team_name').blur(function () {
         $(this).prev('span.team_name').show();
         $(this).hide();
     });
-    $("input.team_name").change(function(event) {
-        debug('team name changed');
-        var team=getData($(this).closest(".team_box"));
-        var new_name=$(this).val().replace('>','').replace('<','');
-        team.name=new_name;
-        $(this).val(new_name)
-        debug('team name:'+new_name); 
-        CONTROLLER.addChange(team);
-        CONTROLLER.sendChanges();
-        $(this).prev('span.team_name').text(new_name);
-        $(this).blur();
-    });
+    $("input.team_name").change(CLASSROOM.rename_team);
 }
 
-CLASSROOM.update_faces= function() {
+
+CLASSROOM.rename_team = function(event) {
+    debug('team name changed');
+    var team=getData($(this).closest(".team_box"));
+    var new_name=$(this).val().replace('>','').replace('<','');
+    team.name=new_name;
+    $(this).val(new_name)
+    debug('team name:'+new_name); 
+    CONTROLLER.addChange(team);
+    CONTROLLER.sendChanges();
+    $(this).prev('span.team_name').text(new_name);
+    $(this).blur();
+}
+
+
+CLASSROOM.update_faces = function() {
         CLASSROOM.populate_class();
         if (TEAM_VIEW) {
             CLASSROOM.build_class_view(false);
@@ -1931,7 +2062,7 @@ CLASSROOM.update_faces= function() {
 CLASSROOM.switch_team=function (event, ui) {
     var person=getData(ui.helper);
     var found=false;
-    var target=getData(event.target);
+    var target=getData($(this));
     if (target.type=='Pupil') {
         for (var i=0;i<TEAMS.length;i++){
             team=TEAMS[i];
@@ -2310,7 +2441,11 @@ LEARNER_VIEW.view_learner = function (event) {
 
 
 LEARNER_VIEW.show= function() {
-    $('div.person').css('height', WINDOW_HEIGHT-TOP_HEIGHT-36);
+    $('div.person').css('height', WINDOW_HEIGHT-TOP_HEIGHT);
+    $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-279)/2);
+    debug((WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
+    debug($('div.person table').height());
+
     if (MODERATOR) {
         enable_bottom();
         $('div.people_properties').show('slide',{direction:'down'},300);        
@@ -2321,6 +2456,8 @@ LEARNER_VIEW.show= function() {
         $('div.person div.nav_buttons').hide();
     }
     $('div.person').show('slide',{direction:'down'},300);
+    $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
+    debug($('div.person table').height());
     view=LEARNER_VIEW;    
 }
 
@@ -2341,7 +2478,11 @@ LEARNER_VIEW.create_new_person= function(event) {
 }    
 
 LEARNER_VIEW.create_person_page= function() {
-    finish_photoshoot();
+    $('div.portrait').show();
+    $('div.photoshoot').hide();
+    $('#save_portrait').hide();    
+    $('#camera_button').css('border-color','transparent').show();
+    camera_on=false;
     var pup=PUPILS[THIS_PERSON];
     $('#namebox').val(pup.name);
     $('img.large_portrait').attr('src', pup.img_src);
@@ -2349,6 +2490,9 @@ LEARNER_VIEW.create_person_page= function() {
     LEARNER_VIEW.update_person_properties();
     $('div.left_nav').attr('title',  (THIS_PERSON==0) ? PUPILS[PUPILS.length-1].name : PUPILS[THIS_PERSON-1].name);
     $('div.right_nav').attr('title', (THIS_PERSON== PUPILS.length-1) ? PUPILS[0].name : PUPILS[THIS_PERSON+1].name);
+    if (isVisible($('div.person'))) {
+        $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
+    }
 }
 
 LEARNER_VIEW.create_person= function(person){
@@ -2392,140 +2536,82 @@ LEARNER_VIEW.create_person= function(person){
 }
 
 LEARNER_VIEW.update_property_choices= function() {
-    var props=ALL_GENDERS.criteria.concat(ALL_LEVELS.criteria, ALL_HOBBIES.criteria, ALL_LANGUAGES.criteria, ALL_FRIENDS.criteria);
+    var props=ALL_GENDERS.criteria.concat(ALL_HOBBIES.criteria, ALL_LANGUAGES.criteria, ALL_FRIENDS.criteria); // ALL_LEVELS.criteria, <-- before hobbies
     $('div.people_properties').width(props.length*74);
     LEARNER_VIEW.populate_person_properties(props);
     LEARNER_VIEW.init_property_dragging();
 }
+
 
 LEARNER_VIEW.update_person_properties= function(new_prop) {
     var pup=PUPILS[THIS_PERSON];
     // data rows 
     // hobbies
     var prop, div, s;
+    var initial_height= $('div.person table').height();
+    var props=pup.hobbies.concat(pup.friends, pup.enemies, pup.languages);
+    if (pup.gender) props.push(pup.gender);
+    
     if (MODERATOR || OPTIONS.show_icons) {
-        div=$('div.hobbies');
+        div=$('.drag_area');
         div.html('');
-        for (i=0; i<pup.hobbies.length; i++) {
-            prop=CATALOG[pup.hobbies[i]];
-            s='<div class="property_item" alt="'+i18n(prop.name)+'" title="'+i18n(prop.name)+'" id="'+prop.name+'">';
-            if (prop.img_src!=null) {
-                s+='<img src="'+prop.img_src+'" width="64" height="64" />';
-            } else {
-                s+='<label>'+i18n(prop.name)+'</label>'
-            }
-            div.append(s);
-            //debug('update_person_properties calling setData');
-    
-            setData($('#'+prop.name),prop);
-            if (prop==new_prop) {
-                $('#'+prop.name).hide().fadeIn('fast');
-            }
-        }
-        // skill level / weather
-        div=$('div.level');
-        div.html('');
-        prop=CATALOG[pup.level];
-        if (prop!=null) {
-            s='<div class="property_item" alt="'+i18n(prop.name)+'" title="'+i18n(prop.name)+'" id="'+prop.name+'">';
-            if (prop.img_src!=null) {
-                s+='<img src="'+prop.img_src+'" width="64" height="64" />';
-            } else {
-                s+='<label>'+i18n(prop.name)+'</label>'
-            }
-            div.append(s);
-            setData($('#'+prop.name),prop); 
-            if (prop==new_prop) {
-                $('#'+prop.name).hide().fadeIn('fast');
-            }
-
-        }
-        
-        
-        // friends & enemies
-        div=$('div.friends');
-        div.html('');
-        for (i=0; i<pup.friends.length; i++) {
-            prop=CATALOG[pup.friends[i]];
-            s='<div class="property_item" alt="'+prop.name+'" title="'+prop.name+'" id="f_'+prop.uid+'">';
-            if (prop.img_src!=null) {
-                s+='<img src="'+prop.img_src+'" width="64" height="64" />';
-            }
-            if (prop.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
-                s+='<label class="name_label">'+prop.name+'</label>'
-            }
-            s+='<img src="icons/friend.png" width="24" height="24" class="frenemy_icon" /></div>'
-            div.append(s);
-            setData($('#f_'+prop.uid),prop);
-            if (prop==new_prop) {
-                $('#'+prop.name).hide().fadeIn('fast');
-            }
-
-        }
-        for (i=0; i<pup.enemies.length; i++) {
-            prop=CATALOG[pup.enemies[i]];
-            s='<div class="property_item" alt="'+prop.name+'" title="'+prop.name+'" id="e_'+prop.uid+'">';
-            if (prop.img_src!=null) {
-                s+='<img src="'+prop.img_src+'" width="64" height="64" />';
-            }
-            if (prop.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
-                s+='<label class="name_label">'+prop.name+'</label>'
-            }
-            s+='<img src="icons/enemy.png" width="24" height="24" class="frenemy_icon" /></div>'
-            div.append(s);
-            setData($('#e_'+prop.uid),prop);
-            if (prop==new_prop) {
-                $('#'+prop.name).hide().fadeIn('fast');
-            }
-
-        }
-    
-        // languages
-        div=$('div.languages');
-        div.html('');
-        for (i=0; i<pup.languages.length; i++) {
-            prop=CATALOG[pup.languages[i]];
+        for (i=0; i<props.length; i++) {
+            prop=CATALOG[props[i]];
             if (!prop) {
-                prop=new Language(pup.languages[i].slice(9));
-                CATALOG[pup.languages[i]]=prop;
+                prop=new Language(props[i].slice(9));
+                CATALOG[props[i]]=prop;
                 ALL_LANGUAGES.insert(prop);
             }
-            s='<div class="property_item" alt="'+prop.name+'" title="'+prop.name+'" id="'+prop.name+'">';
-            s+='<img src="'+ALL_LANGUAGES.img_src+'" width="64" height="64" /><label class="lang_label">'+prop.lang_code+'</label>';
-            div.append(s);
-            setData($('#'+prop.name),prop);
-            if (prop==new_prop) {
-                $('#'+prop.name).hide().fadeIn('fast');
-            }
 
-        }
-        // gender icon 
-        div=$('div.gender');
-        div.html('');
-        prop=CATALOG[pup.gender];
-        if (prop!=null) {
-            s='<div class="property_item" alt="'+i18n(prop.name)+'" title="'+i18n(prop.name)+'" id="'+prop.name+'">';
-            if (prop.img_src!=null) {
-                s+='<img src="'+prop.img_src+'" width="64" height="64" />';
+            titlestring='';
+            if (ALL_LANGUAGES.contains(prop)) {
+                s='<div class="property_item" id="'+prop.name+'" alt="'+prop.name+'" title="'+prop.name+'">';
+                s+='<img src="'+ALL_LANGUAGES.img_src+'" width="60" height="60" />';
+                s+='<label class="lang_label">'+prop.lang_code+'</label>';
+                s+='<span>X</span>';
+                
+            } else if (ALL_ENEMIES.contains(prop)) {
+                s='<div class="property_item" id="'+prop.name+'" alt="'+prop.name+'" title="'+prop.name+'">';
+                s+='<img src="'+prop.img_src+'" width="60" height="60" />';
+                s+='<img src="images/enemy.png" width="24" height="24" class="frenemy_icon" />';               
+                s+='<span>X</span>';
+                if (prop.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
+                    s+='<label class="name_label">'+prop.name+'</label>'
+                }
+            } else if (ALL_FRIENDS.contains(prop)) {
+                s='<div class="property_item" id="'+prop.name+'" alt="'+prop.name+'" title="'+prop.name+'">';
+                s+='<img src="'+prop.img_src+'" width="60" height="60" />';
+                s+='<img src="images/friend.png" width="24" height="24" class="frenemy_icon" />';               
+                if (prop.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
+                    s+='<label class="name_label">'+prop.name+'</label>'
+                }
             } else {
-                s+='<label>'+i18n(prop.name)+'</label>'
+                s='<div class="property_item" id="'+prop.name+'">';
+                s+='<img src="'+prop.img_src+'" width="60" height="60" />';
+                s+='<span>X</span>';
             }
-            div.append(s);
-            setData($('#'+prop.name),prop); 
+            s+='</div>';
+            div.append(s)            
+            jqprop=$('#'+prop.name);
+            setData(jqprop,prop);
             if (prop==new_prop) {
-                $('#'+prop.name).hide().fadeIn('fast');
+                jqprop.hide().fadeIn('fast');
             }
 
         }
         // make all of them touchable 
         if (MODERATOR) {  
-            $('div.property_item').draggable({helper:'original', revert: "valid", start:function(event, ui){drag_remove_me=true;}, stop:LEARNER_VIEW.remove_property, scroll:false}); 
             $('div.property_item').click(LEARNER_VIEW.click_icon);
         }
         $('div.property_item').disableSelection();
         $('div.property_item img').disableSelection();
+        if (props.length==0 && MODERATOR) {
+            $('#drag_hint').show();
+        } else {
+            $('#drag_hint').hide();
+        }
     } else {
-        $('div.hobbies, div.level, div.friends, div.languages, div.gender').html('');        
+        $('div.drag_area').hide();       
     }
     // update name and icon if necessary
     if ($('#namebox').val()!=pup.name) {     
@@ -2535,18 +2621,11 @@ LEARNER_VIEW.update_person_properties= function(new_prop) {
         $('img.large_portrait').attr('src', pup.img_src);
     }
     $('img.large_portrait').show();
-
-    // photo booth params
-    var flashvars={};
-    var fparams={};
-    fparams.bgcolor="#000086";
-    fparams.allowscriptaccess="sameDomain";
-    var fattributes={};
-    fattributes.id='PhotoBooth';
-    fattributes.name='PhotoBooth';
-    swfobject.embedSWF('recorder/PhotoBooth2.swf', 'PhotoBooth', '320', '320', '10.3.0', 'expressInstall.swf', flashvars,fparams,fattributes);
-
     
+    if ($('div.person table').height()!=initial_height) {
+        $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
+    }
+
 }
 
 LEARNER_VIEW.click_icon= function(event) {
@@ -2568,8 +2647,6 @@ LEARNER_VIEW.click_icon= function(event) {
         person.removeEnemy(prop)
         other_person=CATALOG[prop.person];
         other_person.removeEnemy(person)
-        person.addFriend(other_person)
-        other_person.addFriend(person)
         CONTROLLER.addChange(person);
         CONTROLLER.addChange(other_person);
         CONTROLLER.sendChanges();
@@ -2584,7 +2661,7 @@ LEARNER_VIEW.click_icon= function(event) {
 }
 
 LEARNER_VIEW.get_all_props= function() {
-    return ALL_GENDERS.criteria.concat(ALL_HOBBIES.criteria, ALL_LANGUAGES.criteria, ALL_FRIENDS.criteria, ALL_ENEMIES.criteria, ALL_LEVELS.criteria);
+    return ALL_GENDERS.criteria.concat(ALL_HOBBIES.criteria, ALL_LANGUAGES.criteria, ALL_FRIENDS.criteria, ALL_ENEMIES.criteria); // ALL_LEVELS.criteria
 }
 
 
@@ -2631,8 +2708,7 @@ LEARNER_VIEW.init_property_dragging= function() {
         }
         LEARNER_VIEW.update_person_properties(prop);
         });
-    $('div.property_picker_item').click(LEARNER_VIEW.jump_to_person);
-    $('div.person').droppable({greedy:true, activeClass:'markDroppable', tolerance:'pointer', drop: LEARNER_VIEW.add_property});
+    $('div.drag_area').droppable({greedy:true, activeClass:'markDroppable', tolerance:'pointer', drop: LEARNER_VIEW.add_property});
     $('div.add_language_button').click(LEARNER_VIEW.open_language_panel);
 }
 
@@ -2642,7 +2718,7 @@ LEARNER_VIEW.open_language_panel= function(event) {
     var lang;
     for (var key in LANGUAGE_CODES) {
         lang=LANGUAGE_CODES[key];
-        s+='<div class="language_item" alt="'+lang+'" title="'+lang+'" id="lang_'+key+'"><img src="'+ALL_LANGUAGES.img_src+'" width="64" height="64" /><label class="lang_label">'+key+'</label></div>';  //charAt(0).toUpperCase()+key.slice(1,3)
+        s+='<div class="language_item" alt="'+lang+'" title="'+lang+'" id="lang_'+key+'"><img src="'+ALL_LANGUAGES.img_src+'" width="60" height="60" /><label class="lang_label">'+key+'</label></div>';  //charAt(0).toUpperCase()+key.slice(1,3)
     }
     lp.html(s);
     $('div.language_item').click(LEARNER_VIEW.add_language_option);  
@@ -2739,13 +2815,14 @@ LEARNER_VIEW.populate_person_properties= function(props) {
         }
         s='<div class="'+class_name+'" alt="'+i18n(prop.name)+'" title="'+i18n(prop.name)+'" id="prop'+i+'">';
         if (prop.img_src!=null) {
-            s+='<img src="'+prop.img_src+'" width="64" height="64" />';
+            s+='<img src="'+prop.img_src+'" width="60" height="60" />';
         } else {
             if (isType(prop, 'Language')) {
-                s+='<img src="'+ALL_LANGUAGES.img_src+'" width="64" height="64" />';
+                s+='<img src="'+ALL_LANGUAGES.img_src+'" width="60" height="60" />';
                 s+='<label class="lang_label">'+prop.lang_code+'</label>';
             } else {
-                s+='<img src="icons/lang_plus.png" width="64" height="64" />'
+                s+='<img src="icons/language.png" width="60" height="60" />'
+                s+='<label class="lang_label">+</label>';
                 s+='<div class="language_panel"></div>';
             }
         }
@@ -2887,7 +2964,7 @@ CRITERIA.create_crit_icons = function() {
     for (var i=0;i<UNIFYING_CRITERIA.length;i++) {
         place=$('#crit_place_'+(i+1));
         obj=UNIFYING_CRITERIA[i];
-        place.html(''+(i+1)+'<div class="criteria_item" alt="'+obj.name+'" title="'+obj.name+'" id="crit_group_'+obj.name+'"><img src="'+obj.img_src+'" width="64" height="64" /></div>');
+        place.html(''+(i+1)+'<div class="criteria_item" alt="'+obj.name+'" title="'+obj.name+'" id="crit_group_'+obj.name+'"><img src="'+obj.img_src+'" width="60" height="60" /></div>');
         jq_obj=$('#crit_group_'+obj.name);
         setData(jq_obj, obj);        
     }
@@ -2932,7 +3009,7 @@ CRITERIA.available_criteria = function() {
     }
     if (friends) crit_list.push(ALL_FRIENDS);
     if (hobbies) crit_list.push(ALL_HOBBIES);
-    if (levels) crit_list.push(ALL_LEVELS);
+    //if (levels) crit_list.push(ALL_LEVELS);
     if (languages) crit_list.push(ALL_LANGUAGES);
     if (gender) crit_list.push(ALL_GENDERS);
     if (votes) crit_list.push(ALL_VOTES);
@@ -2949,7 +3026,7 @@ CRITERIA.populate_criteria_picker = function(crits) {
         critgroup=crits[i];
         s='<div class="criteria_picker_item" alt="'+i18n(critgroup.name)+'" title="'+i18n(critgroup.name)+'" id="cp_'+critgroup.name+'">';
         if (critgroup.img_src!=null) {
-            s+='<img src="'+critgroup.img_src+'" width="64" height="64" />';
+            s+='<img src="'+critgroup.img_src+'" width="60" height="60" />';
         } else {
             s+='<label>'+i18n(critgroup.name)+'</label>'
         }
@@ -2992,7 +3069,7 @@ function team_up() {
 
 
     //unifying_criteria=[ALL_GENDERS, ALL_HOBBIES]; // replace this with actual choices
-    splitting_criteria=[ALL_GENDERS, ALL_HOBBIES, ALL_LANGUAGES, ALL_VOTES, ALL_FRIENDS, ALL_ENEMIES, ALL_LEVELS];
+    splitting_criteria=[ALL_GENDERS, ALL_HOBBIES, ALL_LANGUAGES, ALL_VOTES, ALL_FRIENDS, ALL_ENEMIES]; //  ALL_LEVELS
     var weights=[1000, 100, 10];
     var neg_weight=-100;
     var scores=[];
