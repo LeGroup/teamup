@@ -62,11 +62,17 @@ if (typeof wave!== 'undefined') {
             } else if (key=='SHOW_ICONS') {
                 OPTIONS.show_icons=$.parseJSON(state.get(key));
             } else {
-                existing=CATALOG[key];
+                if (CATALOG[key]) {
+                    existing=$.extend(true, {}, CATALOG[key]);
+                } else {
+                    existing=null;
+                }
                 update=restore_json_object(state.get(key));
-                if (!update) 
+                if (!update) {
                     // somehow broken object. better skip it.
+                    debug('skipping broken object '+key);
                     continue; 
+                }
                 if (existing) {
                     // old version exists and needs to be compared for changes. 
                     // ((could I just overwrite every object now?))
@@ -100,7 +106,7 @@ if (typeof wave!== 'undefined') {
                     if (change) {
                         debug('change in '+existing.uid);
                         changes.push(existing);
-                    }
+                    } 
                 } else {
                     // create new object based on flat_new
                     // add it to relevant lists and catalogs
@@ -172,6 +178,7 @@ if (typeof wave!== 'undefined') {
             } else {
                 debug("Couldn't find all teams in catalog. Didn't update teams.");
             }
+            teams_changed=true;
         } else {
             debug('no TEAMS in state');
         }
@@ -183,6 +190,7 @@ if (typeof wave!== 'undefined') {
                 new_topics[p]=CATALOG[new_topics[p]];
             }
             TOPICS=new_topics;
+            topics_changed=true;
         } else if (TOPICS.length==0) {
             debug('>>>> Creating initial topics'); 
             TOPICS=[new Topic(''), new Topic(''), new Topic('')];
@@ -196,17 +204,20 @@ if (typeof wave!== 'undefined') {
         CONTROLLER.checkConsistency();
     
         if (people_changed) {
+            debug('people changed');
             CLASSROOM.update_faces();
             if (view==LEARNER_VIEW) {
                 LEARNER_VIEW.update_person_properties()
             } 
         }
         if (order_changed) {
+           debug('order changed');
            if (view==CLASSROOM && !TEAM_VIEW) {
                 CLASSROOM.build_class_view(true);
             }
         }
         if (teams_changed) {
+            debug('teams changed');
             if (view==CLASSROOM && TEAM_VIEW) {
                 debug('* rebuilding team view *');
                 CLASSROOM.build_team_view(true);
@@ -216,6 +227,7 @@ if (typeof wave!== 'undefined') {
             }
         }
         if (topics_changed) {
+            debug('topics changed');
             if (view==INTERESTS) {
                 INTERESTS.draw_topics(true);
                 INTERESTS.update_people_votes();           

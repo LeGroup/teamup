@@ -21,8 +21,8 @@ var DEBUG_MODE=false;
 var MODERATOR=true;
 var SMART_ENABLED=false;
 
-//var SERVER_URL='http://teamup.aalto.fi/';
-var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
+var SERVER_URL='http://teamup.aalto.fi/';
+//var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
 
 var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'Spanish', 'et-ET':'Estonian', 'fr-FR':'Francais', 'he-HE':'Hebrew', 'hu-HU':'Hungarian', 'it-IT':'Italian','lt-LT':'Lithuanian', 'nl-NL':'Dutch', 'no-NO':'Norwegian', 'pt-PT':'Portuguese','sk-SK':'Slovak', 'tr-TR':'Turkish'};
 
@@ -385,7 +385,7 @@ function Team(no_catalog){
     this.center_x=0;
     this.center_y=0;
     this.notes=[];
-    this.color=[];
+    this.color='';
     do {
     this.uid='Team_'+create_uid();
     } while (CATALOG[this.uid]);
@@ -731,6 +731,8 @@ function restore_packed_object(obj) {
         for (var key in obj) {
             old_obj[key] = obj[key];
         }                
+        CATALOG[old_obj.uid]=old_obj;
+        return old_obj;
     } else {    
         if (obj.type=='Team') {
             new_obj= new Team(true);
@@ -753,8 +755,8 @@ function restore_packed_object(obj) {
             new_obj[key] = obj[key];
         }
         CATALOG[new_obj.uid]=new_obj;
+        return new_obj;
     }
-    return CATALOG[obj.uid]
 }
 
 // Assign instances of data objects (Pupil, Criterion, Topic etc.)  to their ui objects (jQuery objects).
@@ -1613,7 +1615,7 @@ CLASSROOM.select_team_view = function(event) {
 CLASSROOM.populate_class= function() {
     var place=$('div.class_area');
     place.html('');
-    var pup,s,obj;
+    var pup,s,obj, update;
     for (var i=0; i<PUPILS.length; i++) {
         pup=PUPILS[i];
         s='<div class="face" id="pup'+pup.uid+'"><label>'+pup.name+'</label><img src="'+pup.img_src+'" width="100" height="100" /></div>';
@@ -1634,9 +1636,18 @@ CLASSROOM.populate_class= function() {
     }
     for (var i=0; i<TEAMS.length; i++) {
         team=TEAMS[i];
+        if (!team.color) {
+            var colors=create_colors(TEAMS.length);
+            for (var k=0; k<TEAMS.length; k++) {
+                TEAMS[k].color=colors[k];
+                team.color=colors[k];
+                CONTROLLER.addChange(TEAMS[k]);
+                update=true;
+            }
+        }
         for (var j=0; j<team.members.length; j++) {
             pup=team.members[j];
-            obj=place.find('#pup'+pup.uid);
+            obj=place.find('#pup'+pup.uid);            
             obj.css('border-color',team.color);            
         }
     }
@@ -1652,6 +1663,9 @@ CLASSROOM.populate_class= function() {
 //            $(this).removeClass('away');
 //        });
 //    });
+    if (update) {
+        CONTROLLER.sendChanges();
+    }
 }
 
 CLASSROOM.drag_drop = function (event, ui) {
@@ -1700,6 +1714,8 @@ CLASSROOM.adjust_for_learners= function (event) {
     $('#team_size').closest('p').hide();
     $('#teacher_url').closest('p').hide();
     $('#show_icons').closest('p').hide();
+    $('#new_teams').html(i18n('vote'));
+    $('#interests_next').hide();
     $('#reset_votes').hide();
     if (TEAMS.length==0) {
         $('#team_view').hide();    
@@ -2231,10 +2247,9 @@ INTERESTS.store_topic = function(event) {
             TOPICS.push(new_topic);
             CONTROLLER.addChange(new_topic);
             CONTROLLER.addArray('TOPICS', TOPICS);
-        }    
-    } else {
-        CONTROLLER.addChange(topic);
-    }    
+        }
+    }  
+    CONTROLLER.addChange(topic);
     CONTROLLER.sendChanges();
     INTERESTS.draw_topics(false);
     $('#'+topic.uid).parent('li').next().find('input').focus(); // focus to next field 
@@ -2445,12 +2460,12 @@ LEARNER_VIEW.show= function() {
     $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-279)/2);
     debug((WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
     debug($('div.person table').height());
+    enable_nav();
 
     if (MODERATOR) {
         enable_bottom();
         $('div.people_properties').show('slide',{direction:'down'},300);        
         $('div.person div.nav_buttons').show();
-        enable_nav();
     } else {
         disable_bottom();
         $('div.person div.nav_buttons').hide();
