@@ -996,8 +996,8 @@ function localize(){
             $('div.right_nav').attr('title',i18n($('div.right_nav').attr('title')));
             $('#camera_button').attr('title',i18n($('#camera_button').attr('title')));
             $('input.topic').each(function () {
-            if ($(this).val()=='[ enter topic ]') { 
-                $(this).val(i18n('[ enter topic ]'));
+            if ($(this).val()=='Enter topic') { 
+                $(this).val(i18n('Enter topic'));
             }
             });
             $('.property_picker_item').each(function() {
@@ -2182,19 +2182,20 @@ INTERESTS.draw_topics = function(animate) {
         var old_votes={};
         $('div.smallFace').each(function() { old_votes[this.id]=true; }); 
     }
-    var place=$('ol#topics');
+    var place=$('table#topics');
     place.html('');
     
     for (var i=0;i<TOPICS.length;i++) {
         topic=TOPICS[i];
         is_empty= (topic.name.length==0) ? ' empty' : '';
-        val= (topic.name.length==0) ? i18n('[ enter topic ]') : topic.name;
-        s='<li><input type="text" class="topic'+is_empty+'" id="'+topic.uid+'" tabindex="'+(i+10)+'" value="'+val+'" /><div style="height:32px;width:2px;float:left;"></div></li>';
+        val= (topic.name.length==0) ? i18n('Enter topic') : topic.name;
+        var drop_area_content = (topic.voters.length) ? '' : i18n('Drag pictures here');
+        s='<tr><td style="width:32px">'+(i+1)+'.</td><td><input type="text" class="topic'+is_empty+'" id="'+topic.uid+'" tabindex="'+(i+10)+'" value="'+val+'" /></td><td><div class="interest_drop_area">'+drop_area_content+'</div></td></tr>';
         place.append(s);
         setData($('#'+topic.uid), topic);
-        li=$('#'+topic.uid).parent();
-        setData(li, topic);
-        for (var j=0;j<topic.voters.length;j++) {
+        drop_area=$('#'+topic.uid).closest('td').next().find('.interest_drop_area');
+        setData(drop_area, topic);
+        for (var j=0;j<topic.voters.length;j++) {            
             pupil=CATALOG[topic.voters[j]];
             r='<div class="smallFace" alt="'+pupil.name+'" title="'+pupil.name+'" id="'+topic.uid+'_vote_'+j+'">';
             if (pupil.img_src!=DEFAULT_IMAGE) {
@@ -2203,7 +2204,7 @@ INTERESTS.draw_topics = function(animate) {
                 r+='<label>'+pupil.name+'</label>'
             }
             r+='</div>';
-            li.append(r);
+            drop_area.append(r);
             obj=$('#'+topic.uid+'_vote_'+j);
             setData(obj, pupil);
             mini_face=obj;
@@ -2227,7 +2228,7 @@ INTERESTS.draw_topics = function(animate) {
         }
     });
     $('input.topic').change(INTERESTS.store_topic);
-    $('#topics li').droppable({greedy:true, hoverClass:'drophover', activeClass:'markDroppable', tolerance:'pointer', drop: INTERESTS.add_vote});
+    $('div.interest_drop_area').droppable({greedy:true, hoverClass:'drophover', activeClass:'markDroppable', tolerance:'pointer', drop: INTERESTS.add_vote});
     $('div.smallFace').draggable({helper:'original', cursorAt:{left:21, top:21}, start:function(event, ui){drag_remove_me=true;}, stop:INTERESTS.remove_vote, scroll:false});
     $('div.smallFace').disableSelection();
     $('div.smallFace img').disableSelection();
@@ -2236,7 +2237,7 @@ INTERESTS.draw_topics = function(animate) {
 
 INTERESTS.store_topic = function(event) {
     var name=$(this).val().replace('<','').replace('>','');
-    var topic=getData($(this).parent('li'));
+    var topic=getData($(this));
     topic.name=name;
     debug('Renaming topic '+topic.uid+' to '+topic.name);
     if (name.length>0) {
@@ -2252,7 +2253,7 @@ INTERESTS.store_topic = function(event) {
     CONTROLLER.addChange(topic);
     CONTROLLER.sendChanges();
     INTERESTS.draw_topics(false);
-    $('#'+topic.uid).parent('li').next().find('input').focus(); // focus to next field 
+    $('#'+topic.uid).closest('tr').next().find('input').focus(); // focus to next field 
 }
 
 
@@ -2287,11 +2288,12 @@ INTERESTS.init_interest_dragging = function() {
     face.disableSelection();
     $('div.people_picker_face img').disableSelection();
     face.click(function(event) {
+        var rows=$('#topics').find('tr');
         if (selected_face) {
             if (selected_face.hasClass('selected') || getData($(this)).votes_available<1) { 
                 selected_face.removeClass('selected');
-                $('#topics li').removeClass('markSelectable');
-                $('#topics li').unbind('click');
+                rows.removeClass('markSelectable');
+                rows.unbind('click');
                 selected_face=null;
             } else {           
                 selected_face.removeClass('selected');
@@ -2302,11 +2304,11 @@ INTERESTS.init_interest_dragging = function() {
         }
         if (selected_face) {
             selected_face.addClass('selected');
-            $('#topics li').addClass('markSelectable');
-            $('#topics li').click(function (event) {
-                debug('adding '+getData(selected_face).name+' to '+getData(this).text);
+            rows.addClass('markSelectable');
+            rows.click(function (event) {
+                debug('adding '+getData(selected_face).name+' to '+getData($(this).find('input')).text);
                 var person=getData(selected_face);
-                var topic=getData(this);
+                var topic=getData($(this).find('input'));
                 topic.addVoter(person);
                 person.votes_available--;
                 selected_face.find('span.votes').html(person.votes_available);
@@ -2314,8 +2316,8 @@ INTERESTS.init_interest_dragging = function() {
                 CONTROLLER.addChange(person);
                 CONTROLLER.sendChanges();        
                 selected_face.removeClass('selected');
-                $('#topics li').removeClass('markSelectable');
-                $('#topics li').unbind('click');
+                rows.removeClass('markSelectable');
+                rows.unbind('click');
                 INTERESTS.draw_topics(true);
                 selected_face=null;
             });
@@ -2340,7 +2342,7 @@ INTERESTS.remove_vote = function (event, ui) {
     debug('removing a vote');    
     var person=getData(ui.helper);
     person.votes_available++;
-    var topic=getData($(this).parent('li'));
+    var topic=getData($(this).parent('div.interest_drop_area'));
     topic.removeVoter(person);
     ui.helper.remove();
     $('#picker_'+person.uid).find('span.votes').html(person.votes_available);
@@ -2410,7 +2412,7 @@ INTERESTS.populate_people_picker = function() {
     var s, obj;
     for (var i=0; i<PUPILS.length; i++) {
         s='<div class="people_picker_face" alt="'+PUPILS[i].name+'" title="'+PUPILS[i].name+'" id="picker_'+PUPILS[i].uid+'">';
-        s+='<img src="'+PUPILS[i].img_src+'" width="100" height="100" />';
+        s+='<img src="'+PUPILS[i].img_src+'" width="60" height="60" />';
         if (PUPILS[i].img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
            s+='<label>'+PUPILS[i].name+'</label>'
         }
