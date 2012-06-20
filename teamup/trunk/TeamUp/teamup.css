@@ -91,7 +91,7 @@ td.center {
 
 
 .button:hover {
-    background: #3C3C3C;
+    background: #4C4C4C;
     background-repeat:no-repeat;
 }
 
@@ -986,9 +986,13 @@ div.smallFace {
     padding-right:4px;
 }
 div.smallFace label {
-    font-size:70%;
+    font-size:80%;
+    font-style:normal;
     line-height:30px;
     padding:2px;
+    background:#454444;
+    color:#D0D0D0;
+    cursor:pointer;
 }
 
 
@@ -1005,55 +1009,54 @@ td.criteria_background {
 }
 
 div.placeholder {
-    border: 2px dotted #777;
+    position:relative;
     text-align:center;
-    margin-top:20px;
+    margin-top:15px;
+    background:#4C4C4C;
+    color:#D0D0D0;
+    line-height:60px;
+    font-size: 0.8em;
+    font-weight: bold;
     margin-left: auto;
     margin-right: auto;
-    width:96px;
-    height:96px;
-    border-radius: 20px;
-    -moz-border-radius: 20px;
-    -webkit-border-radius: 20px;
+    width:60px;
+    height:60px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
 
+div.placeholder div.criteria_item {
+    position:absolute;
+    top:0px;
+    left:0px;
+}
 
+td.preview {
+    min-width:336px;
+}
 
-div.criteria div#team_up_button {
-    background-image:url('images/teamup_button.png');
-    margin-top:50px;
-    margin-right: auto;
-    width:250px;
-    height:250px;
-    border: 3px solid #aaa;
-    border-radius: 20px;
-    -moz-border-radius: 20px;
-    -webkit-border-radius: 20px;
-    cursor:pointer;
-    font-size: 160%;
+#preview_inner {
+    border-top: 1px solid #8B8D8E;
+    font-size:0.8em;
+}
+
+#refresh_preview {
+    position:absolute;
+    top:0px;
+    right:4px;
+    width:30px;
+    height:22px;
     text-align:center;
-    line-height:250px;
+    line-height:22px;
 }
-
-div.criteria div#team_up_button:hover {
-    background-image:url('images/teamup_button_hover.png');
-    border: 3px solid #ddd;
-    color: #aaffaa;
-}
-
-div.criteria div#team_up_button:active {
-    background-image:none;
-    background-color: #080;
-    border: 3px solid #afa;
-    color: #aaffaa;
-}
-
 
 div.criteria_picker {
     display:none;
     overflow: hidden;
     padding-left:64px;
     padding-right:64px;
+    text-align:center;
 }
 
 div.criteria_picker_item {

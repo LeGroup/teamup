@@ -57,6 +57,7 @@ var timer = null;
 var camera_on = false;
 var localizedStrings = null;
 var demo_note = null;
+TEAMS_PREVIEW=[];
 
 
 var create_uid = function(){
@@ -624,10 +625,12 @@ $(document).ready(function(){
     $('#interests_next').click(INTERESTS.next).keyup(function(e){if(e.keyCode==13) $(this).click()});
     
     // Setting criteria and teaming up! 
-    $("#team_up_button").click(CRITERIA.confirm_before_teaming).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    //$("#team_up_button").click(CRITERIA.confirm_before_teaming).keyup(function(e){if(e.keyCode==13) $(this).click()});
     $(".criteria div.placeholder").droppable({greedy:true, activeClass:'markDroppable2', hoverClass:'drophover2', tolerance:'pointer', drop: CRITERIA.add_unifying_crit});
     $("td.criteria_background").droppable({accept:'div.criteria_item', drop:CRITERIA.remove_unifying_crit});
     $('#criteria_next').click(CRITERIA.next).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#refresh_preview').click(function() { team_up();CRITERIA.update_preview() }).keyup(function(e){if(e.keyCode==13) $(this).click()});
+
     // People functionalities
     
     $('#remove_person').click(function () {$('#delete-confirm-panel').find('b').text(PUPILS[THIS_PERSON].name);$('#delete-confirm-panel').dialog('open');$('div.ui-dialog-buttonpane').find('button:last').focus();}).keyup(function(e){if(e.keyCode==13) $(this).click()});
@@ -966,7 +969,7 @@ function localize(){
             var place;
             var localizedStrings=$.parseJSON(data.responseText);
             var text_ids=['i18n_class','i18n_teams','keep_photo','try_again_photo','cancel_photo','label_team_size','label_show_names',
-            'i18n_interests_heading','i18n_grouping_heading','team_up_button',
+            'i18n_interests_heading','i18n_grouping_heading',
             'i18n-play','i18n-pause','i18n-stop','i18n-mute','i18n-unmute',
             'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems','record_note',
             'i18n_new_teams','options', 'i18n_options', 'label_reset_teams',
@@ -2892,7 +2895,7 @@ LEARNER_VIEW.delete_learner= function() {
 CRITERIA.show= function(dir){
     var crits=CRITERIA.available_criteria();
     disable_nav();
-    enable_bottom();
+    enable_bottom();    
     $('div.criteria').css('height',WINDOW_HEIGHT - TOP_HEIGHT);
     $('div.criteria_picker').width(crits.length*74);
     CRITERIA.populate_criteria_picker(crits);
@@ -2909,6 +2912,9 @@ CRITERIA.show= function(dir){
     for (var i=0; i<UNIFYING_CRITERIA.length; i++) {
         $('#cp_'+UNIFYING_CRITERIA[i].name).hide();
     }
+    if (!TEAMS_PREVIEW.length) team_up();
+    CRITERIA.update_preview();
+        
     $('div.left_nav').attr('title',i18n('Vote for topics'));
     $('div.right_nav').attr('title', (i18n('Class')+'/'+i18n('Teams')));
 
@@ -2930,9 +2936,12 @@ CRITERIA.init_dragging = function(){
 }
 
 CRITERIA.next = function(){
+    CRITERIA.confirm_before_teaming();
     view.hide();
     view= CLASSROOM
+    CLASSROOM.redraw_team_labels();
     view.show('right');
+    CLASSROOM.select_team_view(null);
 }
 CRITERIA.prev = function(){
     view.hide();
@@ -2940,6 +2949,23 @@ CRITERIA.prev = function(){
     view.show('left');
 }
 
+CRITERIA.update_preview = function() {
+    s='';
+    var team, person;
+    for (var i=0;i<TEAMS_PREVIEW.length;i++) {
+        team=TEAMS_PREVIEW[i];
+        s+='<p style="color:'+team.color+'"><b>'+team.name+': ';
+        for (var j=0;j<team.members.length;j++) {
+            person=CATALOG[team.members[j]];
+            s+=person.name;
+            if (j<team.members.length-1) {
+                s+=', ';
+            }
+        }
+        s+='</b></p>';        
+    }
+    $('#preview_inner').html(s);
+}
 
 CRITERIA.add_unifying_crit = function(event, ui){
     var index;
@@ -2973,7 +2999,9 @@ CRITERIA.add_unifying_crit = function(event, ui){
         }
         UNIFYING_CRITERIA=UNIFYING_CRITERIA.slice(0,3);
     }
-    CRITERIA.create_crit_icons()
+    CRITERIA.create_crit_icons();
+    team_up();
+    CRITERIA.update_preview();
 }
 
 CRITERIA.create_crit_icons = function() {
@@ -3003,6 +3031,9 @@ CRITERIA.remove_unifying_crit = function(event, ui){
         }
     }        
     CRITERIA.create_crit_icons()
+    team_up();
+    CRITERIA.update_preview();
+
 }    
             
 
@@ -3064,13 +3095,12 @@ CRITERIA.confirm_before_teaming = function(event) {
     }
     if (team_names.length>0) {
         debug('Found items... alerting user.');
-        $('#reset-confirm-panel').dialog("option", "buttons", { "Reset": function() { $(this).dialog("close");team_up();}, "Cancel": function() {$(this).dialog("close");} } );
+        $('#reset-confirm-panel').dialog("option", "buttons", { "Reset": function() { $(this).dialog("close");CRITERIA.save_teams();}, "Cancel": function() {$(this).dialog("close");} } );
         $('#reset-confirm-panel').find('b').html(team_names);
         $('#reset-confirm-panel').dialog('open');
         $('div.ui-dialog-buttonpane').find('button:last').focus();
-        return;
     } else {
-        team_up()
+        CRITERIA.save_teams();
     }
 }
 
@@ -3125,6 +3155,9 @@ function team_up() {
     popular_topics=temp;
     
     var teams_total=Math.ceil(PUPILS.length/OPTIONS.team_size)
+
+    var colors=create_colors(teams_total);
+
     
     // calculating distances between each learner
     for (var i=0;i<PUPILS.length;i++) {
@@ -3192,6 +3225,7 @@ function team_up() {
             var seed_member_uid;
             this_topic=(popular_topics.length>0) ? popular_topics[topic_i] : null;
             nteam.topic=this_topic;
+            nteam.color=colors[h];
             if (this_topic && this_topic.name!='') { 
                 nteam.name=this_topic.name+' '+topic_round;
             } else {
@@ -3290,7 +3324,15 @@ function team_up() {
         }
         scores.push(team_quality);
     }
-    TEAMS=best_teaming;
+    TEAMS_PREVIEW=best_teaming;
+    
+} 
+
+
+CRITERIA.save_teams = function(event) {
+
+    TEAMS=TEAMS_PREVIEW.slice(0); // copy of preview
+    
     if (MODERATOR & TEAMS.length>0) {
         CONTROLLER.addArray('TEAMS', TEAMS);
         var total_fit=0;
