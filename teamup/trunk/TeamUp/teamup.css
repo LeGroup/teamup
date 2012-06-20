@@ -40,6 +40,7 @@ img {
 .small {font-size:80%; }
 
 h1 {
+    margin-top:18px;
     margin-left: 60px;
     text-align: left;
 	font-size: 1.5em;
@@ -183,19 +184,10 @@ div.header_inner {
     right:17px;
     width:39px;
     height:39px;
-    background-image:url('images/options-1.png');
+    background-image:url('images/options-alpha.png');
     background-repeat:none;
     
 }
-
-#prefs_button:hover {
-    background-image:url('images/options-2.png');
-}
-
-#prefs_button:active {
-    background-image:url('images/options-3.png');
-}
-
 
 #admin_tag {
     position: absolute;
@@ -1035,6 +1027,9 @@ div.placeholder div.criteria_item {
 td.preview {
     min-width:336px;
 }
+#preview_header {
+    position:relative;
+}
 
 #preview_inner {
     border-top: 1px solid #8B8D8E;
@@ -1043,7 +1038,7 @@ td.preview {
 
 #refresh_preview {
     position:absolute;
-    top:0px;
+    bottom:2px;
     right:4px;
     width:30px;
     height:22px;
