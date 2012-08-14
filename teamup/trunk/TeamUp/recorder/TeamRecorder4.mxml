@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="init()" width="240" height="240" frameRate="30" backgroundColor="#1D1D1C">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+
+	
+	<fx:Script>
+		<![CDATA[
+        	import org.as3wavsound.WavSound;
+        	import org.as3wavsound.WavSoundChannel;
+        	import org.bytearray.micrecorder.MicRecorder;
+        	import org.bytearray.micrecorder.encoder.WaveEncoder;
+        	import org.bytearray.micrecorder.events.RecordingEvent;
+        	import fr.kikko.lab.ShineMP3Encoder;
+            import com.adobe.images.JPGEncoder;            
+            import ru.inspirit.net.MultipartURLLoader;
+            import flash.events.Event;
+            import flash.events.IOErrorEvent;
+            import flash.system.Security;
+
+            import flash.external.ExternalInterface;
+            import mx.core.FlexGlobals;
+			private var soundBytes:ByteArray = new ByteArray();
+			private var _file:FileReference; 
+			private var mymic:Microphone;
+			private var playback_channel:WavSoundChannel;
+			private var micTimer:Timer;
+			private var playTimer:Timer;
+            private var preparationTimer:Timer;
+            private var recTimer:Timer;
+            //private var stillTimer:Timer;
+            private var flashTimer:Timer;
+            private var uploaderTimer:Timer;
+            private var prep_counter:Number;
+            private var volume:Number = .5;
+            private var wavEncoder:WaveEncoder = new WaveEncoder( volume );
+            private var recorder:MicRecorder;
+    		private var sound:WavSound; //WavSound
+    		private var record_len:Number;
+    		private var mp3Encoder:ShineMP3Encoder;
+    		private var _bitmapData:BitmapData;
+    		private var _flash:BitmapData;
+    		private var photo_jpg:ByteArray;
+    		private var jpegEncoder:JPGEncoder= new JPGEncoder(80);
+    		private var camera:Camera;
+            private var video:Video;
+            private var still:Bitmap;
+            private var photo_bm:Bitmap;
+            private var countdown:TextField;
+            private var camw:Number;
+            private var camh:Number;
+            private var sound_position:Number;
+            private var recording:Boolean;
+            
+            
+			private function init():void {
+                _display.visible=true;
+			    //Security.loadPolicyFile(server_path+'crossdomain.php');
+                camw=240;
+                camh=240;
+                var format:TextFormat = new TextFormat();
+                format.font = "Arial";
+                format.color = '0xffffff';
+                format.size = 12;
+                format.bold = true;
+                format.underline = false;
+    
+    			countdown = new TextField();
+    			countdown.x=80;
+    			countdown.y=80;
+    			countdown.width=80;
+    			countdown.height=80;
+                countdown.background = false;
+                countdown.border = false;
+
+                format = new TextFormat();
+                format.font = "Arial";
+                format.color = '0xE0460E';
+                format.size = 64;
+                format.bold = true;
+                format.underline = false;
+    
+                countdown.defaultTextFormat = format;
+                countdown.text='3';
+                countdown.visible=false;
+                
+                uic.addChild(countdown);
+				
+				_flash=new BitmapData(camw,camh,false, 0xFFFFFF);
+				sound_position=0;
+				
+                // Taking team photos 
+                ExternalInterface.addCallback("initCamera", initCamera);
+                ExternalInterface.addCallback("takePhoto", takePhoto);
+                ExternalInterface.addCallback("redoPhoto", redoPhoto);
+                ExternalInterface.addCallback("cancelPhoto", cancelPhoto);
+                ExternalInterface.addCallback("keepPhoto", keepPhoto);
+
+                // recording team notes
+                ExternalInterface.addCallback("initMic", initMic);
+                ExternalInterface.addCallback("startRecording", startRecording);
+                ExternalInterface.addCallback("stopRecording", stopRecording);
+                ExternalInterface.addCallback("startPlaying", startPlaying);
+                ExternalInterface.addCallback("stopPlaying", stopPlaying);
+                ExternalInterface.addCallback("movePlaybackToPosition", movePlaybackToPosition);
+                ExternalInterface.addCallback("cancelRecording", cancelRecording);
+                ExternalInterface.addCallback("redoRecording", redoRecording);
+                ExternalInterface.addCallback("keepRecording", keepRecording);
+                
+                ExternalInterface.call("initialized");
+			}
+			
+			private function initCamera():void {
+                // get Camera
+                video= new Video(camw,camh);
+                camera = Camera.getCamera();
+                if (camera) {
+                    camera.setMode(camw,camh,12,false);
+                    camera.setQuality(0,100);
+                    video.attachCamera(camera);
+                }
+                uic.addChild(video);
+                flashTimer=new Timer(10,1);
+                flashTimer.addEventListener(TimerEvent.TIMER_COMPLETE, _addStill);
+			}
+
+            private function takePhoto():void {
+                flashTimer.reset();                
+                flashTimer.start(); // --> _addStill
+                _switchStill(new Bitmap(_flash))
+                still_screen.visible=true;
+                _bitmapData=new BitmapData(camw, camh);
+                _bitmapData.draw(video);
+                ExternalInterface.call("tookPhoto");
+            }
+
+            // is called by flashTimer after photo has been taken
+            private function _addStill(e:TimerEvent):void {
+                photo_bm=new Bitmap(_bitmapData);
+                _switchStill(photo_bm);
+                video.visible=false;
+                still_screen.visible=true;
+                photo_jpg = jpegEncoder.encode(_bitmapData);
+                _bitmapData=null;
+            }
+
+			private function _switchStill(bmp:Bitmap):void {
+                if (still!=null) {
+                    if (still_screen.contains(still)) {
+                        still_screen.removeChild(still);
+                    }
+                }
+                still = bmp;
+                still_screen.addChild(still);
+			}
+
+
+
+            private function redoPhoto():void {
+                still_screen.visible=false;             
+                
+            }
+
+
+            private function cancelPhoto():void {
+                if (camera) {
+                    video.attachCamera(null);
+                }
+
+
+            }
+
+            private function keepPhoto(server_path:String, class_name:String, group_name:String ) : void {
+                _display.text = 'Sending team photo...';                
+                var ml:MultipartURLLoader = new MultipartURLLoader();
+                ml.addEventListener(Event.COMPLETE, onReady);
+                function onReady(e:Event):void {
+                    // notify teamup that we are done
+            		ExternalInterface.call("sentPhoto", class_name+'/'+group_name);
+                }
+                function onError(evt:IOErrorEvent):void {
+                    _display.text="error:"+evt;
+                    //ExternalInterface.call("photo_error", "error:"+evt);
+                };
+                function forceFinish(event : Event) : void {
+                    // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
+                    // and the files are there. Send end notification.
+            		ExternalInterface.call("sentPhoto", class_name+'/'+group_name);
+                }            
+                ml.addVariable('class_id', class_name);
+                ml.addVariable('record_id', group_name);                
+                ml.addFile(photo_jpg, 'photo.jpg', 'photo', 'image/jpeg');
+                try {
+                    ml.load(server_path+"varloader.php", false);  
+                } catch (error:Error) {
+                    _display.text= error.message + error.toString();
+                } finally {};
+                
+				uploaderTimer = new Timer(10000);
+				uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
+                uploaderTimer.start();                      
+            }
+			
+
+
+            private function initMic():void {
+				// Get Microphone
+				mymic = Microphone.getMicrophone();
+				mymic.rate = 22;
+				mymic.setSilenceLevel(0);				
+				mymic.setUseEchoSuppression(true);
+				mymic.soundTransform = new SoundTransform(0,0);
+				mymic.setLoopBack(true);
+				
+				recorder= new MicRecorder( wavEncoder, mymic );
+    			recorder.addEventListener(RecordingEvent.RECORDING, _onRecording);
+    			recorder.addEventListener(Event.COMPLETE, _onRecordComplete);
+
+				prep_counter=3;
+                preparationTimer = new Timer(1000,prep_counter);
+                preparationTimer.addEventListener(TimerEvent.TIMER, _prepareAnnouncement);
+                preparationTimer.addEventListener(TimerEvent.TIMER_COMPLETE, _prepareComplete);                
+
+                soundLevel1.visible=true;
+				micTimer = new Timer(100);
+				micTimer.addEventListener(TimerEvent.TIMER, _miclevel);
+				micTimer.start();
+
+                recTimer = new Timer(60000,1);
+                recTimer.addEventListener(TimerEvent.TIMER_COMPLETE, stopRecording);
+            }
+
+			
+			// Recording 
+			
+			private function startRecording():void {
+
+                // make sure that vumeter is on
+                micTimer.start();
+                video.visible=true;
+
+                still_screen.visible=false;             
+
+                // start preparations
+                prep_counter=3;
+    		    _display.text = 'Prepare...'
+    		    countdown.visible=true;
+    		    countdown.text=prep_counter.toString();
+    		    preparationTimer.reset();
+                preparationTimer.start(); // prepareAnnouncement, prepareComplete
+			}
+			
+			private function _prepareAnnouncement(e:TimerEvent):void {
+    		    prep_counter--;
+    		    countdown.text= prep_counter.toString();			     
+			}
+
+            private function _prepareComplete(e:TimerEvent):void {
+                countdown.visible=false;
+
+                // change audio bar color
+                soundLevel1.setStyle('chromeColor',"0xaa0000");
+
+                recorder.record();
+                recTimer.reset();
+                recTimer.start(); // stop
+            }
+
+			
+			private function stopRecording():void {
+			    recorder.stop();
+                video.attachCamera(null);
+
+                // stop timers 
+			    recTimer.stop();
+			    
+                soundLevel1.setStyle('chromeColor',"0xaaaa00");
+                soundLevel1.visible=false;
+                micTimer.stop();
+
+                sound_position=0;
+                still_screen.visible=true;
+                countdown.visible=false;
+			}
+
+            private function startPlaying():void {
+                
+                function _showPlayProgress(e:TimerEvent):void {
+    				soundLevel1.setProgress(Math.abs(playback_channel.leftPeak),1);
+                }
+
+    			function _autoStopPlaying(e:Event):void {
+    			    playTimer.stop();    
+                    sound_position=0;
+                    still_screen.visible=true;                    
+                    soundLevel1.setStyle('chromeColor',"0xaaaa00");
+                    countdown.visible=false;    
+                    micTimer.start();
+    			}
+    			if (camera) {
+        			still_screen.visible=true;  
+    			}  			
+				playTimer = new Timer(50);
+				playTimer.addEventListener(TimerEvent.TIMER, _showPlayProgress);
+    			playTimer.start();
+
+                soundLevel1.setStyle('chromeColor',"0x00aa00");
+                soundLevel1.visible=true;
+    			micTimer.stop();
+
+    			playback_channel=sound.play(sound_position);
+    			_display.text = 'Playback started...';
+    			playback_channel.addEventListener(Event.SOUND_COMPLETE, _autoStopPlaying);
+            }
+
+
+
+            private function stopPlaying():void {
+                playTimer.stop();                
+                _display.text='Stopped.';
+                playback_channel.stop();
+                //sound_position=timeSlider.value*1000;                
+                soundLevel1.setStyle('chromeColor',"0xaaaa00");
+                soundLevel1.visible=false;
+                countdown.visible=false;
+            }
+
+            private function movePlaybackToPosition(p:Number):void {
+                if (recording) {return;} // shouldn't happen 
+                if (p < sound.length) {
+                    sound_position=p;
+                } else {
+                    sound_position=sound.length;
+                }
+            }
+
+            private function cancelRecording():void {
+
+            }
+            private function redoRecording():void {
+                startRecording();
+            }
+            private function keepRecording(server_path:String, class_name:String, group_name:String ): void {
+                _display.text = 'Sending audio file...';                
+
+                var ml:MultipartURLLoader = new MultipartURLLoader();
+                ml.addEventListener(Event.COMPLETE, onReady);
+                //ml.addEventListener(ProgressEvent.PROGRESS, onProgress);              
+                ExternalInterface.call("uploadingRecording");
+                                
+                function onReady(e:Event):void {
+                    // notify teamup that we are done
+            		ExternalInterface.call("finishedRecording", class_name+'/'+group_name);
+                }
+                function onError(evt:IOErrorEvent):void {
+                    _display.text="error:"+evt;
+                    //ExternalInterface.call("photo_error", "error:"+evt);
+                };
+                function forceFinish(event : Event) : void {
+                    // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
+                    // and the files are there. Send end notification.
+            		ExternalInterface.call("finishedRecording", class_name+'/'+group_name);
+                }
+            
+        		function onProgress(event : ProgressEvent) : void {
+        		    //encoding.label='Sending...';
+                    encoding_container.visible=true;
+        		    encoding.label=''+event.bytesLoaded;
+        		    encoding.setProgress(event.bytesLoaded,100);
+        		}
+
+                // simple string data
+                ml.addVariable('class_id', class_name);
+                ml.addVariable('record_id', group_name);                
+                ml.addFile(mp3Encoder.mp3Data, 'voice.mp3', 'voice', 'audio/mpeg');                 
+
+                try {
+                    ml.load(server_path+"varloader.php", false);  
+                } catch (error:Error) {
+                    _display.text= error.message + error.toString();
+                } finally {};
+                
+				uploaderTimer = new Timer(10000);
+				uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
+                uploaderTimer.reset();                      
+                uploaderTimer.start();                      
+            }
+
+            // this should be the only function to use those path parameters 
+
+			
+			
+			private function _miclevel(event:TimerEvent):void {
+				soundLevel1.setProgress(mymic.activityLevel,100);
+			}
+
+    		private function _onRecording(event:RecordingEvent):void {
+    			_display.text = "Recording : " + (event.time/1000).toFixed(1) + " s.";
+    			record_len=event.time;
+    		}
+			
+    		private function _onRecordComplete(event:Event):void {
+    			_display.text = "Record : " + (record_len/1000).toFixed(1) + " s.";
+        		function _mp3EncodeProgress(event : ProgressEvent) : void {
+        		    encoding.setProgress(event.bytesLoaded,100);
+        		}        
+        		function _mp3EncodeError(event : ErrorEvent) : void {    			
+        			_display.text = 'Encode error:' + event.text;
+        		}
+    			function _mp3EncodeComplete(event : Event) : void {
+                    mp3Encoder.removeEventListener(ProgressEvent.PROGRESS, _mp3EncodeProgress);
+        			mp3Encoder.removeEventListener(Event.COMPLETE, _mp3EncodeComplete);        			mp3Encoder.removeEventListener(ErrorEvent.ERROR, _mp3EncodeError);
+                    _display.text = 'Finished: ' + (mp3Encoder.mp3Data.length/1024).toFixed(1)+' kb.';
+                    encoding_container.visible=false;
+        			sound = new WavSound(recorder.output);
+            		ExternalInterface.call("encodingComplete");
+    			}
+			    mp3Encoder = new ShineMP3Encoder(recorder.output);
+    			mp3Encoder.addEventListener(Event.COMPLETE, _mp3EncodeComplete);    			mp3Encoder.addEventListener(ProgressEvent.PROGRESS, _mp3EncodeProgress);
+    			mp3Encoder.addEventListener(ErrorEvent.ERROR, _mp3EncodeError);
+    			mp3Encoder.start();						
+                encoding_container.visible=true;
+            }
+
+		]]>
+	</fx:Script>
+
+    <mx:UIComponent id="uic" x="0" y="0" width="240" height="240" />
+    <mx:UIComponent id="still_screen" x="0" y="0" width="240" height="240" visible="false">
+	</mx:UIComponent>	    
+	<mx:Label color="0xffffff" x="10" y="10" id="_display" text="00:00:00"/>
+	<mx:Label color="0xffffff" x="10" y="100" id="_error" visible="false" text=""/>
+	<mx:ProgressBar id="soundLevel1" direction="right" x="0" y="0" width="240" height="32" mode="manual" label="" chromeColor="0xaaaa00"  />
+    <mx:Box id="encoding_container" visible="false" x="0" y="50" width="240" height="60" backgroundColor="#555555" alpha="0.8">
+	<mx:ProgressBar id="encoding" x="40" y="0" width="240" mode="manual" label="Encoding..." fontSize="10" chromeColor="0x008844" color="0xdddddd"/>
+	</mx:Box>
+	
+	
+</s:Application>
+

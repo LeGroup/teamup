@@ -64,11 +64,10 @@
     <p id="i18n-del-note-confirmation">Are you sure you want to permanently remove this note?</p>
 </div>
 
-<div id="smart_receiver" style="display:none;border:1px solid #444400;width:64px;height:64px;position:absolute;top:0px;right:0px;z-index:400;">
+<div id="smart_receiver">
     <div id="smart_receiver_inner">Replaced by flash</div>
 </div>
 <div id="debug">Debug messages<br/></div>
-<div id="location_info"><span id="class_name_hint"><span id="i18n-offline">offline</span> </span> <span id="i18n-teacher">Teacher</span></div>
 <div id="leave_iframe"><img src="images/fullscreen.png" width="32" height="32"/></div>
 
 <div class="header">
@@ -143,7 +142,7 @@
     </div>
     <div class="options">
         <div class="main_options">
-        <h1 id="i18n_options">Options</h1>
+        <h2 id="i18n_options">Options</h2>
         
         <p><label for="team_size" id="label_team_size">Team size</label><select id="team_size" name="team_size"><option>2</option><option>3</option><option selected="1">4</option><option>5</option><option>6</option></select></p>
         <p><label for="show_names" id="label_show_names">Always show names</label><input type="checkbox" id="show_names" name="show_names" value="1"/></p>
@@ -160,7 +159,6 @@
         <center>
         <table id="topics"></table>
         </center>
-        <span id="reset_votes">Reset votes</span>
         <div class="nav_buttons">
             <div id="interests_next" class="button" label="Select criteria" title="Select criteria" tabindex="41"><span id="i18n_next">next</span> <img src="images/arrow-right-1.png" width="8" height="15" valign="middle" style="position:relative;top:-2px;margin-left:8px;"/></div>
         </div>        
@@ -190,76 +188,96 @@
         </div>        
     </div>
     <div class="recordings">
-        <table><tr>
-        <td valign="top" width="360">
+        <center>
+        <table>
+        <tr><td colspan="2">
             <h1 id="team_title">Team name</h1>
+            <div id="team_member_faces"></div>        
+        </td></tr>
 
-            <div id="team_member_faces"></div>
-            <div class="clear"></div>
-            <div id="note_viewer_help">
-                <div id="record_note">Record a newsflash</div>
+        <tr>
+        <td valign="top" width="240">
+            <div id="note_viewer" style="margin-right:24px;">
+                <div id="note_photo">
+                    <img src="" alt="" id="note_photo_img" width="240" height="240" />
+                    <div id="note_camera_toggle" class="button"></div>
+                </div>
             </div>
-            <div id="note_recorder_help" style="display:none">
-                <p id="recording_help_1">Record a 60 second newsflash.</p>
-                <p id="recording_help_2">Click the record button.</p>
-                <p id="recording_help_3">After the countdown, your picture is taken,<br/> then the recording starts.</p>
-                <p id="recording_help_4">Answer the questions below the recorder.</p>
-            </div>
-            <div id="recorder_save_help" style="display:none">
-                <div id="save_note">Save this note</div>                    
-                <p id="recording_help_5">Listen to your recording, save your recording or record again.</p>
+            <div id="note_recorder" style="margin-right:24px;display:none">
+                <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
             </div>
 
         </td>
         
-        <td class="centered">
+            <td width="240" align="left" style="background:#553300">
+    
+                <div id="note_viewer_object" class="jp-jplayer"></div>               
+                    <div id="player_interface" class="jp-interface">
+                    
+                </div>
+                <div id="note_camera_shoot" style="display:none" class="button"></div>
+                <div id="camera_shoot_options" style="display:none">
+                    <ul>
+                        <li id="camera_keep_photo" class="button">Keep</li>
+                        <li id="camera_retry_photo" class="button">Try again</li>
+                        <li id="camera_reject_photo" class="button">Cancel</li>
+                    </ul>
+                </div>
+                <div class="note_questions">
+                    <ul style="background:#550000">
+                        <li><span id="i18n-what-we-did">What we did.</span></li>
+                        <li><span id="i18n-what-we-will-do">What we will do.</span></li>
+                        <li><span id="i18n-any-problems">Any problems?</span></li>
+                    </ul>
+                </div>
+                <div id="note_viewer_help">
+                </div>
+                <div id="note_recorder_help" style="display:none">
+                    <p id="recording_help_1">Record a 60 second newsflash.</p>
+                    <p id="recording_help_2">Click the record button.</p>
+                    <p id="recording_help_3">After the countdown, your picture is taken,<br/> then the recording starts.</p>
+                    <p id="recording_help_4">Answer the questions below the recorder.</p>
+                </div>
+                <div id="recorder_save_help" style="display:none">
+                    <div id="save_note">Save this note</div>                    
+                    <p id="recording_help_5">Listen to your recording, save your recording or record again.</p>
+                </div>
 
-            <div id="note_viewer">
-            <div id="note_viewer_object" class="jp-jplayer"></div>               
-                <div id="player_interface" class="jp-interface">
-                
-                <div id="note_photo">
-                    <img src="" alt="" id="note_photo_img" width="480" height="360" />
-                    <label>00:00</label>
+            </td>
+        </tr>
+        <tr>
+        <td colspan="2">
+            <div id="player">
+                <div id="player_button">
+                <img src="images/play-arrow.png" width="11" height="22" class="jp-play" id="i18n-play" alt="play" title="play" tabindex="1"/>
+                <img src="images/pause.png" width="21" height="20" class="jp-pause" id="i18n-pause" alt="pause" title="pause" tabindex="1"/>
+                </div>
+                <div class="jp-full-minute-bar"><div id="play_marker">60</div>
+                <div id="length_bar"></div>
+                <div id="outer_length_bar"></div>
+                    <span class="separator" style="left:28px;" /> </span>
+                    <span class="separator" style="left:156px;" /> </span>
+                    <span class="separator" style="left:300px;" /> </span>
+                </div>
+                    <div class="jp-progress">
+                        <div class="jp-seek-bar">
+                        <div class="jp-play-bar"></div>
+                        </div>
+                    </div>
+
                     <div id="vol_control">
                     <img src="images/mute.png" width="18" height="15" alt="mute" title="mute" class="jp-mute" id="i18n-mute" tabindex="1"/>
                     <img src="images/unmute.png" width="18" height="15" alt="unmute" title="unmute" class="jp-unmute" id="i18n-unmute" tabindex="1"/>
                     <div class="jp-volume-bar"><div class="jp-volume-bar-value"></div></div>
+                    <label>00:00</label>
                     </div>
-                    <div id="note_photo_empty">∅</div>
-                </div>
-                <div id="player">
-                    <div id="player_button">
-                    <img src="images/play-arrow.png" width="11" height="22" class="jp-play" id="i18n-play" alt="play" title="play" tabindex="1"/>
-                    <img src="images/pause.png" width="21" height="20" class="jp-pause" id="i18n-pause" alt="pause" title="pause" tabindex="1"/>
-                    </div>
-                    <div class="jp-full-minute-bar"><div id="play_marker">60</div>
-                    <div id="length_bar"></div>
-                    <div id="outer_length_bar"></div>
-                        <span class="separator" style="left:28px;" /> </span>
-                        <span class="separator" style="left:156px;" /> </span>
-                        <span class="separator" style="left:300px;" /> </span>
-                    </div>
-                        <div class="jp-progress">
-                            <div class="jp-seek-bar">
-                            <div class="jp-play-bar"></div>
-                            </div>
-                        </div>
-                </div>
 
-                        </div>
-                                    
-            </div>
-            <div id="note_recorder">
-                <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
-        	</div>
-            <div class="note_questions">
-                <span id="i18n-what-we-did" style="left:40px;">What we did.</span>
-                <span id="i18n-what-we-will-do" style="left:175px;">What we will do.</span>
-                <span id="i18n-any-problems" style="left:310px;">Any problems?</span>
-            </div>
+
+            </div>                                    
+
         </td>
         </tr>
+        
         </table>
     
     </div>

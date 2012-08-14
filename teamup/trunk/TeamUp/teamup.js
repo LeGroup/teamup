@@ -17,7 +17,7 @@
 
 
 var DEMO=true;
-var DEBUG_MODE=false;
+var DEBUG_MODE=true;
 var MODERATOR=true;
 var SMART_ENABLED=false;
 
@@ -54,7 +54,6 @@ var image = null;
 var ctx = null;
 var pos = 0;
 var timer = null;
-var camera_on = false;
 var localizedStrings = null;
 var demo_note = null;
 TEAMS_PREVIEW=[];
@@ -587,7 +586,6 @@ $(document).ready(function(){
 
 
     // Team notes
-    $('#record_note').click(TEAM_NOTES.record_mode);
     $('#note_viewer_object').jPlayer( { swfPath: "", ready:TEAM_NOTES.prepare_audio, supplied:"mp3", cssSelectorAncestor: "#player_interface", preload:'auto',
     timeupdate: function(event) { // Add a listener to report the progress
         $('#play_marker').css('left',19+(6.8333333*event.jPlayer.status.currentTime));
@@ -604,6 +602,10 @@ $(document).ready(function(){
     });
 
     $('#save_note').click(TEAM_NOTES.save_note);
+
+    $('#note_camera_toggle').click(TEAM_NOTES.record_mode)
+    $('#note_camera_shoot').click(RECORDER.takePhoto)
+
     
     $('#player_button').click(function (){
         $('#note_viewer_object').jPlayer("play");
@@ -621,7 +623,6 @@ $(document).ready(function(){
     // Interests and voting functionalities
     // more themes get added dynamically, so this needs to be done repeatedly.
     INTERESTS.draw_topics(false);
-    $('#reset_votes').click(INTERESTS.reset_votes);
     $('#interests_next').click(INTERESTS.next).keyup(function(e){if(e.keyCode==13) $(this).click()});
     
     // Setting criteria and teaming up! 
@@ -629,7 +630,7 @@ $(document).ready(function(){
     $(".criteria div.placeholder").droppable({greedy:true, activeClass:'markDroppable2', hoverClass:'drophover2', tolerance:'pointer', drop: CRITERIA.add_unifying_crit});
     $("td.criteria_background").droppable({accept:'div.criteria_item', drop:CRITERIA.remove_unifying_crit});
     $('#criteria_next').click(CRITERIA.next).keyup(function(e){if(e.keyCode==13) $(this).click()});
-    $('#refresh_preview').click(function() { team_up();CRITERIA.update_preview() }).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#refresh_preview').click(function() { CRITERIA.team_up();CRITERIA.update_preview() }).keyup(function(e){if(e.keyCode==13) $(this).click()});
 
     // People functionalities
     
@@ -645,17 +646,17 @@ $(document).ready(function(){
         $(this).blur();
     }),
     $("#camera_button").click(function(event) {
-        if (camera_on) {
+        if (CAMERA.on) {
             if (!$(this).hasClass('disabled')) {
-                take_photo();
+                CAMERA.take_photo();
             }
         } else {
-            prepare_photoshoot();
+            CAMERA.prepare_photoshoot();
         }                    
     });
-    $("#keep_photo").click(keep_photo),
-    $("#try_again_photo").click(redo_photoshoot),
-    $("#cancel_photo").click(finish_photoshoot),
+    $("#keep_photo").click(CAMERA.keep_photo),
+    $("#try_again_photo").click(CAMERA.redo_photoshoot),
+    $("#cancel_photo").click(CAMERA.finish_photoshoot),
     // Options
     $('#team_size').val(OPTIONS.team_size);
     $('#team_size').change(function(event) {OPTIONS.team_size=$(this).val();});
@@ -669,7 +670,6 @@ $(document).ready(function(){
         OPTIONS.always_show_names=this.checked;
         CLASSROOM.update_faces();
         });
-    $('#reset_teams').click(function(){CLASSROOM.reset_teams(false)});
     var s="";
     var check;
     for (key in LANGUAGES) {
@@ -971,7 +971,7 @@ function localize(){
             var text_ids=['i18n_class','i18n_teams','keep_photo','try_again_photo','cancel_photo','label_team_size','label_show_names',
             'i18n_interests_heading','i18n_grouping_heading',
             'i18n-play','i18n-pause','i18n-stop','i18n-mute','i18n-unmute',
-            'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems','record_note',
+            'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems',
             'i18n_new_teams','options', 'i18n_options', 'label_reset_teams',
             'i18n-reset-confirmation', 'i18n-del-confirmation', 'i18n-download_confirm', 'i18n-download-no', 'i18n-download-complete','i18n-cancel','i18n-bad-photo', 'recording_help_1', 'recording_help_2','recording_help_3','recording_help_4','recording_help_5', 
             'label_language', 'label_teacher_url', 'label_learner_url', 'i18n-upload-message','i18n-del-note-confirmation'];
@@ -1028,34 +1028,30 @@ function str(myObj) {
 // Camera utility methods
 
 
-function savedPhoto(path) {
-    debug('Received a photo');
-    var pup=PUPILS[THIS_PERSON];
-    var old_src=pup.img_src;
-    pup.img_src=SERVER_URL+'uploads/'+path+'_photo.jpg?r='+Math.floor(Math.random()*10000);
-    debug('new img_src:'+pup.img_src);
-    $("img.large_portrait").attr('src', pup.img_src);   
-    if (old_src!=DEFAULT_IMAGE) {     
-        $('img').each(function (){
-            if ($(this).attr('src')==old_src) {
-                $(this).attr('src',pup.img_src)
-            }
-        });
-    }
-    ALL_FRIENDS.find_person(pup).img_src=pup.img_src;
-    ALL_ENEMIES.find_person(pup).img_src=pup.img_src;
-    CONTROLLER.addChange(pup);
-    CONTROLLER.sendChanges();
-    CLASSROOM.update_faces();
-    finish_photoshoot();
+RECORDER={}
+
+RECORDER.initialized=function() {
+    RECORDER.cam=swfobject.getObjectById('TeamRecorder');
+    debug('Recorder initialized');
+    RECORDER.cam.initCamera();
 }
 
-function tookPhoto() {
+RECORDER.takePhoto=function() {
+    RECORDER.cam.takePhoto()
+}
+
+RECORDER.tookPhoto=function() {
     //$("div.portrait").show();
     debug('tookPhoto called');
     $('#camera_button').hide();
     $("#save_portrait").show('slide',{direction:'left'});
 }
+
+
+initialized=RECORDER.initialized;
+tookPhoto=RECORDER.tookPhoto;
+
+
 
 
 function encodingComplete() {
@@ -1099,37 +1095,17 @@ function uploadingRecording() {
     thumb.hide("slow");    
 }
 
-// send flash the exact parameters of what to save and where.
-function keep_photo() {
-    debug('saving photo...');
-    var pup=PUPILS[THIS_PERSON];
-    var server_path=SERVER_URL;
-    var class_name=fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
-    var user_uid= (pup._id) ? fs_friendly_string(pup._id) : fs_friendly_string(pup.uid);
-    var cam = swfobject.getObjectById('PhotoBooth');
-    if (cam.capture !== undefined) {
-        debug('Found photobooth');
-        cam.save(server_path, class_name, user_uid);  // will result in 'savedPhoto' call
-    }    
-}
 
-function redo_photoshoot() {
-    debug('releasing still photo');
-    var cam = swfobject.getObjectById('PhotoBooth');
-    if (cam.capture !== undefined) {
-        debug('Found photobooth');
-        cam.release();  // doesn't call back, just removes the still
-        $('#camera_button').show();
-    }    
-    $("#save_portrait").hide('slide',{direction:'left'});
-    camera_on=true;
-}
 
-function prepare_photoshoot() {
+// student photos
+
+CAMERA={on:false}
+
+CAMERA.prepare_photoshoot = function() {
     debug('preparing photoshoot...');    
     if (isVisible($('div.photoshoot'))) {
-        if (swfobject.getObjectById('PhotoBooth').capture=== undefined)
-            debug('no capture available');
+        debug('photoshoot already active');
+        var cam = CAMERA.getCamera();
         return;
     }
     $("div.portrait").hide();
@@ -1146,113 +1122,104 @@ function prepare_photoshoot() {
     swfobject.embedSWF('recorder/PhotoBooth3.swf', 'PhotoBooth', '220', '220', '10.3.0', 'expressInstall.swf', flashvars,fparams,fattributes);
 }
 
-function cameraReady() {
-    debug('cameraReady called...');    
-    $('#camera_button').css('border-color','#00a000').show();
-    camera_on=true;
-}
-
-function take_photo() {
-    debug('taking photo...');    
+CAMERA.getCamera = function() {
     var cam = swfobject.getObjectById('PhotoBooth');
     if (cam.capture !== undefined) {
         debug('Found photobooth');
-        cam.capture();  // will result in 'tookPhoto' call
+        return cam;
+    } else {
+        debug('no capture available');
+        return null;
     }
-    //$('#camera_button').css('border-color','#a00000').show();
-    $('#camera_button').hide();
-    camera_on=false;
 }
 
-function finish_photoshoot() {
+CAMERA.cameraReady = function () {
+    debug('received ping from flash');    
+    $('#camera_button').css('border-color','#00a000').show();
+    CAMERA.on=true;
+}
+
+CAMERA.tookPhoto = function () {
+    //$("div.portrait").show();
+    debug('tookPhoto called');
+    $('#camera_button').hide();
+    $("#save_portrait").show('slide',{direction:'left'});
+}
+
+CAMERA.savedPhoto = function (path) {
+    debug('Received a photo');
+    var pup=PUPILS[THIS_PERSON];
+    var old_src=pup.img_src;
+    // random argument is added so that the photo is updated properly = it's not coming from the same url as previous
+    pup.img_src=SERVER_URL+'uploads/'+path+'_photo.jpg?r='+Math.floor(Math.random()*10000);
+    debug('new img_src:'+pup.img_src);
+    $("img.large_portrait").attr('src', pup.img_src);   
+    if (old_src!=DEFAULT_IMAGE) {     
+        $('img').each(function (){
+            if ($(this).attr('src')==old_src) {
+                $(this).attr('src',pup.img_src)
+            }
+        });
+    }
+    ALL_FRIENDS.find_person(pup).img_src=pup.img_src;
+    ALL_ENEMIES.find_person(pup).img_src=pup.img_src;
+    CONTROLLER.addChange(pup);
+    CONTROLLER.sendChanges();
+    CLASSROOM.update_faces();
+    CAMERA.finish_photoshoot();
+}
+
+CAMERA.keep_photo = function() { 
+    debug('saving photo...');
+    var pup=PUPILS[THIS_PERSON];
+    var server_path=SERVER_URL;
+    var class_name=fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
+    var user_uid= (pup._id) ? fs_friendly_string(pup._id) : fs_friendly_string(pup.uid);
+    var cam = CAMERA.getCamera();
+    if (cam) {
+        cam.save(server_path, class_name, user_uid);  // will result in 'savedPhoto' call
+    }    
+}
+
+CAMERA.redo_photoshoot = function() {
+    debug('releasing still photo');
+    var cam = CAMERA.getCamera(); 
+    if (cam) {
+        cam.release();  // doesn't call back, just removes the still
+        $('#camera_button').show();
+    }    
+    $("#save_portrait").hide('slide',{direction:'left'});
+    CAMERA.on=true;
+}
+
+CAMERA.take_photo = function() {
+    debug('taking photo...');    
+    var cam = CAMERA.getCamera(); 
+    if (cam) {
+        debug('Found photobooth');
+        cam.capture();  // will result in 'tookPhoto' call
+    }
+    $('#camera_button').hide();
+    CAMERA.on=false;
+}
+
+CAMERA.finish_photoshoot=function() {
     $('div.portrait').show();
     $('div.photoshoot').hide();
     $('#save_portrait').hide('slide',{direction:'left'});
     $('#camera_button').show();
     $('#camera_button').css('border-color','transparent').show();
-    camera_on=false;
+    CAMERA.on=false;
 }
 
-function photo_error(error) {
+CAMERA.photo_error=function(error) {
     debug('photo error:'+error);
 }
 
-// **********************************
-// Clicker support
-
-function smart_clicker_enable() {
-    flashvars= {}
-    fparams={bgcolor:'#1D6D1C'}
-    fattributes={'id':'SmartResponse', 'name':'SmartResponse'}
-    swfobject.embedSWF('smart/ResponsePlusTeamUp.swf', 'smart_receiver_inner', '64', '64', '9.0', 'expressInstall.swf', flashvars, fparams, fattributes);
-    $('#smart_receiver').show();
-}
-
-function voteClicker(clickerId,choice, givenName, familyName){
-    // recognize the voter and add vote if possible  
-    //
-    debug('Received vote: '+clickerId+'; '+choice+'; '+givenName+'; '+familyName);
-    var pupil=null; 
-    // The easiest matches are those where we already have clicker_ids for each pupil. 
-    for(var i = 0; i < PUPILS.length; i++){
-        if (PUPILS[i].clicker_id==clickerId) {
-            pupil=PUPILS[i];
-            break;
-        }
-    }        
-    if (!pupil) {
-        // try matching student name with pupils. Try matching (first name+last name, first name + initial, first name)
-        // if success, then set this id to be the clicker_id for this pupil for easier match in the future.  
-        for (var i=0; i<PUPILS.length;i++){    
-            if (PUPILS[i].name==givenName+' '+familyName && !PUPILS[i].clicker_id) {
-                pupil=PUPILS[i];
-                pupil.clicker_id=clickerId;
-                CONTROLLER.addChange(pupil);
-                break;
-            }
-        }
-        if (!pupil) {
-            var pattern=new RegExp(givenName+'[\s_]*'+familyName.substr(0,1)+'.*', 'i'); // matches JukkaP, Jukka_P, JukkaPuu, Jukka P...
-            for (var i=0; i<PUPILS.length;i++){    
-                if ((PUPILS[i].name.match(pattern) && !PUPILS[i].clicker_id)) {
-                    pupil=PUPILS[i];
-                    pupil.clicker_id=clickerId;
-                    CONTROLLER.addChange(pupil);
-                    break;
-                }
-            }
-        }
-        if (!pupil) {
-            for (var i=0; i<PUPILS.length;i++){    
-                if (PUPILS[i].name==givenName && !PUPILS[i].clicker_id) {
-                    pupil=PUPILS[i];
-                    pupil.clicker_id=clickerId;
-                    CONTROLLER.addChange(pupil);
-                    break;
-                }
-            }
-        }
-    }
-    if (!pupil) {
-        debug("Couldn't find matching student. No vote.");
-        return;
-    }
-    choice=Number(choice);
-    if (choice>0 && TOPICS.length>choice-1 && pupil.votes_available>0) {
-        topic=TOPICS[choice-1];        
-        debug("pupil "+pupil.name+" voted for topic "+(choice-1));
-        topic.addVoter(pupil);
-        pupil.votes_available--;
-        CONTROLLER.addChange(topic);
-        CONTROLLER.addChange(person);        
-    }
-    CONTROLLER.sendChanges();
-    if (view==INTERESTS) {
-        INTERESTS.draw_topics();
-    }
-}
-
-
+// Make some methods available for flash ExternalInterface calls:
+cameraReady=CAMERA.cameraReady
+tookPhoto=CAMERA.tookPhoto
+savedPhoto=CAMERA.savedPhoto
 
 // **********************************
 // Shared navigation
@@ -1389,12 +1356,12 @@ TEAM_NOTES.show = function() {
 
 
 TEAM_NOTES.create_team_notes= function(team) {
-    camera_on=false;
+    CAMERA.on=false;
     $('#note_viewer').show();
     $('#note_recorder').hide();
     $('#note_viewer_help').show();
-    $('#note_recorder_help').hide();
-    $('#recorder_save_help').hide();
+    //$('#note_recorder_help').hide();
+    //$('#recorder_save_help').hide();
     var ti;
     for (ti=0;ti<TEAMS.length;ti++) {
         if (TEAMS[ti].uid==team.uid) {
@@ -1413,8 +1380,8 @@ TEAM_NOTES.create_team_notes= function(team) {
     var s, obj, member;   
     for (var i=0;i<team.members.length;i++) {
         member=CATALOG[team.members[i]];
-        s='<div class="team_face" alt="'+member.name+'" title="'+member.name+'">';
-        s+='<img src="'+member.img_src+'" width="60" height="60" />';
+        s='<div class="team_face" alt="'+member.name+'" title="'+member.name+'" style="border-color:'+team.color+'">';
+        s+='<img src="'+member.img_src+'" width="40" height="40" />';
         if (member.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
             s+='<label>'+member.name+'</label>';
         }
@@ -1429,7 +1396,7 @@ TEAM_NOTES.create_team_notes= function(team) {
     var notes=$('#available_recordings');
     notes.html('');
     var dt;
-    notes.width(team.notes.length*142);
+    notes.width(team.notes.length*142+142);
 
     var note, dt;
     for (var i=0;i<team.notes.length;i++) {
@@ -1454,17 +1421,10 @@ TEAM_NOTES.create_team_notes= function(team) {
         setData(obj, note);
         obj.find('span.remove_note').click(TEAM_NOTES.remove_note);
     }
-    var half_size=($(window).height()<532);
-    if (half_size) {
-        $('#player').css('top',-50);
-        $('div.note_questions').css('top',-74);
-        $('div.note_questions span').css({'background-color':'#000'});
-    } else {
-        $('#player').css('top',0);
-        $('div.note_questions').css('top',-24);;
-        $('div.note_questions span').css({'background-color':'transparent'});
-    }
-    swfobject.embedSWF('recorder/TeamRecorder2.swf', 'TeamRecorder', '480', '410', '10.3.0', 'expressInstall.swf', {half_size:half_size},{},{});
+    notes.append('<div id="record_note" class="button">+</div>');
+    $('#record_note').click(TEAM_NOTES.record_mode);        
+    
+    swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     if (team.notes.length>0){
         note=CATALOG[team.notes[team.notes.length-1]];
         if (note && note.uid) {
@@ -1524,7 +1484,6 @@ TEAM_NOTES.empty_note= function() {
     //setData($('#note_viewer'), null);
     $('#note_photo label').html('');
     $('#note_photo_img').hide();
-    $('#note_photo_empty').show();
     $('#note_viewer_object').jPlayer("setMedia", {mp3:''});
 }
 
@@ -1537,33 +1496,36 @@ TEAM_NOTES.load_note= function(note) {
     if (note.photos.length>0) {
         $('#note_photo_img').show();
         $('#note_photo_img').attr('src', note.photos[0]);
-        $('#note_photo_empty').hide();
     } else {
         $('#note_photo').css('background-image','none');
         $('#note_photo_img').hide();
-        $('#note_photo_empty').show();
     }
     $('#note_viewer_object').jPlayer("setMedia", {mp3:note.audio_url});
 }
 
 TEAM_NOTES.view_mode= function(event) {
-    if (!camera_on) 
+    if (!CAMERA.on) 
         {return;}
     $('#note_viewer').show();
     $('#note_recorder').hide();
-    $('#note_viewer_help').show();
-    $('#note_recorder_help').hide();
-    camera_on=false;
+    $('#note_questions').show();
+
+    //$('#note_viewer_help').show();
+    //$('#note_recorder_help').hide();
+    CAMERA.on=false;
 }
 
 TEAM_NOTES.record_mode= function(event) {
-    if (camera_on) 
+    debug('record mode on');
+    if (CAMERA.on) 
         {return;}
     $('#note_viewer').hide();
     $('#note_recorder').show();
-    $('#note_viewer_help').hide();
-    $('#note_recorder_help').show();
-    camera_on=true;
+    $('#note_questions').hide();
+
+    //$('#note_viewer_help').hide();
+    //$('#note_recorder_help').show();
+    CAMERA.on=true;
 }
 
 TEAM_NOTES.prepare_audio= function() {
@@ -1719,7 +1681,6 @@ CLASSROOM.adjust_for_learners= function (event) {
     $('#show_icons').closest('p').hide();
     $('#new_teams').html(i18n('vote'));
     $('#interests_next').hide();
-    $('#reset_votes').hide();
     if (TEAMS.length==0) {
         $('#team_view').hide();    
     }
@@ -2187,13 +2148,14 @@ INTERESTS.draw_topics = function(animate) {
     }
     var place=$('table#topics');
     place.html('');
-    
+    var reset_button, drop_area_content;
     for (var i=0;i<TOPICS.length;i++) {
         topic=TOPICS[i];
         is_empty= (topic.name.length==0) ? ' empty' : '';
         val= (topic.name.length==0) ? i18n('Enter topic') : topic.name;
-        var drop_area_content = (topic.voters.length) ? '' : i18n('Drag pictures here');
-        s='<tr><td style="width:32px">'+(i+1)+'.</td><td><input type="text" class="topic'+is_empty+'" id="'+topic.uid+'" tabindex="'+(i+10)+'" value="'+val+'" /></td><td><div class="interest_drop_area">'+drop_area_content+'</div></td></tr>';
+        reset_button= (MODERATOR && i==0) ? '<div id="reset_votes" class="button" label="'+i18n('Reset votes')+'"></div>' : '';
+        drop_area_content = (topic.voters.length) ? '' : i18n('Drag pictures here');
+        s='<tr><td style="width:32px">'+(i+1)+'.</td><td><input type="text" class="topic'+is_empty+'" id="'+topic.uid+'" tabindex="'+(i+10)+'" value="'+val+'" /></td><td><div class="interest_drop_area">'+drop_area_content+'</div>'+reset_button+'</td></tr>';
         place.append(s);
         setData($('#'+topic.uid), topic);
         drop_area=$('#'+topic.uid).closest('td').next().find('.interest_drop_area');
@@ -2224,7 +2186,8 @@ INTERESTS.draw_topics = function(animate) {
                 }
             }
         }
-       }       
+       }
+    $('#reset_votes').click(INTERESTS.reset_votes);     
     $('input.topic').click(function(event) {
         if (getData($(this)).name=='') {
             $(this).val('');
@@ -2502,7 +2465,7 @@ LEARNER_VIEW.create_person_page= function() {
     $('div.photoshoot').hide();
     $('#save_portrait').hide();    
     $('#camera_button').css('border-color','transparent').show();
-    camera_on=false;
+    CAMERA.on=false;
     var pup=PUPILS[THIS_PERSON];
     $('#namebox').val(pup.name);
     $('img.large_portrait').attr('src', pup.img_src);
@@ -2912,7 +2875,7 @@ CRITERIA.show= function(dir){
     for (var i=0; i<UNIFYING_CRITERIA.length; i++) {
         $('#cp_'+UNIFYING_CRITERIA[i].name).hide();
     }
-    if (!TEAMS_PREVIEW.length) team_up();
+    if (!TEAMS_PREVIEW.length) CRITERIA.team_up();
     CRITERIA.update_preview();
         
     $('div.left_nav').attr('title',i18n('Vote for topics'));
@@ -3000,7 +2963,7 @@ CRITERIA.add_unifying_crit = function(event, ui){
         UNIFYING_CRITERIA=UNIFYING_CRITERIA.slice(0,3);
     }
     CRITERIA.create_crit_icons();
-    team_up();
+    CRITERIA.team_up();
     CRITERIA.update_preview();
 }
 
@@ -3031,7 +2994,7 @@ CRITERIA.remove_unifying_crit = function(event, ui){
         }
     }        
     CRITERIA.create_crit_icons()
-    team_up();
+    CRITERIA.team_up();
     CRITERIA.update_preview();
 
 }    
@@ -3104,7 +3067,7 @@ CRITERIA.confirm_before_teaming = function(event) {
     }
 }
 
-function team_up() {
+CRITERIA.team_up = function () {
     
     function person_voted_for_topic(person, topic) {
         var n=0;
@@ -3361,3 +3324,82 @@ CRITERIA.save_teams = function(event) {
     CLASSROOM.select_team_view(null);
 }
    
+
+
+
+// **********************************
+// Clicker support
+
+function smart_clicker_enable() {
+    flashvars= {}
+    fparams={bgcolor:'#1D6D1C'}
+    fattributes={'id':'SmartResponse', 'name':'SmartResponse'}
+    swfobject.embedSWF('smart/ResponsePlusTeamUp.swf', 'smart_receiver_inner', '64', '64', '9.0', 'expressInstall.swf', flashvars, fparams, fattributes);
+    $('#smart_receiver').show();
+}
+
+function voteClicker(clickerId,choice, givenName, familyName){
+    // recognize the voter and add vote if possible  
+    //
+    debug('Received vote: '+clickerId+'; '+choice+'; '+givenName+'; '+familyName);
+    var pupil=null; 
+    // The easiest matches are those where we already have clicker_ids for each pupil. 
+    for(var i = 0; i < PUPILS.length; i++){
+        if (PUPILS[i].clicker_id==clickerId) {
+            pupil=PUPILS[i];
+            break;
+        }
+    }        
+    if (!pupil) {
+        // try matching student name with pupils. Try matching (first name+last name, first name + initial, first name)
+        // if success, then set this id to be the clicker_id for this pupil for easier match in the future.  
+        for (var i=0; i<PUPILS.length;i++){    
+            if (PUPILS[i].name==givenName+' '+familyName && !PUPILS[i].clicker_id) {
+                pupil=PUPILS[i];
+                pupil.clicker_id=clickerId;
+                CONTROLLER.addChange(pupil);
+                break;
+            }
+        }
+        if (!pupil) {
+            var pattern=new RegExp(givenName+'[\s_]*'+familyName.substr(0,1)+'.*', 'i'); // matches JukkaP, Jukka_P, JukkaPuu, Jukka P...
+            for (var i=0; i<PUPILS.length;i++){    
+                if ((PUPILS[i].name.match(pattern) && !PUPILS[i].clicker_id)) {
+                    pupil=PUPILS[i];
+                    pupil.clicker_id=clickerId;
+                    CONTROLLER.addChange(pupil);
+                    break;
+                }
+            }
+        }
+        if (!pupil) {
+            for (var i=0; i<PUPILS.length;i++){    
+                if (PUPILS[i].name==givenName && !PUPILS[i].clicker_id) {
+                    pupil=PUPILS[i];
+                    pupil.clicker_id=clickerId;
+                    CONTROLLER.addChange(pupil);
+                    break;
+                }
+            }
+        }
+    }
+    if (!pupil) {
+        debug("Couldn't find matching student. No vote.");
+        return;
+    }
+    choice=Number(choice);
+    if (choice>0 && TOPICS.length>choice-1 && pupil.votes_available>0) {
+        topic=TOPICS[choice-1];        
+        debug("pupil "+pupil.name+" voted for topic "+(choice-1));
+        topic.addVoter(pupil);
+        pupil.votes_available--;
+        CONTROLLER.addChange(topic);
+        CONTROLLER.addChange(person);        
+    }
+    CONTROLLER.sendChanges();
+    if (view==INTERESTS) {
+        INTERESTS.draw_topics();
+    }
+}
+
+
