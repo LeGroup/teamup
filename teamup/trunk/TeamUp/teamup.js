@@ -15,14 +15,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-
 var DEMO=true;
 var DEBUG_MODE=true;
 var MODERATOR=true;
 var SMART_ENABLED=false;
 
-var SERVER_URL='http://teamup.aalto.fi/';
-//var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
+//var SERVER_URL='http://teamup.aalto.fi/';
+var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
 
 var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'Spanish', 'et-ET':'Estonian', 'fr-FR':'Francais', 'he-HE':'Hebrew', 'hu-HU':'Hungarian', 'it-IT':'Italian','lt-LT':'Lithuanian', 'nl-NL':'Dutch', 'no-NO':'Norwegian', 'pt-PT':'Portuguese','sk-SK':'Slovak', 'tr-TR':'Turkish'};
 
@@ -603,8 +602,11 @@ $(document).ready(function(){
 
     $('#save_note').click(TEAM_NOTES.save_note);
 
-    $('#note_camera_toggle').click(TEAM_NOTES.record_mode)
-    $('#note_camera_shoot').click(RECORDER.takePhoto)
+    $('#recorder_toggle').click(RECORDER.prepare_recorder);
+    $('#recorder_cam_button').click(RECORDER.takePhoto);
+    $('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
+    $('#recorder_keep_photo').click(RECORDER.keep_photo);
+    $('#recorder_cancel_photo').click(RECORDER.cancel_recording);
 
     
     $('#player_button').click(function (){
@@ -647,10 +649,12 @@ $(document).ready(function(){
     }),
     $("#camera_button").click(function(event) {
         if (CAMERA.on) {
+            debug('camera is on, take a photo');
             if (!$(this).hasClass('disabled')) {
                 CAMERA.take_photo();
             }
         } else {
+            debug('turn on camera');
             CAMERA.prepare_photoshoot();
         }                    
     });
@@ -914,7 +918,6 @@ function hslToRgb(h, s, l){
 }
 
 
-
 function getUrlVars() {
     var vars = {};
     if (window.location.href.indexOf('?')==-1) return vars;
@@ -1024,46 +1027,249 @@ function str(myObj) {
 }
 
 
+
+navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.getUserMedia;
+
+WEBRTC_REC={available:false, stream:null}
+
+WEBRTC_REC.gotStream = function(stream) {
+    window.URL = window.URL || window.webkitURL;
+    var video=$('#rtc_monitor')[0];
+    WEBRTC_REC.stream=stream;
+    debug('got stream')
+    WEBRTC_REC.available=true;
+    if (window.URL) {        
+        video.src=window.URL.createObjectURL(stream);
+    } else {
+        video.src=stream;
+    }
+    video.onerror = function(e) {
+        stream.stop();
+    };
+    stream.onended = WEBRTC_REC.noStream;
+    video.onloadedmetadata = function(e) {
+        // adjust position here if necessary
+    }
+    setTimeout(function() {
+        // adjust position here if necessary
+    }, 50)
+    RECORDER.cameraReady() // 'ping'
+
+}
+WEBRTC_REC.noStream = function(e) {
+    debug('no stream')
+}
+
+WEBRTC_REC.capture = function() {
+    var canvas=$('#rtc_canvas')[0];
+    var ctx=canvas.getContext('2d');
+    var video=$('#rtc_monitor')[0];
+    canvas.width=220;
+    canvas.height=220;
+    ctx.drawImage(video,80,0,480,480,0,0,220,220)
+    //ctx.drawImage(video,80,0,480,480,0,0,220,220);
+    $('#WebRTC_monitor_area').hide();
+    $('#WebRTC_canvas_area').show();
+    RECORDER.tookPhoto();
+}
+
+WEBRTC_REC.save = function(server_path, class_name, user_uid) {
+    RECORDER.savedPhoto(server_path);
+}
+
+WEBRTC_REC.cancel = function() {
+    WEBRTC_REC.stream.stop();
+    $('#WebRTC_monitor_area').hide();
+    $('#WebRTC_canvas_area').hide();    
+}
+
+WEBRTC_REC.release = function() {
+    $('#WebRTC_monitor_area').show();
+    $('#WebRTC_canvas_area').hide();    
+}
+
+
+
 // **********************************
-// Camera utility methods
+// Team recorder 
+
+RECORDER={on:false, vumeter_values:[], vumeters: [$('#vumeter_0'), 
+    $('#vumeter_1'),
+    $('#vumeter_2'),
+    $('#vumeter_3'),
+    $('#vumeter_4'),
+    $('#vumeter_5'),
+    $('#vumeter_6'),
+    $('#vumeter_7')]
+}
+
+RECORDER.prepare_recorder=function() {
+    if (!RECORDER.getRecorder()) {
+        swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
+    }
+    debug('record mode on');
+    $('#note_viewer').hide();
+    $('#note_recorder').show();
+    $('#note_questions').hide('slide', {direction:'left'});
+}
 
 
-RECORDER={}
+RECORDER.getRecorder=function() {
+    var rec=swfobject.getObjectById('TeamRecorder');
+    if (rec && rec.initCamera !== undefined) {
+        debug('Found recorder');
+        return rec;
+    } else {
+        debug('no recorder available');
+        return null;
+    }
+}
 
 RECORDER.initialized=function() {
-    RECORDER.cam=swfobject.getObjectById('TeamRecorder');
-    debug('Recorder initialized');
-    RECORDER.cam.initCamera();
+    // recorder has loaded and its actionscript is reachable
+    rec=RECORDER.getRecorder();
+    if (rec) {
+        debug('ping received from recorder');
+        rec.initCamera();
+        //$('#note_questions').hide('slide', {direction:'right'});
+        $('#recorder_cam_panel').show('slide', {direction:'left'});
+    }
 }
 
 RECORDER.takePhoto=function() {
-    RECORDER.cam.takePhoto()
+    // delegate camera button click to flash object
+    rec=RECORDER.getRecorder();
+    if (rec) {
+        rec.takePhoto();
+    }
 }
 
-RECORDER.tookPhoto=function() {
+RECORDER.tookGroupPhoto=function() {
     //$("div.portrait").show();
-    debug('tookPhoto called');
-    $('#camera_button').hide();
-    $("#save_portrait").show('slide',{direction:'left'});
+    debug('Flash camera took a photo');
+    var team=getData($('#team_title'));
+    $('#note_recorder').css('border-color',team.color);
+    $('#recorder_cam_panel').fadeOut('fast', function() { $("#recorder_cam_options").fadeIn() } );
+    //$('#recorder_cam_panel').hide('slide', {direction:'right'});
 }
 
+RECORDER.keep_photo = function() { 
+    debug('keeping this photo...');
+    
+    $("#recorder_cam_options").hide('slide',{direction:'left'}, 
+    function() { $("#note_questions").show('slide', {direction:'left'}, 
+        function() { 
+            $("#i18n-team-photo").removeClass('highlight').next('span.check').fadeIn('slow');
+            $("#i18n-what-we-did").addClass('highlight');
+            var rec = RECORDER.getRecorder(); 
+            if (rec) {
+                rec.initMic();  // doesn't call back, just removes the still
+            }
+            $('div.vumeter').show();
+            $('#rec_button').addClass('activated').off();
+            $('#rec_button.activated').click(RECORDER.start_recording);
 
-initialized=RECORDER.initialized;
-tookPhoto=RECORDER.tookPhoto;
-
-
-
-
-function encodingComplete() {
-    $('#note_recorder_help').hide();
-    $('#recorder_save_help').show();
+        });
+    });
 }
 
+RECORDER.start_recording = function() {
+    var rec = RECORDER.getRecorder(); 
+    if (rec) {
+        rec.startRecording();
+        $('#rec_button').removeClass('activated').addClass('recording').off();
+        $('#progress_line').show().width(0);
+        $('#countdown').text("3").show();
 
+        $('#rec_button').click(RECORDER.stop_recording);         
+    }
+}
 
-function finishedRecording(path) {
+RECORDER.recording_timer = function(t) {
+    // every 10th second, max 600 
+    $('#progress_line').width((t/600)*464);
+    var seconds;
+    var t=Math.floor(t/10);
+    if (t<10) {
+        seconds="0"+t.toString();
+    } else {
+        seconds=t.toString();
+    }
+    $('#timer_text').text("0:"+seconds+" / 1:00");
+    if (t>200) {
+
+    } else if (t>400) {
+
+    }
+}
+
+RECORDER.countdown = function(t) {
+    if (t==0) {
+        $('#countdown').hide();
+    } else {       
+        $('#countdown').text(t).show();
+    }
+}   
+
+RECORDER.stop_recording = function() {
+    var rec = RECORDER.getRecorder(); 
+    if (rec) {
+        rec.stopRecording();
+    }
+    $('#rec_button').removeClass('recording').addClass('activated').off();
+    $('#rec_button').click(RECORDER.start_recording);         
+
+}
+
+RECORDER.redo_photoshoot = function() {
+    debug('releasing still photo');
+    $('#recorder_cam_options').fadeOut('fast', function() { $("#recorder_cam_panel").fadeIn() } );
+    //$("#recorder_cam_options").hide('slide',{direction:'left'});
+    var rec = RECORDER.getRecorder(); 
+    if (rec) {
+        rec.redoPhoto();  // doesn't call back, just removes the still
+        $('#recorder_cam_button').fadeIn();
+    }    
+    $('#note_recorder').css('border-color','transparent');
+    $("#save_portrait").hide('slide',{direction:'left'});
+    RECORDER.on=true;
+}
+
+RECORDER.cancel_recording = function() {
+    RECORDER.on=false;
+    debug('canceling recording')
+    $('#note_recorder').hide();
+    $('#note_viewer').show();
+    $('div.vumeter').hide();
+    $('#rec_button').removeClass('activated');
+}
+
+RECORDER.encodingComplete= function() {
+    $("#note_questions").hide('slide',{direction:'left'}, function() { 
+        $("#recorder_audio_options").show('slide', {direction:'left'})
+    });
+    $('#rec_button').removeClass('recording').addClass('activated').off();
+    $('#rec_button').click(RECORDER.start_recording);         
+
+}
+
+RECORDER.audioLevel=function(level) {
+    //RECORDER.vumeter.height(level*3);
+    RECORDER.vumeter_values.push(3+level*3);
+    if (RECORDER.vumeter_values.length>10) {
+        RECORDER.vumeter_values.shift()
+    }
+    $('#vumeter').height(3+level*3);
+    for (var i=0; i<RECORDER.vumeter_values.length; i++) {
+        $('#vumeter_'+i).height(RECORDER.vumeter_values[i]);
+        //RECORDER.vumeters[i].height(RECORDER.vumeter_values[i]);
+    }
+
+}
+
+RECORDER.finishedRecording= function(path) {
     $('#upload-panel').dialog('close');
-    $('#recorder_save_help').hide();
+    $('div.recorder_panel').hide();
     debug('Received a record');
     // Create an empty note but don't catalog it yet
     var note = new TeamNote(false);
@@ -1081,10 +1287,10 @@ function finishedRecording(path) {
     TEAM_NOTES.create_team_notes(team);        
 }
 
-function uploadingRecording() {
+RECORDER.uploadingRecording= function() {
     debug('Uploading recording...');
     $('#upload-panel').dialog('open');
-    notes=$('#available_recordings');
+    var notes=$('#available_recordings');
     notes.width(notes.width()+142);
     notes.append('<div class="note_thumbnail">...</div>');
     var thumb=notes.find('div.note_thumbnail').last();
@@ -1095,9 +1301,91 @@ function uploadingRecording() {
     thumb.hide("slow");    
 }
 
+// redirect Flash ExternalInterface calls: 
+recorderInitialized=RECORDER.initialized;
+tookGroupPhoto=RECORDER.tookGroupPhoto;
+sentGroupPhoto=RECORDER.sentGroupPhoto;
+uploadingRecording=RECORDER.uploadingRecording;
+finishedRecording=RECORDER.finishedRecording;
+encodingComplete=RECORDER.encodingComplete;
+audioLevel=RECORDER.audioLevel;
+recording_timer=RECORDER.recording_timer;
+countdown=RECORDER.countdown;
 
+// Student photos
 
-// student photos
+WEBRTC_CAM={available:false, stream:null}
+WEBRTC_CAM.gotStream = function(stream) {
+    window.URL = window.URL || window.webkitURL;
+    var video=$('#rtc_monitor')[0];
+    WEBRTC_CAM.stream=stream;
+    debug('got stream')
+    WEBRTC_CAM.available=true;
+    if (window.URL) {        
+        video.src=window.URL.createObjectURL(stream);
+    } else {
+        video.src=stream;
+    }
+    video.onerror = function(e) {
+        stream.stop();
+    };
+    stream.onended = WEBRTC_CAM.noStream;
+    video.onloadedmetadata = function(e) {
+        // adjust position here if necessary
+    }
+    setTimeout(function() {
+        // adjust position here if necessary
+    }, 50)
+    CAMERA.cameraReady() // 'ping'
+
+}
+WEBRTC_CAM.noStream = function(e) {
+    debug('no stream')
+}
+
+WEBRTC_CAM.capture = function() {
+    var canvas=$('#rtc_canvas')[0];
+    var ctx=canvas.getContext('2d');
+    var video=$('#rtc_monitor')[0];
+    canvas.width=220;
+    canvas.height=220;
+    ctx.drawImage(video,80,0,480,480,0,0,220,220)
+    //ctx.drawImage(video,80,0,480,480,0,0,220,220);
+    $('#WebRTC_monitor_area').hide();
+    $('#WebRTC_canvas_area').show();
+    CAMERA.tookPhoto();
+}
+
+WEBRTC_CAM.save = function(server_path, class_name, user_uid) {
+    var loc=SERVER_URL+'photoloader.php';
+    if (typeof Widget !== 'undefined') {
+        loc=Widget.proxify(loc);
+    }         
+    var result_path='';
+    var sdata={};
+    var canvas=$('#rtc_canvas')[0];
+    var dataURL=canvas.toDataURL('image/png');
+    sdata.picture=dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+    sdata.class_id=class_name;
+    sdata.record_id=user_uid;
+
+    $.post(loc, sdata, function(path) {
+        debug('*** php replied:'+path);
+        CAMERA.savedPhoto(path);
+        } );    
+}
+
+WEBRTC_CAM.cancel = function() {
+    WEBRTC_CAM.stream.stop();
+    $('#WebRTC_monitor_area').hide();
+    $('#WebRTC_canvas_area').hide();    
+}
+
+WEBRTC_CAM.release = function() {
+    $('#WebRTC_monitor_area').show();
+    $('#WebRTC_canvas_area').hide();    
+}
+
 
 CAMERA={on:false}
 
@@ -1109,27 +1397,42 @@ CAMERA.prepare_photoshoot = function() {
         return;
     }
     $("div.portrait").hide();
+    $('div.photoshoot').css('border-color','transparent');
     $("div.photoshoot").show();
     $('#camera_button').css('border-color','#a0a000').show();
-    // photo booth params
-    var flashvars={};
-    var fparams={};
-    fparams.bgcolor="#000086";
-    fparams.allowscriptaccess="sameDomain";
-    var fattributes={};
-    fattributes.id='PhotoBooth';
-    fattributes.name='PhotoBooth';
-    swfobject.embedSWF('recorder/PhotoBooth3.swf', 'PhotoBooth', '220', '220', '10.3.0', 'expressInstall.swf', flashvars,fparams,fattributes);
+
+    // check if chrome camera is available
+    
+    if (navigator.getUserMedia) {
+        debug('initializing webrtc-camera');
+        $('#PhotoBooth').hide();
+        $('#WebRTC_monitor_area').show();
+        navigator.getUserMedia({video:true}, WEBRTC_CAM.gotStream, WEBRTC_CAM.noStream);
+    } else {
+        // photo booth params
+        var flashvars={};
+        var fparams={};
+        fparams.bgcolor="#000086";
+        fparams.allowscriptaccess="sameDomain";
+        var fattributes={};
+        fattributes.id='PhotoBooth';
+        fattributes.name='PhotoBooth';
+        swfobject.embedSWF('recorder/PhotoBooth3.swf', 'PhotoBooth', '220', '220', '10.3.0', 'expressInstall.swf', flashvars,fparams,fattributes);
+    }
 }
 
 CAMERA.getCamera = function() {
-    var cam = swfobject.getObjectById('PhotoBooth');
-    if (cam.capture !== undefined) {
-        debug('Found photobooth');
-        return cam;
+    if (WEBRTC_CAM.available) {        
+        return WEBRTC_CAM;
     } else {
-        debug('no capture available');
-        return null;
+        var cam = swfobject.getObjectById('PhotoBooth');
+        if (cam.capture !== undefined) {
+            debug('Found photobooth');
+            return cam;
+        } else {
+            debug('no capture available');
+            return null;
+        }
     }
 }
 
@@ -1142,7 +1445,8 @@ CAMERA.cameraReady = function () {
 CAMERA.tookPhoto = function () {
     //$("div.portrait").show();
     debug('tookPhoto called');
-    $('#camera_button').hide();
+    $('#camera_button').fadeOut();
+    $('div.photoshoot').css('border-color','#aaaaaa');
     $("#save_portrait").show('slide',{direction:'left'});
 }
 
@@ -1151,8 +1455,8 @@ CAMERA.savedPhoto = function (path) {
     var pup=PUPILS[THIS_PERSON];
     var old_src=pup.img_src;
     // random argument is added so that the photo is updated properly = it's not coming from the same url as previous
-    pup.img_src=SERVER_URL+'uploads/'+path+'_photo.jpg?r='+Math.floor(Math.random()*10000);
-    debug('new img_src:'+pup.img_src);
+    pup.img_src=SERVER_URL+path+'?r='+Math.floor(Math.random()*10000);
+    debug('new img: '+pup.img_src);
     $("img.large_portrait").attr('src', pup.img_src);   
     if (old_src!=DEFAULT_IMAGE) {     
         $('img').each(function (){
@@ -1186,8 +1490,9 @@ CAMERA.redo_photoshoot = function() {
     var cam = CAMERA.getCamera(); 
     if (cam) {
         cam.release();  // doesn't call back, just removes the still
-        $('#camera_button').show();
+        $('#camera_button').fadeIn();
     }    
+    $('div.photoshoot').css('border-color','transparent');
     $("#save_portrait").hide('slide',{direction:'left'});
     CAMERA.on=true;
 }
@@ -1199,15 +1504,20 @@ CAMERA.take_photo = function() {
         debug('Found photobooth');
         cam.capture();  // will result in 'tookPhoto' call
     }
-    $('#camera_button').hide();
+    $('#camera_button').fadeOut();
     CAMERA.on=false;
 }
 
 CAMERA.finish_photoshoot=function() {
+    // flash cam shuts down when its hidden, WEBRTC_CAM needs to shut down manually
+    if (WEBRTC_CAM.available) {
+        WEBRTC_CAM.cancel()
+    }
     $('div.portrait').show();
     $('div.photoshoot').hide();
     $('#save_portrait').hide('slide',{direction:'left'});
     $('#camera_button').show();
+    $('div.photoshoot').css('border-color','transparent');
     $('#camera_button').css('border-color','transparent').show();
     CAMERA.on=false;
 }
@@ -1359,8 +1669,9 @@ TEAM_NOTES.create_team_notes= function(team) {
     CAMERA.on=false;
     $('#note_viewer').show();
     $('#note_recorder').hide();
-    $('#note_viewer_help').show();
-    //$('#note_recorder_help').hide();
+    $('#note_questions').show();
+    $('#recorder_cam_panel').hide();
+    $('#recorder_cam_options').hide();    
     //$('#recorder_save_help').hide();
     var ti;
     for (ti=0;ti<TEAMS.length;ti++) {
@@ -1373,6 +1684,10 @@ TEAM_NOTES.create_team_notes= function(team) {
 
     var tt=$('#team_title');
     tt.text(team.name);
+    $('#note_photo').css('background-color',team.color); 
+    $('div.vumeter').hide();
+    $('#rec_button').removeClass('activated');
+
     //debug('create_team_notes calling setData');
     setData(tt, team);
     var place=$('#team_member_faces');
@@ -1422,9 +1737,6 @@ TEAM_NOTES.create_team_notes= function(team) {
         obj.find('span.remove_note').click(TEAM_NOTES.remove_note);
     }
     notes.append('<div id="record_note" class="button">+</div>');
-    $('#record_note').click(TEAM_NOTES.record_mode);        
-    
-    swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     if (team.notes.length>0){
         note=CATALOG[team.notes[team.notes.length-1]];
         if (note && note.uid) {
@@ -1437,8 +1749,10 @@ TEAM_NOTES.create_team_notes= function(team) {
             TEAM_NOTES.empty_note();
         }
     } else {
-        TEAM_NOTES.empty_note();
+        TEAM_NOTES.empty_note();        
     }
+    $('#record_note').click(RECORDER.prepare_recorder);        
+
 }
 TEAM_NOTES.remove_note=function(event, confirmed) {
     var note;
@@ -1485,6 +1799,8 @@ TEAM_NOTES.empty_note= function() {
     $('#note_photo label').html('');
     $('#note_photo_img').hide();
     $('#note_viewer_object').jPlayer("setMedia", {mp3:''});
+    $('#note_questions p span').removeClass('highlight');
+    $('#i18n-team-photo').addClass('highlight');
 }
 
 
@@ -1504,29 +1820,22 @@ TEAM_NOTES.load_note= function(note) {
 }
 
 TEAM_NOTES.view_mode= function(event) {
-    if (!CAMERA.on) 
+    if (!RECORDER.on) 
         {return;}
     $('#note_viewer').show();
     $('#note_recorder').hide();
     $('#note_questions').show();
 
-    //$('#note_viewer_help').show();
-    //$('#note_recorder_help').hide();
     CAMERA.on=false;
 }
 
-TEAM_NOTES.record_mode= function(event) {
-    debug('record mode on');
-    if (CAMERA.on) 
-        {return;}
-    $('#note_viewer').hide();
-    $('#note_recorder').show();
-    $('#note_questions').hide();
+//    <div id="note_recorder_help" style="display:none">
+//        <p id="recording_help_1">Record a 60 second newsflash.</p>
+//        <p id="recording_help_2">Click the record button.</p>
+//        <p id="recording_help_3">After the countdown, your picture is taken,<br/> then the recording starts.</p>
+//        <p id="recording_help_4">Answer the questions below the recorder.</p>
+//    </div>
 
-    //$('#note_viewer_help').hide();
-    //$('#note_recorder_help').show();
-    CAMERA.on=true;
-}
 
 TEAM_NOTES.prepare_audio= function() {
     var note=getData($('#note_viewer'));
@@ -2461,11 +2770,7 @@ LEARNER_VIEW.create_new_person= function(event) {
 }    
 
 LEARNER_VIEW.create_person_page= function() {
-    $('div.portrait').show();
-    $('div.photoshoot').hide();
-    $('#save_portrait').hide();    
-    $('#camera_button').css('border-color','transparent').show();
-    CAMERA.on=false;
+    CAMERA.finish_photoshoot();
     var pup=PUPILS[THIS_PERSON];
     $('#namebox').val(pup.name);
     $('img.large_portrait').attr('src', pup.img_src);

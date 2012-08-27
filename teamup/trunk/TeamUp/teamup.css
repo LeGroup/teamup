@@ -611,25 +611,77 @@ div.team_face label {
     opacity:0.7;
 }
 
-div.note_questions ul {
-    padding:0px;
+#note_recorder {
+    margin-right:24px;
+    display:none;
+    border:1px solid transparent;
 }
 
-div.note_questions ul li {
-    list-style:none;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    margin-left:0px;
+div.recorder_panel {
+    width: 220px;
+    height: 240px;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+
+#note_questions {
+}
+
+#note_questions p {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 15px;
+    margin:0px;
     font-size:0.8em;
     font-weight:bold;
 }
 
-#note_recorder {
-    display:none;
-    margin-right:39px;
+#note_questions p span.highlight {
+    color:#fff;
 }
-#note_recorder_help {
+
+#note_questions p span.check {
     display:none;
+}
+
+
+#recorder_cam_panel {
+    display:none;
+}
+
+#recorder_cam_button {    
+    position:relative;
+    width: 90px;
+    height: 40px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    background-image:url('images/camera-alpha.png');
+    background-repeat:no-repeat;
+    background-position:center;
+    left: 45px;
+    top: 90px;
+}
+
+#recorder_cam_button:hover {
+    background-image:url('images/camera-alpha.png');
+    background-repeat:no-repeat;
+    background-position:center;
+}
+
+#recorder_cam_options {
+    display:none;
+}
+
+#recorder_cam_options div, #recorder_audio_options div {
+    display:block !important;
+    width:200px;
+    padding-top:4px;
+    height:30px;
+    text-align:center;
+    margin:10px;
+    margin-left:0px;
 }
 
 
@@ -640,26 +692,7 @@ div.note_questions ul li {
     margin-right:39px;
 }
 
-#note_camera_shoot {
-    position:relative;
-    width: 90px;
-    height: 40px;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    background-image:url('images/camera-alpha.png');
-    background-repeat:no-repeat;
-    background-position:center;
-}
-
-#note_camera_shoot:hover {
-    background-image:url('images/camera-alpha.png');
-    background-repeat:no-repeat;
-    background-position:center;
-}
-
-
-#note_camera_toggle {
+#recorder_toggle {
     position:absolute;
     top: 79px;
     left: 79px;
@@ -687,11 +720,156 @@ div.note_questions ul li {
     background-repeat:no-repeat;
     background-position:center;
 }
+div.vumeter {
+    display:inline-block;
+    height:0px;
+    width:4px;
+    background:#44ee00;
+    position:absolute;
+    bottom: 4px;
+    left:0px;
+}
+#vumeter_9 {
+    left:74px;
+}
+#vumeter_8 {
+    left:68px;
+}
+#vumeter_7 {
+    left:62px;
+}
+#vumeter_6 {
+    left:56px;
+}
+#vumeter_5 {
+    left:50px;
+}
+#vumeter_4 {
+    left:44px;
+}
+#vumeter_3 {
+    left:38px;
+}
+#vumeter_2 {
+    left:32px;
+}
+#vumeter_1 {
+    left:26px;
+}
+#vumeter_0 {
+    left:20px;
+}
 
+#countdown {
+    top: 79px;
+    left: 79px;
+    width: 90px;
+    height: 90px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    background:rgba(53,53,53,0.7);
+    text-align:center;
+    line-height: 90px;
+    font-size:60px;
+    position:absolute;
+    display:none;
+}
 
 #player {
     position:relative;
 }
+
+#timeline {
+    position:relative;
+    width:464px;
+    height:6px;
+    top:12px;    
+}
+#full_line {
+    position:absolute;
+    display:block;
+    width:464px;
+    top:2px;
+    height:2px;
+    left:0px;
+    background-color:#e0e0e0;
+    z-index:0;
+}
+#progress_line {
+    position:absolute;
+    display:block;
+    width:0px;
+    top:2px;
+    height:2px;
+    left:0px;
+    z-index:20;
+    background-color:#e00000;    
+}
+span.separator {
+    position:absolute;
+    display:block;
+    width:3px;
+    top:2px;
+    height:2px;
+    left:0px;
+    z-index:40;
+    background-color:#3D3D3B;    
+}
+
+#rec_button {
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border: 1px solid transparent;
+	background: #3D3D3B;
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:26px;
+    height:26px;
+    background-image:url('images/record-1.png');
+    background-repeat:no-repeat;
+    background-position:center;
+    position:relative;
+    top:12px;    
+}
+
+#rec_button.activated {
+    border-color: #92212C;
+    cursor: pointer;
+
+}
+
+#rec_button.activated:hover {
+    background: #4C4C4C;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-image:url('images/record-3.png');
+}
+
+#rec_button.recording {
+	background: #3D3D3B;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-image:url('images/record-3.png');
+}
+
+#rec_button.recording:hover {
+    border-color: #92212C;
+    background: #4C4C4C;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-image:url('images/record-stop.png');
+}
+
+
+#timer_text {
+    font-size:10pt;
+    position:absolute;
+    left:50px;
+    top:24px;
+}
+
 
 #player .jp-full-minute-bar {
     position:absolute;
@@ -782,10 +960,6 @@ span.available_recordings:hover span {
     color: #d00;
 }
 
-#note_recorder_help p {
-    font-size:90%;
-}
-
 div#record_note {
     width:60px;
     height:60px;
@@ -797,34 +971,6 @@ div#record_note {
     cursor:pointer;
     font-size:160%;
     line-height:55px;
-}
-
-
-div#save_note {
-    margin-left:20px;
-    margin-top:20px;
-    width:300px;
-    border: 2px solid #aaa;
-    border-radius: 20px;
-    -moz-border-radius: 20px;
-    -webkit-border-radius: 20px;
-    text-align:center;
-    cursor:pointer;
-    font-size:160%;
-    line-height:100px;
-}
-
-div#save_note:hover {
-    background-image:url('images/teamup_button_hover.png');
-    border: 2px solid #ddd;
-    color: #aaffaa;
-}
-
-div#save_note:active {
-    background-image:none;
-    background-color: #080;
-    border: 2px solid #afa;
-    color: #aaffaa;
 }
 
 
@@ -1247,14 +1393,14 @@ label.lang_label {
 }
 
 div.portrait, div.photoshoot, div.drag_area {
-    min-height:221px;
-    width:221px;
+    min-height:220px;
+    width:220px;
     text-align: center;
     position: relative;            
     border:1px solid transparent;
 }
 div.photoshoot {
-    min-height:221px;
+    min-height:220px;
     width:220px;
     text-align: center;
     position: relative;            
@@ -1267,6 +1413,33 @@ div.drag_area {
 
 #PhotoShoot {
     overflow:hidden;
+}
+
+#WebRTC_monitor_area {
+    display:none;
+    background:#000055;
+    width:220px;
+    height:220px;
+    overflow:hidden;
+}
+
+#WebRTC_canvas_area {
+    display:none;
+    width:220px;
+    height:220px;
+    background:#002200;
+}
+
+#rtc_canvas {
+    background:#550000;
+    
+}
+
+#rtc_monitor {
+    position:relative;
+    left:-37px;
+    width:293px;
+    height:220px;
 }
 
 #right_side_of_camera {
@@ -1325,11 +1498,11 @@ div.photoshoot {
 
 div.namebox {
     position:absolute;
-    bottom: 0px;
-    left: 0px;
+    bottom: 2px;
+    left: 2px;
     background-color: rgba(53,53,53,0.7);
     background-opacity: 0.7;
-    width: 221px;
+    width: 220px;
     height: 40px;
     z-index: 110;
 }

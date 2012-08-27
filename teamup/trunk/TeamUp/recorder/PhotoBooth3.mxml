@@ -20,6 +20,7 @@
             import flash.net.URLLoader;
             import flash.net.URLRequest;
             import flash.net.URLRequestMethod;
+            import flash.net.URLVariables;
             import flash.events.Event;
             import flash.events.IOErrorEvent;
 
@@ -115,7 +116,7 @@
                 };
                 
                 function onLoaded(evt:Event):void {
-                    ExternalInterface.call("savedPhoto", class_name+'/'+user_uid);
+                    ExternalInterface.call("savedPhoto", loader.data);
                 };
                 loader.load(request);
 			}			

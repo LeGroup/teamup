@@ -31,7 +31,6 @@
 			private var micTimer:Timer;
 			private var playTimer:Timer;
             private var preparationTimer:Timer;
-            private var recTimer:Timer;
             //private var stillTimer:Timer;
             private var flashTimer:Timer;
             private var uploaderTimer:Timer;
@@ -41,6 +40,7 @@
             private var recorder:MicRecorder;
     		private var sound:WavSound; //WavSound
     		private var record_len:Number;
+    		private var recording_seconds:Number;
     		private var mp3Encoder:ShineMP3Encoder;
     		private var _bitmapData:BitmapData;
     		private var _flash:BitmapData;
@@ -50,7 +50,6 @@
             private var video:Video;
             private var still:Bitmap;
             private var photo_bm:Bitmap;
-            private var countdown:TextField;
             private var camw:Number;
             private var camh:Number;
             private var sound_position:Number;
@@ -69,27 +68,13 @@
                 format.bold = true;
                 format.underline = false;
     
-    			countdown = new TextField();
-    			countdown.x=80;
-    			countdown.y=80;
-    			countdown.width=80;
-    			countdown.height=80;
-                countdown.background = false;
-                countdown.border = false;
-
                 format = new TextFormat();
                 format.font = "Arial";
                 format.color = '0xE0460E';
                 format.size = 64;
                 format.bold = true;
                 format.underline = false;
-    
-                countdown.defaultTextFormat = format;
-                countdown.text='3';
-                countdown.visible=false;
-                
-                uic.addChild(countdown);
-				
+    				
 				_flash=new BitmapData(camw,camh,false, 0xFFFFFF);
 				sound_position=0;
 				
@@ -111,7 +96,7 @@
                 ExternalInterface.addCallback("redoRecording", redoRecording);
                 ExternalInterface.addCallback("keepRecording", keepRecording);
                 
-                ExternalInterface.call("initialized");
+                ExternalInterface.call("recorderInitialized");
 			}
 			
 			private function initCamera():void {
@@ -135,7 +120,7 @@
                 still_screen.visible=true;
                 _bitmapData=new BitmapData(camw, camh);
                 _bitmapData.draw(video);
-                ExternalInterface.call("tookPhoto");
+                ExternalInterface.call("tookGroupPhoto");
             }
 
             // is called by flashTimer after photo has been taken
@@ -162,7 +147,7 @@
 
             private function redoPhoto():void {
                 still_screen.visible=false;             
-                
+                video.visible=true;
             }
 
 
@@ -180,7 +165,7 @@
                 ml.addEventListener(Event.COMPLETE, onReady);
                 function onReady(e:Event):void {
                     // notify teamup that we are done
-            		ExternalInterface.call("sentPhoto", class_name+'/'+group_name);
+            		ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
                 }
                 function onError(evt:IOErrorEvent):void {
                     _display.text="error:"+evt;
@@ -189,7 +174,7 @@
                 function forceFinish(event : Event) : void {
                     // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
                     // and the files are there. Send end notification.
-            		ExternalInterface.call("sentPhoto", class_name+'/'+group_name);
+            		ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
                 }            
                 ml.addVariable('class_id', class_name);
                 ml.addVariable('record_id', group_name);                
@@ -225,13 +210,9 @@
                 preparationTimer.addEventListener(TimerEvent.TIMER, _prepareAnnouncement);
                 preparationTimer.addEventListener(TimerEvent.TIMER_COMPLETE, _prepareComplete);                
 
-                soundLevel1.visible=true;
 				micTimer = new Timer(100);
 				micTimer.addEventListener(TimerEvent.TIMER, _miclevel);
 				micTimer.start();
-
-                recTimer = new Timer(60000,1);
-                recTimer.addEventListener(TimerEvent.TIMER_COMPLETE, stopRecording);
             }
 
 			
@@ -241,33 +222,26 @@
 
                 // make sure that vumeter is on
                 micTimer.start();
-                video.visible=true;
+                video.attachCamera(null);
 
-                still_screen.visible=false;             
+                still_screen.visible=true;             
 
                 // start preparations
                 prep_counter=3;
     		    _display.text = 'Prepare...'
-    		    countdown.visible=true;
-    		    countdown.text=prep_counter.toString();
     		    preparationTimer.reset();
+    		    recording_seconds=0;
                 preparationTimer.start(); // prepareAnnouncement, prepareComplete
 			}
 			
 			private function _prepareAnnouncement(e:TimerEvent):void {
     		    prep_counter--;
-    		    countdown.text= prep_counter.toString();			     
+                ExternalInterface.call("countdown", prep_counter);
+
 			}
 
             private function _prepareComplete(e:TimerEvent):void {
-                countdown.visible=false;
-
-                // change audio bar color
-                soundLevel1.setStyle('chromeColor',"0xaa0000");
-
                 recorder.record();
-                recTimer.reset();
-                recTimer.start(); // stop
             }
 
 			
@@ -276,29 +250,22 @@
                 video.attachCamera(null);
 
                 // stop timers 
-			    recTimer.stop();
-			    
-                soundLevel1.setStyle('chromeColor',"0xaaaa00");
-                soundLevel1.visible=false;
                 micTimer.stop();
 
                 sound_position=0;
                 still_screen.visible=true;
-                countdown.visible=false;
 			}
 
             private function startPlaying():void {
                 
                 function _showPlayProgress(e:TimerEvent):void {
-    				soundLevel1.setProgress(Math.abs(playback_channel.leftPeak),1);
+                    //
                 }
 
     			function _autoStopPlaying(e:Event):void {
     			    playTimer.stop();    
                     sound_position=0;
                     still_screen.visible=true;                    
-                    soundLevel1.setStyle('chromeColor',"0xaaaa00");
-                    countdown.visible=false;    
                     micTimer.start();
     			}
     			if (camera) {
@@ -308,8 +275,6 @@
 				playTimer.addEventListener(TimerEvent.TIMER, _showPlayProgress);
     			playTimer.start();
 
-                soundLevel1.setStyle('chromeColor',"0x00aa00");
-                soundLevel1.visible=true;
     			micTimer.stop();
 
     			playback_channel=sound.play(sound_position);
@@ -324,9 +289,6 @@
                 _display.text='Stopped.';
                 playback_channel.stop();
                 //sound_position=timeSlider.value*1000;                
-                soundLevel1.setStyle('chromeColor',"0xaaaa00");
-                soundLevel1.visible=false;
-                countdown.visible=false;
             }
 
             private function movePlaybackToPosition(p:Number):void {
@@ -395,11 +357,18 @@
 			
 			
 			private function _miclevel(event:TimerEvent):void {
-				soundLevel1.setProgress(mymic.activityLevel,100);
+                ExternalInterface.call("audioLevel", mymic.activityLevel);
 			}
 
     		private function _onRecording(event:RecordingEvent):void {
     			_display.text = "Recording : " + (event.time/1000).toFixed(1) + " s.";
+                if (event.time>60000) {
+                    stopRecording();
+                }
+    			if (Math.floor(event.time/100)>recording_seconds) {
+    			    recording_seconds++;
+                    ExternalInterface.call("recording_timer", recording_seconds);
+    			}
     			record_len=event.time;
     		}
 			
@@ -432,9 +401,8 @@
     <mx:UIComponent id="uic" x="0" y="0" width="240" height="240" />
     <mx:UIComponent id="still_screen" x="0" y="0" width="240" height="240" visible="false">
 	</mx:UIComponent>	    
-	<mx:Label color="0xffffff" x="10" y="10" id="_display" text="00:00:00"/>
+	<mx:Label color="0xffffff" x="10" y="10" id="_display" visible="false" text="00:00:00"/>
 	<mx:Label color="0xffffff" x="10" y="100" id="_error" visible="false" text=""/>
-	<mx:ProgressBar id="soundLevel1" direction="right" x="0" y="0" width="240" height="32" mode="manual" label="" chromeColor="0xaaaa00"  />
     <mx:Box id="encoding_container" visible="false" x="0" y="50" width="240" height="60" backgroundColor="#555555" alpha="0.8">
 	<mx:ProgressBar id="encoding" x="40" y="0" width="240" mode="manual" label="Encoding..." fontSize="10" chromeColor="0x008844" color="0xdddddd"/>
 	</mx:Box>
