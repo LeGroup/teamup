@@ -1594,6 +1594,25 @@ div.ui-dialog-buttonset button{
 
 }
 
+.team_notes{ 
+	position: relative;
+}
+
+.team_notes *{
+	margin-bottom: 10px;
+}
+
+.team_notes div{
+	width: 29px;
+	height: 29px;
+	color: #444;
+	font-weight: bold;
+	text-align: center;
+	border-radius: 2px;
+	background-color: rgb(67, 144, 202);
+	line-height: 29px;
+}
+
 
 
     
