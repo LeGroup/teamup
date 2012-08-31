@@ -181,7 +181,6 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 	 * @param Widget|String instance of widget or guid
 	 * @return WidgetInstance WidgetInstance if successful, otherwise false
 	 * @throws WookieConnectorException
-	 */
 
 	public function hasInstance($Widget_or_GUID) {
 		try {
@@ -205,13 +204,9 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 			if(!$this->checkURL($requestUrl)) {
 				throw new WookieConnectorException("URL for supplied Wookie Server is malformed: ".$requestUrl);
 			}
-			$response = $this->do_request($requestUrl, $request);
-            if($response->getStatusCode() == 404) {
-                return false;
-            }
-            if($response->getStatusCode() == 403) {
-                throw new WookieConnectorException("Invalid API key");
-                return true;
+			$response = $this->do_request($requestUrl, $request);			
+            if($response) {
+                return $response->getStatusCode();
             }
             return false;
 		} catch (WookieConnectorException $e) {
@@ -219,7 +214,7 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 		}
 		return false;
 	}
-
+*/
 
 	/**
 	 * Get instance of a widget. This function is added to provide a way to just check existence of an instance without having to create one
@@ -240,19 +235,20 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 				throw new WookieConnectorException("No GUID nor Widget object");
 			}
 			$requestUrl = $this->getConnection()->getURL().'widgetinstances';
-			$request.= '&api_key='.$this->getConnection()->getApiKey();
-			$request.= '&userid='.$this->getUser()->getLoginName();
-			$request.= '&shareddatakey='.$this->getConnection()->getSharedDataKey();
-			$request.= '&widgetid='.$guid;
+			$request.= '?api_key='.urlencode($this->getConnection()->getApiKey());
+			$request.= '&userid='.urlencode($this->getUser()->getLoginName());
+			$request.= '&shareddatakey='.urlencode($this->getConnection()->getSharedDataKey());
+			$request.= '&widgetid='.urlencode($guid);
 		    if($locale = $this->getLocale()) {
-                $request .= '&locale='.$locale;
+                $request .= '&locale='.urlencode($locale);
             }
 
 			if(!$this->checkURL($requestUrl)) {
 				throw new WookieConnectorException("URL for supplied Wookie Server is malformed: ".$requestUrl);
 			}
-			$response = $this->do_request($requestUrl, $request, 'POST');
+			$response = $this->do_request($requestUrl.$request, false, 'GET');
             if($response->getStatusCode() == 404) {
+    			$this->getLogger()->write("not found");
                 return false;
             }
             if($response->getStatusCode() == 403) {

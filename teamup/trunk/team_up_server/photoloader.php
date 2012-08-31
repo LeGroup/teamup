@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Europe/Helsinki');
 $log = fopen("log/teamup.log", 'a');
 if (getenv("HTTP_CLIENT_IP")) 
   $ip = getenv("HTTP_CLIENT_IP"); 
@@ -15,11 +16,16 @@ $base='uploads';
 $picture = base64_decode($_POST['picture']);
 $class_id = $_POST['class_id'];
 $record_id = $_POST['record_id'];
+$class_hash= md5($class_id);
+$dir1=substr($class_hash, 0,2);
 
-if (!file_exists($base.'/'.$class_id)) {
-    mkdir($base.'/'.$class_id);
+if (!file_exists($base.'/'.$dir1)) {
+    mkdir($base.'/'.$dir1);
 }
-$pic_name=$base.'/'.$class_id.'/'.$record_id.'_photo.jpg';
+if (!file_exists($base.'/'.$dir1.'/'.$class_id)) {
+    mkdir($base.'/'.$dir1.'/'.$class_id);
+}
+$pic_name=$base.'/'.$dir1.'/'.$class_id.'/'.$record_id.'_photo.jpg';
 $fh=fopen($pic_name, 'w');
 fwrite($fh, $picture);
 fclose($fh); 
@@ -29,9 +35,5 @@ $success = "1";
 fwrite($log, "Wrote file ".$pic_name."\n");
 fclose($log); 
 
-//...
-$returnVars = array();
-$returnVars['success'] = $success;
-$returnString = http_build_query($returnVars);
-echo $returnString;
+echo $pic_name;
 ?>
