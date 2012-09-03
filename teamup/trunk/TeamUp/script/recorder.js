@@ -46,26 +46,6 @@ RECORDER.initialized=function() {
     }
 }
 
-RECORDER.keep_photo = function() { 
-    debug('keeping this photo...');
-    
-    $("#recorder_cam_options").hide('slide',{direction:'left'}, 
-    function() { $("#note_questions").show('slide', {direction:'left'}, 
-        function() { 
-            $("#i18n-team-photo").removeClass('highlight').next('span.check').fadeIn('slow');
-            $("#i18n-what-we-did").addClass('highlight');
-            var rec = RECORDER.getRecorder(); 
-            if (rec) {
-                rec.initMic();  // doesn't call back, just removes the still
-            }
-            $('div.vumeter').show();
-            $('#rec_button').addClass('activated').off();
-            $('#rec_button.activated').click(RECORDER.start_recording);
-
-        });
-    });
-}
-
 RECORDER.start_recording = function() {
     var rec = RECORDER.getRecorder(); 
     if (rec) {
@@ -124,15 +104,11 @@ RECORDER.stop_recording = function() {
     }
 }
 
-RECORDER.recorder_stopped = function() {
+RECORDER.recording_stopped = function() {
     debug('recorder stopped');
     $('#rec_button').removeClass('recording').addClass('activated').off();
     $('#rec_button').click(RECORDER.start_recording);         
     $('span.check').show();
-}
-
-RECORDER.save = function() {
-    
 }
 
 RECORDER.cancel_recording = function() {
@@ -167,14 +143,30 @@ RECORDER.audioLevel=function(level) {
 
 }
 
+RECORDER.save_note= function() {
+    var rec = RECORDER.getRecorder();
+    var team=getData($('#team_title'));
+    debug('save note clicked');
+    var note_id=new Date().getTime().toString().substring(5);
+    var server_path=SERVER_URL;
+    var class_uid= fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
+    var note_uid= fs_friendly_string(team.uid)+'_note_'+note_id;
+
+    if (rec) {
+        rec.saveRecording(server_path, class_uid, note_uid); 
+    }        
+}
+
+
 RECORDER.finishedRecording= function(path) {
     $('#upload-panel').dialog('close');
     $('div.recorder_panel').hide();
     debug('Received a record:'+path);
     // Create an empty note but don't catalog it yet
     var note = new TeamNote(false);
-    note.audio_url=SERVER_URL+'uploads/'+path+'_rec.mp3';
-    note.photos.push(SERVER_URL+'uploads/'+path+'_pic.jpg');
+    note.audio_url=SERVER_URL+path+'_rec.mp3';
+    debug(note.audio_url);
+    note.photos.push(SERVER_URL+path+'_pic.jpg');
     // Give it a proper uid before cataloging
     var team=getData($('#team_title'));
     note.uid= path;
@@ -189,7 +181,7 @@ RECORDER.finishedRecording= function(path) {
 
 RECORDER.uploadingRecording= function() {
     debug('Uploading recording...');
-    $('#upload-panel').dialog('open');
+    //$('#upload-panel').dialog('open');
     var notes=$('#available_recordings');
     notes.width(notes.width()+142);
     notes.append('<div class="note_thumbnail">...</div>');
@@ -203,7 +195,7 @@ RECORDER.uploadingRecording= function() {
 
 // redirect Flash ExternalInterface calls: 
 recorderInitialized=RECORDER.initialized;
-recorder_stopped=RECORDER.recorder_stopped; 
+recording_stopped=RECORDER.recording_stopped; 
 uploadingRecording=RECORDER.uploadingRecording;
 finishedRecording=RECORDER.finishedRecording;
 encodingComplete=RECORDER.encodingComplete;

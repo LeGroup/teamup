@@ -230,7 +230,6 @@ TEAM_NOTES.view_mode= function(event) {
 //        <p id="recording_help_4">Answer the questions below the recorder.</p>
 //    </div>
 
-
 TEAM_NOTES.prepare_audio= function() {
     var note=getData($('#note_viewer'));
     var rec=''
@@ -240,17 +239,3 @@ TEAM_NOTES.prepare_audio= function() {
     $('#note_viewer_object').jPlayer("setMedia", {mp3:rec});
 }
 
-TEAM_NOTES.save_note= function() {
-    var recorder = swfobject.getObjectById('TeamRecorder');
-    var team=getData($('#team_title'));
-
-    var note_id=new Date().getTime().toString().substring(5);
-    var server_path=SERVER_URL;
-    var class_uid= fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
-    var note_uid= fs_friendly_string(team.uid)+'_note_'+note_id;
-
-    if (recorder.save !== undefined) {
-        debug('Found recorder');
-        recorder.save(server_path, class_uid, note_uid);  // will result in 'savedPhoto' call
-    }        
-}

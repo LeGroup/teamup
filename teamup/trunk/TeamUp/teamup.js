@@ -204,7 +204,7 @@ $(document).ready(function(){
     } 
     });
 
-    $('#save_note').click(TEAM_NOTES.save_note);
+    $('#save_note').click(RECORDER.save_note);
 
     //$('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
     //$('#recorder_keep_photo').click(RECORDER.keep_photo);
