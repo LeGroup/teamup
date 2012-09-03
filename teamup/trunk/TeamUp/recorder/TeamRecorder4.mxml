@@ -75,14 +75,11 @@
                 format.bold = true;
                 format.underline = false;
     				
-				_flash=new BitmapData(camw,camh,false, 0xFFFFFF);
+				_flash=new BitmapData(camw,camh,false, 0xaaFF88);
 				sound_position=0;
 				
                 // Taking team photos 
                 ExternalInterface.addCallback("initCamera", initCamera);
-                ExternalInterface.addCallback("takePhoto", takePhoto);
-                ExternalInterface.addCallback("redoPhoto", redoPhoto);
-                ExternalInterface.addCallback("cancelPhoto", cancelPhoto);
                 ExternalInterface.addCallback("keepPhoto", keepPhoto);
 
                 // recording team notes
@@ -94,8 +91,8 @@
                 ExternalInterface.addCallback("movePlaybackToPosition", movePlaybackToPosition);
                 ExternalInterface.addCallback("cancelRecording", cancelRecording);
                 ExternalInterface.addCallback("redoRecording", redoRecording);
-                ExternalInterface.addCallback("keepRecording", keepRecording);
-                
+                ExternalInterface.addCallback("saveRecording", saveRecording);
+                _display.text='Recorder initialized.';
                 ExternalInterface.call("recorderInitialized");
 			}
 			
@@ -120,7 +117,9 @@
                 still_screen.visible=true;
                 _bitmapData=new BitmapData(camw, camh);
                 _bitmapData.draw(video);
-                ExternalInterface.call("tookGroupPhoto");
+                video.attachCamera(null);
+
+                //ExternalInterface.call("tookGroupPhoto");
             }
 
             // is called by flashTimer after photo has been taken
@@ -144,54 +143,6 @@
 			}
 
 
-
-            private function redoPhoto():void {
-                still_screen.visible=false;             
-                video.visible=true;
-            }
-
-
-            private function cancelPhoto():void {
-                if (camera) {
-                    video.attachCamera(null);
-                }
-
-
-            }
-
-            private function keepPhoto(server_path:String, class_name:String, group_name:String ) : void {
-                _display.text = 'Sending team photo...';                
-                var ml:MultipartURLLoader = new MultipartURLLoader();
-                ml.addEventListener(Event.COMPLETE, onReady);
-                function onReady(e:Event):void {
-                    // notify teamup that we are done
-            		ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
-                }
-                function onError(evt:IOErrorEvent):void {
-                    _display.text="error:"+evt;
-                    //ExternalInterface.call("photo_error", "error:"+evt);
-                };
-                function forceFinish(event : Event) : void {
-                    // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
-                    // and the files are there. Send end notification.
-            		ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
-                }            
-                ml.addVariable('class_id', class_name);
-                ml.addVariable('record_id', group_name);                
-                ml.addFile(photo_jpg, 'photo.jpg', 'photo', 'image/jpeg');
-                try {
-                    ml.load(server_path+"varloader.php", false);  
-                } catch (error:Error) {
-                    _display.text= error.message + error.toString();
-                } finally {};
-                
-				uploaderTimer = new Timer(10000);
-				uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
-                uploaderTimer.start();                      
-            }
-			
-
-
             private function initMic():void {
 				// Get Microphone
 				mymic = Microphone.getMicrophone();
@@ -209,7 +160,6 @@
                 preparationTimer = new Timer(1000,prep_counter);
                 preparationTimer.addEventListener(TimerEvent.TIMER, _prepareAnnouncement);
                 preparationTimer.addEventListener(TimerEvent.TIMER_COMPLETE, _prepareComplete);                
-
 				micTimer = new Timer(100);
 				micTimer.addEventListener(TimerEvent.TIMER, _miclevel);
 				micTimer.start();
@@ -219,19 +169,14 @@
 			// Recording 
 			
 			private function startRecording():void {
-
                 // make sure that vumeter is on
-                micTimer.start();
-                video.attachCamera(null);
-
-                still_screen.visible=true;             
-
+                micTimer.start(); // --> _miclevel
                 // start preparations
                 prep_counter=3;
     		    _display.text = 'Prepare...'
     		    preparationTimer.reset();
     		    recording_seconds=0;
-                preparationTimer.start(); // prepareAnnouncement, prepareComplete
+                preparationTimer.start(); // --> _prepareAnnouncement, _prepareComplete
 			}
 			
 			private function _prepareAnnouncement(e:TimerEvent):void {
@@ -241,6 +186,7 @@
 			}
 
             private function _prepareComplete(e:TimerEvent):void {
+                takePhoto();
                 recorder.record();
             }
 
@@ -251,7 +197,6 @@
 
                 // stop timers 
                 micTimer.stop();
-
                 sound_position=0;
                 still_screen.visible=true;
 			}
@@ -306,7 +251,7 @@
             private function redoRecording():void {
                 startRecording();
             }
-            private function keepRecording(server_path:String, class_name:String, group_name:String ): void {
+            private function saveRecording(server_path:String, class_name:String, group_name:String ): void {
                 _display.text = 'Sending audio file...';                
 
                 var ml:MultipartURLLoader = new MultipartURLLoader();
@@ -316,7 +261,7 @@
                                 
                 function onReady(e:Event):void {
                     // notify teamup that we are done
-            		ExternalInterface.call("finishedRecording", class_name+'/'+group_name);
+            		ExternalInterface.call("finishedRecording", ml.loader.data);
                 }
                 function onError(evt:IOErrorEvent):void {
                     _display.text="error:"+evt;
@@ -325,7 +270,7 @@
                 function forceFinish(event : Event) : void {
                     // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
                     // and the files are there. Send end notification.
-            		ExternalInterface.call("finishedRecording", class_name+'/'+group_name);
+            		ExternalInterface.call("finishedRecording", ml.loader.data);
                 }
             
         		function onProgress(event : ProgressEvent) : void {
@@ -337,7 +282,10 @@
 
                 // simple string data
                 ml.addVariable('class_id', class_name);
-                ml.addVariable('record_id', group_name);                
+                ml.addVariable('record_id', group_name);
+                if (photo_jpg) {
+                    ml.addFile(photo_jpg, 'photo.jpg', 'photo', 'image/jpeg'); 
+                }           
                 ml.addFile(mp3Encoder.mp3Data, 'voice.mp3', 'voice', 'audio/mpeg');                 
 
                 try {
@@ -351,6 +299,38 @@
                 uploaderTimer.reset();                      
                 uploaderTimer.start();                      
             }
+            private function keepPhoto(server_path:String, class_name:String, group_name:String ) : void {
+                _display.text = 'Sending team photo...';                
+                var ml:MultipartURLLoader = new MultipartURLLoader();
+                ml.addEventListener(Event.COMPLETE, onReady);
+                function onReady(e:Event):void {
+                    // notify teamup that we are done
+                    ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
+                }
+                function onError(evt:IOErrorEvent):void {
+                    _display.text="error:"+evt;
+                    //ExternalInterface.call("photo_error", "error:"+evt);
+                };
+                function forceFinish(event : Event) : void {
+                    // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
+                    // and the files are there. Send end notification.
+                    ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
+                }            
+                ml.addVariable('class_id', class_name);
+                ml.addVariable('record_id', group_name);                
+                ml.addFile(photo_jpg, 'photo.jpg', 'photo', 'image/jpeg');
+                try {
+                    ml.load(server_path+"varloader.php", false);  
+                } catch (error:Error) {
+                    _display.text= error.message + error.toString();
+                } finally {};
+                
+                uploaderTimer = new Timer(10000);
+                uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
+                uploaderTimer.start();                      
+            }
+            
+
 
             // this should be the only function to use those path parameters 
 
@@ -373,6 +353,7 @@
     		}
 			
     		private function _onRecordComplete(event:Event):void {
+                ExternalInterface.call("recording_stopped");
     			_display.text = "Record : " + (record_len/1000).toFixed(1) + " s.";
         		function _mp3EncodeProgress(event : ProgressEvent) : void {
         		    encoding.setProgress(event.bytesLoaded,100);
@@ -382,14 +363,16 @@
         		}
     			function _mp3EncodeComplete(event : Event) : void {
                     mp3Encoder.removeEventListener(ProgressEvent.PROGRESS, _mp3EncodeProgress);
-        			mp3Encoder.removeEventListener(Event.COMPLETE, _mp3EncodeComplete);        			mp3Encoder.removeEventListener(ErrorEvent.ERROR, _mp3EncodeError);
+        			mp3Encoder.removeEventListener(Event.COMPLETE, _mp3EncodeComplete);
+        			mp3Encoder.removeEventListener(ErrorEvent.ERROR, _mp3EncodeError);
                     _display.text = 'Finished: ' + (mp3Encoder.mp3Data.length/1024).toFixed(1)+' kb.';
                     encoding_container.visible=false;
         			sound = new WavSound(recorder.output);
             		ExternalInterface.call("encodingComplete");
     			}
 			    mp3Encoder = new ShineMP3Encoder(recorder.output);
-    			mp3Encoder.addEventListener(Event.COMPLETE, _mp3EncodeComplete);    			mp3Encoder.addEventListener(ProgressEvent.PROGRESS, _mp3EncodeProgress);
+    			mp3Encoder.addEventListener(Event.COMPLETE, _mp3EncodeComplete);
+    			mp3Encoder.addEventListener(ProgressEvent.PROGRESS, _mp3EncodeProgress);
     			mp3Encoder.addEventListener(ErrorEvent.ERROR, _mp3EncodeError);
     			mp3Encoder.start();						
                 encoding_container.visible=true;

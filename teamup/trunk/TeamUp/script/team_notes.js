@@ -64,6 +64,8 @@ TEAM_NOTES.create_team_notes= function(team) {
     $('#note_questions').show();
     $('#recorder_cam_panel').hide();
     $('#recorder_cam_options').hide();    
+    $('#recorder_toggle').off('click').click(RECORDER.prepare_recorder);
+
     //$('#recorder_save_help').hide();
     var ti;
     for (ti=0;ti<TEAMS.length;ti++) {
@@ -76,7 +78,7 @@ TEAM_NOTES.create_team_notes= function(team) {
 
     var tt=$('#team_title');
     tt.text(team.name);
-    $('#note_photo').css('background-color',team.color); 
+    $('#note_viewer').css('background-color',team.color); 
     $('div.vumeter').hide();
     $('#rec_button').removeClass('activated');
 
@@ -192,7 +194,7 @@ TEAM_NOTES.empty_note= function() {
     $('#note_photo_img').hide();
     $('#note_viewer_object').jPlayer("setMedia", {mp3:''});
     $('#note_questions p span').removeClass('highlight');
-    $('#i18n-team-photo').addClass('highlight');
+    $('#i18n-what-we-did').addClass('highlight');
 }
 
 

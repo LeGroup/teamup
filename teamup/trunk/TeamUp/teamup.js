@@ -206,11 +206,9 @@ $(document).ready(function(){
 
     $('#save_note').click(TEAM_NOTES.save_note);
 
-    $('#recorder_toggle').click(RECORDER.prepare_recorder);
-    $('#recorder_cam_button').click(RECORDER.takePhoto);
-    $('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
-    $('#recorder_keep_photo').click(RECORDER.keep_photo);
-    $('#recorder_cancel_photo').click(RECORDER.cancel_recording);
+    //$('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
+    //$('#recorder_keep_photo').click(RECORDER.keep_photo);
+    //$('#recorder_cancel_photo').click(RECORDER.cancel_recording);
 
     
     $('#player_button').click(function (){

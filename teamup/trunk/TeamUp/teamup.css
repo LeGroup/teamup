@@ -650,25 +650,6 @@ div.recorder_panel {
     display:none;
 }
 
-#recorder_cam_button {    
-    position:relative;
-    width: 90px;
-    height: 40px;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    background-image:url('images/camera-alpha.png');
-    background-repeat:no-repeat;
-    background-position:center;
-    left: 45px;
-    top: 90px;
-}
-
-#recorder_cam_button:hover {
-    background-image:url('images/camera-alpha.png');
-    background-repeat:no-repeat;
-    background-position:center;
-}
 
 #recorder_cam_options {
     display:none;
@@ -690,6 +671,8 @@ div.recorder_panel {
     height: 240px; 
     position: relative;   
     margin-right:39px;
+    background:#d0d0d0;
+
 }
 
 #recorder_toggle {
@@ -698,6 +681,7 @@ div.recorder_panel {
     left: 79px;
     width: 90px;
     height: 90px;
+    border:1px solid transparent;
     border-radius: 5px;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
@@ -941,9 +925,11 @@ span.separator {
 }
 
 #note_photo {
+    position:absolute;
+    top:0px;
+    left:0px;
     width:240px;
     height:240px;
-    background:#d0d0d0;
 }
 
 

@@ -215,10 +215,6 @@
         <tr>
         <td valign="top" width="240" style="position:relative">
             <div id="note_viewer" style="margin-right:24px;">
-                <div id="note_photo">
-                    <img src="" alt="" id="note_photo_img" width="240" height="240" />
-                    <div id="recorder_toggle" class="button"></div>
-                </div>
             </div>
             <div id="note_recorder">
                 <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
@@ -234,14 +230,15 @@
             <div id="vumeter_8" class="vumeter"></div>
             <div id="vumeter_9" class="vumeter"></div>
             <div id="countdown">3</div>
+            <div id="note_photo">
+                <img src="" alt="" id="note_photo_img" width="240" height="240" />
+                <div id="recorder_toggle" class="button"></div>
+            </div>
 
         </td>
         
             <td width="240" align="left" >
                                 
-                <div class="recorder_panel" id="recorder_cam_panel">
-                    <div id="recorder_cam_button" class="button"></div>
-                </div>
                 <div class="recorder_panel" id="recorder_cam_options" style="display:none">
                 
                         <div id="recorder_keep_photo" class="button">Keep</div>
@@ -249,14 +246,13 @@
                         <div id="recorder_reject_photo" class="button">Cancel</div>
                 </div>
                 <div class="recorder_panel" id="note_questions">
-                    <p><span id="i18n-team-photo">Team photo!</span> <span class="check">&#x2713;</span></p>
                     <p><span id="i18n-what-we-did">What we did.</span> <span class="check">&#x2713;</span></p>
                     <p><span id="i18n-what-we-will-do">What we will do.</span> <span class="check">&#x2713;</span></p>
                     <p><span id="i18n-any-problems">Any problems?</span> <span class="check">&#x2713;</span></p>
                 </div>
                 <div class="recorder_panel" id="recorder_audio_options" style="display:none">
-                        <div id="recorder_keep_audio" class="button">Keep note</div>
-                        <div id="recorder_retry_audio" class="button">Try again</div>
+                        <div id="save_note" class="button">Keep note</div>
+                        <div id="retry_note" class="button">Try again</div>
                 </div>
             </td>
         </tr>

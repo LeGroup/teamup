@@ -18,7 +18,7 @@ RECORDER.prepare_recorder=function() {
     debug('record mode on');
     $('#note_viewer').hide();
     $('#note_recorder').show();
-    $('#note_questions').hide('slide', {direction:'left'});
+    //$('#note_questions').hide('slide', {direction:'left'});
 }
 
 
@@ -39,26 +39,11 @@ RECORDER.initialized=function() {
     if (rec) {
         debug('ping received from recorder');
         rec.initCamera();
-        //$('#note_questions').hide('slide', {direction:'right'});
-        $('#recorder_cam_panel').show('slide', {direction:'left'});
+        rec.initMic();
+        $('#recorder_toggle').css('border-color', '#33aa33');
+        $('#recorder_toggle').off('click').click(RECORDER.start_recording);
+        $('div.vumeter').show();
     }
-}
-
-RECORDER.takePhoto=function() {
-    // delegate camera button click to flash object
-    rec=RECORDER.getRecorder();
-    if (rec) {
-        rec.takePhoto();
-    }
-}
-
-RECORDER.tookGroupPhoto=function() {
-    //$("div.portrait").show();
-    debug('Flash camera took a photo');
-    var team=getData($('#team_title'));
-    $('#note_recorder').css('border-color',team.color);
-    $('#recorder_cam_panel').fadeOut('fast', function() { $("#recorder_cam_options").fadeIn() } );
-    //$('#recorder_cam_panel').hide('slide', {direction:'right'});
 }
 
 RECORDER.keep_photo = function() { 
@@ -85,6 +70,7 @@ RECORDER.start_recording = function() {
     var rec = RECORDER.getRecorder(); 
     if (rec) {
         rec.startRecording();
+        $('#recorder_toggle').hide();
         $('#rec_button').removeClass('activated').addClass('recording').off();
         $('#progress_line').show().width(0);
         $('#countdown').text("3").show();
@@ -103,6 +89,16 @@ RECORDER.recording_timer = function(t) {
     } else {
         seconds=t.toString();
     }
+    if (t==20) {
+            $("#i18n-what-we-did").removeClass('highlight').next('span.check').fadeIn('slow');
+            $("#i18n-what-we-will-do").addClass('highlight');
+    } else if (t==40) {
+            $("#i18n-what-we-will-do").removeClass('highlight').next('span.check').fadeIn('slow');
+            $("#i18n-any-problems").addClass('highlight');
+    } else if (t==59) {
+            $("#i18n-any-problems").removeClass('highlight').next('span.check').fadeIn('slow');
+    }
+
     $('#timer_text').text("0:"+seconds+" / 1:00");
     if (t>200) {
 
@@ -114,6 +110,8 @@ RECORDER.recording_timer = function(t) {
 RECORDER.countdown = function(t) {
     if (t==0) {
         $('#countdown').hide();
+        var team=getData($('#team_title'));
+        $('#note_recorder').css('border-color',team.color);
     } else {       
         $('#countdown').text(t).show();
     }
@@ -124,23 +122,17 @@ RECORDER.stop_recording = function() {
     if (rec) {
         rec.stopRecording();
     }
-    $('#rec_button').removeClass('recording').addClass('activated').off();
-    $('#rec_button').click(RECORDER.start_recording);         
-
 }
 
-RECORDER.redo_photoshoot = function() {
-    debug('releasing still photo');
-    $('#recorder_cam_options').fadeOut('fast', function() { $("#recorder_cam_panel").fadeIn() } );
-    //$("#recorder_cam_options").hide('slide',{direction:'left'});
-    var rec = RECORDER.getRecorder(); 
-    if (rec) {
-        rec.redoPhoto();  // doesn't call back, just removes the still
-        $('#recorder_cam_button').fadeIn();
-    }    
-    $('#note_recorder').css('border-color','transparent');
-    $("#save_portrait").hide('slide',{direction:'left'});
-    RECORDER.on=true;
+RECORDER.recorder_stopped = function() {
+    debug('recorder stopped');
+    $('#rec_button').removeClass('recording').addClass('activated').off();
+    $('#rec_button').click(RECORDER.start_recording);         
+    $('span.check').show();
+}
+
+RECORDER.save = function() {
+    
 }
 
 RECORDER.cancel_recording = function() {
@@ -178,7 +170,7 @@ RECORDER.audioLevel=function(level) {
 RECORDER.finishedRecording= function(path) {
     $('#upload-panel').dialog('close');
     $('div.recorder_panel').hide();
-    debug('Received a record');
+    debug('Received a record:'+path);
     // Create an empty note but don't catalog it yet
     var note = new TeamNote(false);
     note.audio_url=SERVER_URL+'uploads/'+path+'_rec.mp3';
@@ -211,8 +203,7 @@ RECORDER.uploadingRecording= function() {
 
 // redirect Flash ExternalInterface calls: 
 recorderInitialized=RECORDER.initialized;
-tookGroupPhoto=RECORDER.tookGroupPhoto;
-sentGroupPhoto=RECORDER.sentGroupPhoto;
+recorder_stopped=RECORDER.recorder_stopped; 
 uploadingRecording=RECORDER.uploadingRecording;
 finishedRecording=RECORDER.finishedRecording;
 encodingComplete=RECORDER.encodingComplete;
