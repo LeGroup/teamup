@@ -96,14 +96,36 @@
                 ExternalInterface.call("recorderInitialized");
 			}
 			
+
 			private function initCamera():void {
                 // get Camera
                 video= new Video(camw,camh);
                 camera = Camera.getCamera();
+
+                function statusHandler(event:StatusEvent):void { 
+                    _display.text='Statusevent '+event.code;
+
+                    switch (event.code) { 
+                        case "Camera.Muted":
+                            _display.text='Camera denied'; 
+                            ExternalInterface.call("cameraDenied"); 
+                            break; 
+                        case "Camera.Unmuted": 
+                            _display.text='Camera accepted'; 
+                            ExternalInterface.call("cameraAccepted"); 
+                            break; 
+                    } 
+                }
                 if (camera) {
+                    _display.text='Asking permission to use camera...';
+                    camera.addEventListener(StatusEvent.STATUS, statusHandler)
                     camera.setMode(camw,camh,12,false);
                     camera.setQuality(0,100);
                     video.attachCamera(camera);
+                    if (!camera.muted) {
+                        _display.text='Camera always accepted'; 
+                        ExternalInterface.call("cameraAccepted"); 
+                    }
                 }
                 uic.addChild(video);
                 flashTimer=new Timer(10,1);
