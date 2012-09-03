@@ -183,14 +183,8 @@ RECORDER.uploadingRecording= function() {
     debug('Uploading recording...');
     //$('#upload-panel').dialog('open');
     var notes=$('#available_recordings');
-    notes.width(notes.width()+142);
-    notes.append('<div class="note_thumbnail">...</div>');
-    var thumb=notes.find('div.note_thumbnail').last();
-    thumb.hide("slow");
-    thumb.show("slow");
-    thumb.hide("slow");
-    thumb.show("slow");
-    thumb.hide("slow");    
+    $('#record_note img').show();
+    $('#record_note span').hide();
 }
 
 // redirect Flash ExternalInterface calls: 

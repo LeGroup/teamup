@@ -523,29 +523,24 @@ div.note_thumbnail {
     float: left;
     width:60px;
     height:60px;
-    border: 1px solid #0095E7;
     margin: 3px 3px;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;    
     cursor:pointer;
+    border: 2px solid transparent;
 }
 
 div.note_thumbnail:hover {
     border: 2px solid #cc0;
-    margin: 2px 2px;
 }
 
 
 div.note_thumbnail label, #note_photo label {
     position: absolute;
+    font-size:8pt;
     left:0px;
     top:0px;
     background:#0095E7;
     color:#fff;
-    border-bottom-right-radius: 5px;
-    -moz-border-radius-bottomright: 5px;
-    -webkit-border-bottom-right-radius: 5px;    
+
 }
 
 div.note_thumbnail:hover label {
@@ -554,21 +549,31 @@ div.note_thumbnail:hover label {
 
 .note_thumbnail span.remove_note {
     position: absolute;
-    right:2px;
-    top:2px;
+    font-size:8pt;
+    right:0px;
+    bottom:0px;
     width:16px;
     text-align:center;
     background:#aa0000;
     color:#000;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;    
 }
 
 .note_thumbnail span.remove_note:hover {
     background:#ff0000;
     color:#555;
 }
+
+div#record_note {
+    width:60px;
+    height:60px;
+    border: 1px dashed #ddd;
+    margin: 4px 4px;
+    text-align:center;
+    cursor:pointer;
+    font-size:160%;
+    line-height:55px;
+}
+
 
 #team_title {
     color:#e0e0e0;
@@ -944,19 +949,6 @@ span.available_recordings {
 span.available_recordings:hover span {
     background: #fff;
     color: #d00;
-}
-
-div#record_note {
-    width:60px;
-    height:60px;
-    border: 1px dashed #aaa;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    text-align:center;
-    cursor:pointer;
-    font-size:160%;
-    line-height:55px;
 }
 
 

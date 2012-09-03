@@ -316,9 +316,9 @@ $(document).ready(function(){
     CLASSROOM.show('up');
 });
 
-$(window).bind('beforeunload', function() {
-	return 'hey';
-});
+//$(window).bind('beforeunload', function() {
+//	return 'hey';
+//});
 
 // **********************************
 // Options view

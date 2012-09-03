@@ -117,7 +117,7 @@ TEAM_NOTES.create_team_notes= function(team) {
         dt=new Date(note.timestamp);
         s+='<label>'+(dt.getDate())+'/'+(dt.getMonth()+1)+' '+dt.getHours()+':'+((dt.getMinutes()<10) ? '0':'')+dt.getMinutes()+'</label>';
         if (note.photos.length>0) {                        
-            s+='<img src="'+note.photos[0]+'" width="128" height="96" />';
+            s+='<img src="'+note.photos[0]+'" width="60" height="60" />';
         }
         if (MODERATOR) {
             s+='<span class="remove_note">x</span>';
@@ -130,7 +130,7 @@ TEAM_NOTES.create_team_notes= function(team) {
         setData(obj, note);
         obj.find('span.remove_note').click(TEAM_NOTES.remove_note);
     }
-    notes.append('<div id="record_note" class="button">+</div>');
+    notes.append('<div id="record_note" class="button"><span>+</span><img src="images/upload.gif" width="32" height="32" style="display:none" /></div>');
     if (team.notes.length>0){
         note=CATALOG[team.notes[team.notes.length-1]];
         if (note && note.uid) {
