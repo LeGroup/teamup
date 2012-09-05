@@ -441,6 +441,39 @@ LEARNER_VIEW.delete_learner= function() {
             break;
         }
     }
+	
+	//---------------------------
+	//Work in progress...
+	//Remove friend/enemy relationships
+	for(var i = 0; i < learner.friends.length; i++)	
+	{
+		var friendUid = learner.friends[i];
+		alert(friendUid.replace('Friend_', ''));
+		
+		var friend = PUPILS[friendUid.replace('Friend_', '')];
+		
+		for(var j = 0; j < friend.friends.length; j++) 
+		{
+			if(friend.friends[j].uid == learner.uid)
+			{
+				friend.friends.splice(j, 1);
+				break;
+			}
+		}
+	}
+	//-----------------------------
+	
+	//Remove deleted learner from property choices
+	for(var i = 0; i < ALL_FRIENDS.criteria.length; i++)	{
+		if(ALL_FRIENDS.criteria[i].uid == "Friend_" + learner.uid) {
+			ALL_FRIENDS.criteria.splice(i, 1);
+			break;
+		}
+	}
+	LEARNER_VIEW.update_property_choices();
+	
+	//Note: The script doesn't remove the deleted learner from other learners properties yet
+	
     PUPILS.splice(THIS_PERSON, 1);
     CONTROLLER.addArray('PUPILS', PUPILS);
     CONTROLLER.sendChanges();

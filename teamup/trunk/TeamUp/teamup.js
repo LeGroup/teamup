@@ -204,11 +204,13 @@ $(document).ready(function(){
     } 
     });
 
-    $('#save_note').click(RECORDER.save_note);
+    $('#save_note').click(TEAM_NOTES.save_note);
 
-    //$('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
-    //$('#recorder_keep_photo').click(RECORDER.keep_photo);
-    //$('#recorder_cancel_photo').click(RECORDER.cancel_recording);
+    $('#recorder_toggle').click(RECORDER.prepare_recorder);
+    $('#recorder_cam_button').click(RECORDER.takePhoto);
+    $('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
+    $('#recorder_keep_photo').click(RECORDER.keep_photo);
+    $('#recorder_cancel_photo').click(RECORDER.cancel_recording);
 
     
     $('#player_button').click(function (){
@@ -316,9 +318,7 @@ $(document).ready(function(){
     CLASSROOM.show('up');
 });
 
-//$(window).bind('beforeunload', function() {
-//	return 'hey';
-//});
+window.onbeforeunload = function(e){ return "Note: Please don't use refresh or previous page buttons to navigate in TeamUp"; };
 
 // **********************************
 // Options view

@@ -192,7 +192,8 @@ CLASSROOM.build_class_view = function (animate) {
 		
 		for (i = 0; i < TEAMS.length; i++) {        
 			tteam=TEAMS[i];
-			team_note_obj = $('<div style="background-color: '+tteam.color+'">'+tteam.notes.length+'</div>');
+			team_note_obj = $('<div style="background-color: '+tteam.color+'" data-teamId="'+i+'">'+tteam.notes.length+'</div>');
+			team_note_obj.click(CLASSROOM.go_team_notes_by_number);
 			$('.team_notes').append(team_note_obj);
 		}
 	}
@@ -315,9 +316,11 @@ CLASSROOM.build_team_view = function(animate) {
         $('.team_name').css({left:table_border/2, top:table_border/1.5});
         $('span.team_name').animate({opacity:1.0},1200);
         $('div.team_box img.team_table').css({width:table_size, height:table_size, top:table_border, left:table_border});
+        $('div.team_box img.team_table').css({width:table_size, height:table_size, top:table_border, left:table_border});
     } else {
         $('div.team_box img.team_table').css({width:table_size, height:table_size, top:table_border, left:table_border});
-        $('div.team_box').css({opacity:1.0});
+        $('div.team_box img.team_table').css({width:table_size, height:table_size, top:table_border, left:table_border});
+        $('div.team_box').css({opacity:1.0 });
         $('span.team_name').css('opacity',1.0);
         $('.team_name').css({left:table_border/2, top:table_border/1.5});
         $('div.face').css({width:icon_size, height:icon_size});
@@ -463,7 +466,9 @@ CLASSROOM.redraw_team_labels= function() {
         team_name_input.val(team_name);
         team_name_input.attr('size',(team_name.length>10) ? team_name.length: 10);
         var tb=$('#team_box_'+i);
-        tb.find('.team_table').css('background-color', TEAMS[i].color);
+		
+		
+        tb.find('.team_table').css('background-color', String(TEAMS[i].color));
         setData(tb,TEAMS[i]);
     }
     $('div.team_box').droppable({greedy:true, hoverClass:'table_hover', tolerance:'pointer',
@@ -512,6 +517,11 @@ CLASSROOM.switch_team=function (event, ui) {
     var person=getData(ui.helper);
     var found=false;
     var target=getData($(this));
+	
+	if(typeof target == 'undefined') {
+		return;
+	}
+	
     if (target.type=='Pupil') {
         for (var i=0;i<TEAMS.length;i++){
             team=TEAMS[i];
@@ -557,6 +567,13 @@ CLASSROOM.switch_team=function (event, ui) {
 
 CLASSROOM.go_team_notes= function(event) {
     var team=getData($(this).closest('.team_box'));
+    TEAM_NOTES.create_team_notes(team);
+    CLASSROOM.hide();
+    TEAM_NOTES.show();
+}
+
+CLASSROOM.go_team_notes_by_number = function(event) {
+    var team = getData($('#team_box_'+$(this).attr('data-teamId')));
     TEAM_NOTES.create_team_notes(team);
     CLASSROOM.hide();
     TEAM_NOTES.show();
