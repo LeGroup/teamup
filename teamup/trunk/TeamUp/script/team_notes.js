@@ -61,9 +61,6 @@ TEAM_NOTES.create_team_notes= function(team) {
     CAMERA.on=false;
     $('#note_viewer').show();
     $('#note_recorder').hide();
-    $('#note_questions').show();
-    $('#recorder_cam_panel').hide();
-    $('#recorder_cam_options').hide();    
     $('#recorder_toggle').off('click').click(RECORDER.prepare_recorder);
 
     //$('#recorder_save_help').hide();
@@ -218,7 +215,6 @@ TEAM_NOTES.view_mode= function(event) {
         {return;}
     $('#note_viewer').show();
     $('#note_recorder').hide();
-    $('#note_questions').show();
 
     CAMERA.on=false;
 }

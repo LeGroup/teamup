@@ -19,7 +19,6 @@ RECORDER.prepare_recorder=function() {
     $('#note_viewer').hide();
     $('#note_photo').hide();
     $('#note_recorder').show();
-    //$('#note_questions').hide('slide', {direction:'left'});
 }
 
 
@@ -129,9 +128,7 @@ RECORDER.cancel_recording = function() {
 }
 
 RECORDER.encodingComplete= function() {
-    $("#note_questions").hide('slide',{direction:'left'}, function() { 
-        $("#recorder_audio_options").show('slide', {direction:'left'})
-    });
+    $("#save_note").removeClass('disabled');
     $('#rec_button').removeClass('recording').addClass('activated').off();
     $('#rec_button').click(RECORDER.start_recording);         
 
