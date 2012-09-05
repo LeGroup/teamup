@@ -17,6 +17,7 @@ RECORDER.prepare_recorder=function() {
     }
     debug('record mode on');
     $('#note_viewer').hide();
+    $('#note_photo').hide();
     $('#note_recorder').show();
     //$('#note_questions').hide('slide', {direction:'left'});
 }
@@ -40,10 +41,17 @@ RECORDER.initialized=function() {
         debug('ping received from recorder');
         rec.initCamera();
         rec.initMic();
-        $('#recorder_toggle').css('border-color', '#33aa33');
-        $('#recorder_toggle').off('click').click(RECORDER.start_recording);
-        $('div.vumeter').show();
+        $('#recorder_toggle').hide();
     }
+}
+
+RECORDER.cameraAccepted=function() {
+        $('#recorder_toggle').show().css('border-color', '#33aa33').off('click').click(RECORDER.start_recording);
+        $('div.vumeter').show();
+        debug('camera accepted');
+}
+RECORDER.cameraDenied=function() {
+    debug('camera denied');
 }
 
 RECORDER.start_recording = function() {
@@ -196,3 +204,5 @@ encodingComplete=RECORDER.encodingComplete;
 audioLevel=RECORDER.audioLevel;
 recording_timer=RECORDER.recording_timer;
 countdown=RECORDER.countdown;
+cameraAccepted=RECORDER.cameraAccepted;
+cameraDenied=RECORDER.cameraDenied;
