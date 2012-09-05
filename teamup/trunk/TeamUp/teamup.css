@@ -807,56 +807,71 @@ span.separator {
     background-color:#3D3D3B;    
 }
 
-#rec_button {
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border: 1px solid transparent;
+#rec_indicator {
 	background: #3D3D3B;
     background-repeat:no-repeat;
     display:inline-block;
     width:26px;
     height:26px;
-    background-image:url('images/record-1.png');
+    background-image:url('images/record-grey.png');
     background-repeat:no-repeat;
     background-position:center;
     position:relative;
     top:12px;    
 }
 
-#rec_button.activated {
-    border-color: #92212C;
+#rec_indicator.red {
+    background-image:url('images/record-red.png');
+}
+
+#rec_indicator.green {
+    background-image:url('images/record-green.png');    
+}
+
+#stop_button {
+    background: #3D3D3B;
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:26px;
+    height:26px;
+    background-image:url('images/stop-grey.png');
+    background-repeat:no-repeat;
+    background-position:center;
+    position:relative;
+    top:12px;    
+}
+
+#stop_button.red {
+    background-image:url('images/stop-red1.png');
     cursor: pointer;
-
 }
 
-#rec_button.activated:hover {
-    background: #4C4C4C;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-image:url('images/record-3.png');
+#stop_button.red:hover {
+    background-image:url('images/stop-red2.png');
+}
+#stop_button.green {
+    background-image:url('images/stop-green1.png');
+    cursor: pointer;
 }
 
-#rec_button.recording {
-	background: #3D3D3B;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-image:url('images/record-3.png');
+#stop_button.green:hover {
+    background-image:url('images/stop-green2.png');
+}
+#stop_button.green_play {
+    background-image:url('images/play-green1.png');
+    cursor: pointer;
 }
 
-#rec_button.recording:hover {
-    border-color: #92212C;
-    background: #4C4C4C;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-image:url('images/record-stop.png');
+#stop_button.green_play:hover {
+    background-image:url('images/play-green2.png');
 }
+
 
 
 #timer_text {
     font-size:10pt;
     position:absolute;
-    left:50px;
+    left:70px;
     top:24px;
 }
 

@@ -12,6 +12,7 @@ RECORDER={on:false, vumeter_values:[], vumeters: [$('#vumeter_0'),
 }
 
 RECORDER.prepare_recorder=function() {
+    $('#recorder_toggle').hide();
     if (!RECORDER.getRecorder()) {
         swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     }
@@ -57,12 +58,12 @@ RECORDER.start_recording = function() {
     var rec = RECORDER.getRecorder(); 
     if (rec) {
         rec.startRecording();
-        $('#recorder_toggle').hide();
-        $('#rec_button').removeClass('activated').addClass('recording').off();
+        $('#recorder_toggle').css('border-color', 'transparent').hide();
+        $('#rec_indicator').removeClass('green').addClass('red');
+        $('#stop_button').removeClass('green').addClass('red');
         $('#progress_line').show().width(0);
         $('#countdown').text("3").show();
-
-        $('#rec_button').click(RECORDER.stop_recording);         
+        $('#stop_button').click(RECORDER.stop_recording);         
     }
 }
 
@@ -111,11 +112,35 @@ RECORDER.stop_recording = function() {
     }
 }
 
+
+RECORDER.play = function() {
+    var rec = RECORDER.getRecorder();
+    if (rec) {
+        rec.startPlaying();
+        $('#rec_indicator').addClass('green');
+        $('#stop_button').removeClass('green_play').addClass('green').off('click').click(RECORDER.stop_playing);
+    }
+}
+
+RECORDER.stop_playing = function() {
+    var rec = RECORDER.getRecorder();
+    if (rec) {
+        rec.stopPlaying();
+    }
+}
+
+RECORDER.stopped_playing = function() {
+    $('#rec_indicator').removeClass('green');
+    $('#stop_button').removeClass('green').addClass('green_play').off('click').click(RECORDER.play);
+}
+
+
 RECORDER.recording_stopped = function() {
     debug('recorder stopped');
-    $('#rec_button').removeClass('recording').addClass('activated').off();
-    $('#rec_button').click(RECORDER.start_recording);         
+    $('#rec_indicator').removeClass('red').off('click');
+    $('#stop_button').removeClass('red').off('click');
     $('span.check').show();
+    $('div.vumeter').hide();
 }
 
 RECORDER.cancel_recording = function() {
@@ -124,14 +149,14 @@ RECORDER.cancel_recording = function() {
     $('#note_recorder').hide();
     $('#note_viewer').show();
     $('div.vumeter').hide();
-    $('#rec_button').removeClass('activated');
+    $('#rec_indicator').removeClass('red').removeClass('green');
+    $('#stop_button').removeClass('red').removeClass('green');
 }
 
 RECORDER.encodingComplete= function() {
     $("#save_note").removeClass('disabled');
-    $('#rec_button').removeClass('recording').addClass('activated').off();
-    $('#rec_button').click(RECORDER.start_recording);         
-
+    $('#rec_indicator').addClass('red');
+    $('#stop_button').removeClass('red').addClass('green_play').click(RECORDER.play);
 }
 
 RECORDER.audioLevel=function(level) {
@@ -203,3 +228,4 @@ recording_timer=RECORDER.recording_timer;
 countdown=RECORDER.countdown;
 cameraAccepted=RECORDER.cameraAccepted;
 cameraDenied=RECORDER.cameraDenied;
+stopped_playing=RECORDER.stopped_playing;

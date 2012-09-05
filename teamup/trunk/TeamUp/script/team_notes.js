@@ -61,7 +61,7 @@ TEAM_NOTES.create_team_notes= function(team) {
     CAMERA.on=false;
     $('#note_viewer').show();
     $('#note_recorder').hide();
-    $('#recorder_toggle').off('click').click(RECORDER.prepare_recorder);
+    $('#recorder_toggle').css('border-color', 'transparent').show().off('click').click(RECORDER.prepare_recorder);
 
     //$('#recorder_save_help').hide();
     var ti;
@@ -77,7 +77,8 @@ TEAM_NOTES.create_team_notes= function(team) {
     tt.text(team.name);
     $('#note_viewer').css('background-color',team.color); 
     $('div.vumeter').hide();
-    $('#rec_button').removeClass('activated');
+    $('#rec_indicator').removeClass('red').removeClass('green');
+    $('#save_note').addClass('disabled');
 
     //debug('create_team_notes calling setData');
     setData(tt, team);
@@ -215,7 +216,7 @@ TEAM_NOTES.view_mode= function(event) {
         {return;}
     $('#note_viewer').show();
     $('#note_recorder').hide();
-
+    $('#save_note').addClass('disabled');
     CAMERA.on=false;
 }
 

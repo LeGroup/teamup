@@ -230,10 +230,8 @@
                 }
 
     			function _autoStopPlaying(e:Event):void {
-    			    playTimer.stop();    
                     sound_position=0;
-                    still_screen.visible=true;                    
-                    micTimer.start();
+                    stopPlaying();
     			}
     			if (camera) {
         			still_screen.visible=true;  
@@ -255,6 +253,7 @@
                 playTimer.stop();                
                 _display.text='Stopped.';
                 playback_channel.stop();
+                ExternalInterface.call("stopped_playing");
                 //sound_position=timeSlider.value*1000;                
             }
 
