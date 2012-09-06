@@ -318,6 +318,7 @@ $(document).ready(function(){
     CLASSROOM.show('up');
 });
 
+
 window.onbeforeunload = function(e){ return "Note: Please don't use refresh or previous page buttons to navigate in TeamUp"; };
 
 // **********************************

@@ -357,8 +357,12 @@ LEARNER_VIEW.remove_property= function(event, ui) {
         return;
     }
     debug("removing person property")
-    var prop=getData(ui.helper);
-    var person=PUPILS[THIS_PERSON];
+    LEARNER_VIEW.remove_property_function(getData(ui.helper));
+}
+
+LEARNER_VIEW.remove_property_function = function(prop) {
+	var person=PUPILS[THIS_PERSON];
+	
     if (isType(prop, 'Friend')) {
         var my_friend=CATALOG[prop.person];
         person.removeFriend(my_friend);
@@ -442,26 +446,13 @@ LEARNER_VIEW.delete_learner= function() {
         }
     }
 	
-	//---------------------------
-	//Work in progress...
 	//Remove friend/enemy relationships
-	for(var i = 0; i < learner.friends.length; i++)	
-	{
-		var friendUid = learner.friends[i];
-		alert(friendUid.replace('Friend_', ''));
-		
-		var friend = PUPILS[friendUid.replace('Friend_', '')];
-		
-		for(var j = 0; j < friend.friends.length; j++) 
-		{
-			if(friend.friends[j].uid == learner.uid)
-			{
-				friend.friends.splice(j, 1);
-				break;
-			}
-		}
+	for(var i = 0; i < learner.friends.length; i++)	 {
+		LEARNER_VIEW.remove_property_function(CATALOG[learner.friends[i]]);
 	}
-	//-----------------------------
+	for(var i = 0; i < learner.enemies.length; i++)	 {
+		LEARNER_VIEW.remove_property_function(CATALOG[learner.enemies[i]]);
+	}
 	
 	//Remove deleted learner from property choices
 	for(var i = 0; i < ALL_FRIENDS.criteria.length; i++)	{
