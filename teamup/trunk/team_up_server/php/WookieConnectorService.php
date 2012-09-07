@@ -174,47 +174,6 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 	}
 
 
-	/**
-	 * Check existence of a widget instance by using a wrong api key. If it is found, there will be API key error,
-	 * if not, then not found -error.
-	 *
-	 * @param Widget|String instance of widget or guid
-	 * @return WidgetInstance WidgetInstance if successful, otherwise false
-	 * @throws WookieConnectorException
-
-	public function hasInstance($Widget_or_GUID) {
-		try {
-			if($Widget_or_GUID instanceof Widget) {
-				$guid = $Widget_or_GUID->getIdentifier();
-			} else {
-				$guid = $Widget_or_GUID;
-			}
-			if($guid == '') {
-				throw new WookieConnectorException("No GUID nor Widget object");
-			}
-			$requestUrl = $this->getConnection()->getURL().'widgetinstances';
-			$request.= '&api_key=11111111';
-			$request.= '&userid='.$this->getUser()->getLoginName();
-			$request.= '&shareddatakey='.$this->getConnection()->getSharedDataKey();
-			$request.= '&widgetid='.$guid;
-		    if($locale = $this->getLocale()) {
-                $request .= '&locale='.$locale;
-            }
-
-			if(!$this->checkURL($requestUrl)) {
-				throw new WookieConnectorException("URL for supplied Wookie Server is malformed: ".$requestUrl);
-			}
-			$response = $this->do_request($requestUrl, $request);			
-            if($response) {
-                return $response->getStatusCode();
-            }
-            return false;
-		} catch (WookieConnectorException $e) {
-			$this->getLogger()->write($e->toString());
-		}
-		return false;
-	}
-*/
 
 	/**
 	 * Get instance of a widget. This function is added to provide a way to just check existence of an instance without having to create one
