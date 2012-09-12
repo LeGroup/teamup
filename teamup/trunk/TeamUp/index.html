@@ -214,8 +214,6 @@
 
         <tr>
         <td valign="top" width="240" style="position:relative">
-            <div id="note_viewer" style="margin-right:24px;">
-            </div>
             <div id="note_recorder">
                 <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
             </div>
@@ -249,8 +247,8 @@
         <tr>
         <td colspan="2" style="position:relative">
 
-            <div id="note_viewer_object" class="jp-jplayer"></div>               
-            <div id="player_interface" class="jp-interface"></div>
+            <div id="note_player" class="jp-jplayer"></div>               
+            <div id="player_interface" class="jp-interface">
 
 
             <div id="player">
@@ -262,10 +260,12 @@
                 </div>
                 <div id="rec_indicator"></div>
                 <div id="stop_button"></div>
+                <div id="pause_button" class="jp-pause"></div>
+                <div id="play_button" class="jp-play"></div>
                 <div id="timer_text">0:00 / 1:00</div>
                 
             </div>                                    
-
+            </div>
         </td>
         </tr>
         

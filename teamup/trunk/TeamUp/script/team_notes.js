@@ -59,9 +59,7 @@ TEAM_NOTES.show = function() {
 
 TEAM_NOTES.create_team_notes= function(team) {
     CAMERA.on=false;
-    $('#note_viewer').show();
     $('#note_recorder').hide();
-    $('#recorder_toggle').css('border-color', 'transparent').show().off('click').click(RECORDER.prepare_recorder);
 
     //$('#recorder_save_help').hide();
     var ti;
@@ -75,7 +73,7 @@ TEAM_NOTES.create_team_notes= function(team) {
 
     var tt=$('#team_title');
     tt.text(team.name);
-    $('#note_viewer').css('background-color',team.color); 
+    $('#note_photo').css('background-color',team.color).show(); 
     $('div.vumeter').hide();
     $('#rec_indicator').removeClass('red').removeClass('green');
     $('#save_note').addClass('disabled');
@@ -107,9 +105,11 @@ TEAM_NOTES.create_team_notes= function(team) {
 
     var note, dt;
     for (var i=0;i<team.notes.length;i++) {
-        note=CATALOG[team.notes[i]];
+        debug('adding team note '+i)
+        note=CATALOG[team.notes[i]];        
         s='<div class="note_thumbnail">';
         if (!note) {
+            debug('note not found')
             continue;
         }
         dt=new Date(note.timestamp);
@@ -141,11 +141,14 @@ TEAM_NOTES.create_team_notes= function(team) {
             TEAM_NOTES.empty_note();
         }
     } else {
-        TEAM_NOTES.empty_note();        
+        TEAM_NOTES.empty_note();
+        $('#recorder_toggle').css('border-color', 'transparent').show().off('click').click(RECORDER.prepare_recorder);
+
     }
     $('#record_note').click(RECORDER.prepare_recorder);        
 
 }
+
 TEAM_NOTES.remove_note=function(event, confirmed) {
     var note;
     if (!confirmed) {
@@ -190,7 +193,7 @@ TEAM_NOTES.empty_note= function() {
     //setData($('#note_viewer'), null);
     $('#note_photo label').html('');
     $('#note_photo_img').hide();
-    $('#note_viewer_object').jPlayer("setMedia", {mp3:''});
+    $('#note_player').jPlayer("setMedia", {mp3:''});
     $('#note_questions p span').removeClass('highlight');
     $('#i18n-what-we-did').addClass('highlight');
 }
@@ -198,8 +201,11 @@ TEAM_NOTES.empty_note= function() {
 
 TEAM_NOTES.load_note= function(note) {
     //debug('load_note calling setData');
-    setData($('#note_viewer'), note);
+
+    setData($('#note_photo'), note);
     var dt = new Date(note.timestamp);
+    $('#recorder_toggle').hide();
+
     $('#note_photo label').html((dt.getDate())+'/'+(dt.getMonth()+1)+' '+dt.getHours()+':'+((dt.getMinutes()<10) ? '0':'')+dt.getMinutes());
     if (note.photos.length>0) {
         $('#note_photo_img').show();
@@ -208,13 +214,13 @@ TEAM_NOTES.load_note= function(note) {
         $('#note_photo').css('background-image','none');
         $('#note_photo_img').hide();
     }
-    $('#note_viewer_object').jPlayer("setMedia", {mp3:note.audio_url});
+    $('#note_player').jPlayer("setMedia", {mp3:note.audio_url});
+    debug('loading '+note.audio_url+' to jPlayer');
 }
 
 TEAM_NOTES.view_mode= function(event) {
     if (!RECORDER.on) 
         {return;}
-    $('#note_viewer').show();
     $('#note_recorder').hide();
     $('#save_note').addClass('disabled');
     CAMERA.on=false;
@@ -228,11 +234,11 @@ TEAM_NOTES.view_mode= function(event) {
 //    </div>
 
 TEAM_NOTES.prepare_audio= function() {
-    var note=getData($('#note_viewer'));
+    var note=getData($('#note_photo'));
     var rec=''
     if (note!=null) {
         rec=note.audio_url;
     }
-    $('#note_viewer_object').jPlayer("setMedia", {mp3:rec});
+    $('#note_player').jPlayer("setMedia", {mp3:rec});
 }
 

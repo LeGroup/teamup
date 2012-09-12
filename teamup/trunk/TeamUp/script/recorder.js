@@ -17,7 +17,6 @@ RECORDER.prepare_recorder=function() {
         swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     }
     debug('record mode on');
-    $('#note_viewer').hide();
     $('#note_photo').hide();
     $('#note_recorder').show();
 }
@@ -45,12 +44,12 @@ RECORDER.initialized=function() {
     }
 }
 
-RECORDER.cameraAccepted=function() {
+RECORDER.camera_accepted=function() {
         $('#recorder_toggle').show().css('border-color', '#33aa33').off('click').click(RECORDER.start_recording);
         $('div.vumeter').show();
         debug('camera accepted');
 }
-RECORDER.cameraDenied=function() {
+RECORDER.camera_denied=function() {
     debug('camera denied');
 }
 
@@ -147,19 +146,18 @@ RECORDER.cancel_recording = function() {
     RECORDER.on=false;
     debug('canceling recording')
     $('#note_recorder').hide();
-    $('#note_viewer').show();
     $('div.vumeter').hide();
     $('#rec_indicator').removeClass('red').removeClass('green');
     $('#stop_button').removeClass('red').removeClass('green');
 }
 
-RECORDER.encodingComplete= function() {
+RECORDER.encoding_complete= function() {
     $("#save_note").removeClass('disabled');
     $('#rec_indicator').addClass('red');
     $('#stop_button').removeClass('red').addClass('green_play').click(RECORDER.play);
 }
 
-RECORDER.audioLevel=function(level) {
+RECORDER.audio_level=function(level) {
     //RECORDER.vumeter.height(level*3);
     RECORDER.vumeter_values.push(3+level*3);
     if (RECORDER.vumeter_values.length>10) {
@@ -188,7 +186,7 @@ RECORDER.save_note= function() {
 }
 
 
-RECORDER.finishedRecording= function(path) {
+RECORDER.finished_recording= function(path) {
     $('#upload-panel').dialog('close');
     $('div.recorder_panel').hide();
     debug('Received a record:'+path);
@@ -209,7 +207,7 @@ RECORDER.finishedRecording= function(path) {
     TEAM_NOTES.create_team_notes(team);        
 }
 
-RECORDER.uploadingRecording= function() {
+RECORDER.uploading_recording= function() {
     debug('Uploading recording...');
     //$('#upload-panel').dialog('open');
     var notes=$('#available_recordings');
@@ -218,14 +216,14 @@ RECORDER.uploadingRecording= function() {
 }
 
 // redirect Flash ExternalInterface calls: 
-recorderInitialized=RECORDER.initialized;
+recorder_initialized=RECORDER.initialized;
 recording_stopped=RECORDER.recording_stopped; 
-uploadingRecording=RECORDER.uploadingRecording;
-finishedRecording=RECORDER.finishedRecording;
-encodingComplete=RECORDER.encodingComplete;
-audioLevel=RECORDER.audioLevel;
+uploading_recording=RECORDER.uploading_recording;
+finished_recording=RECORDER.finished_recording;
+encoding_complete=RECORDER.encoding_complete;
+audio_level=RECORDER.audio_level;
 recording_timer=RECORDER.recording_timer;
 countdown=RECORDER.countdown;
-cameraAccepted=RECORDER.cameraAccepted;
-cameraDenied=RECORDER.cameraDenied;
+camera_accepted=RECORDER.camera_accepted;
+camera_denied=RECORDER.camera_denied;
 stopped_playing=RECORDER.stopped_playing;

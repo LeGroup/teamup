@@ -27,7 +27,8 @@ var LEARNER_VIEW=new View(3);
 var OPTIONS=new View(4);
 var TEAM_NOTES=new View(5);
 
-var view = CLASSROOM
+var view = CLASSROOM;
+
 var PUPILS=[];
 var TEAMS=[];
 var TOPICS=[];
@@ -96,8 +97,8 @@ if (CONTROLLER.offline) {
     //PUPILS=[];
     
     demo_note = new TeamNote();
-    demo_note.audio_url='';
-    demo_note.photos=['myphoto_1.jpg'];
+    demo_note.audio_url='demo/demo_note.mp3';
+    demo_note.photos=['demo/demo_note.jpg'];
 
 }
 
@@ -189,7 +190,7 @@ $(document).ready(function(){
 
 
     // Team notes
-    $('#note_viewer_object').jPlayer( { swfPath: "", ready:TEAM_NOTES.prepare_audio, supplied:"mp3", cssSelectorAncestor: "#player_interface", preload:'auto',
+    $('#note_player').jPlayer( { swfPath: "", ready:TEAM_NOTES.prepare_audio, supplied:"mp3", cssSelectorAncestor: "#player_interface", preload:'auto',
     timeupdate: function(event) { // Add a listener to report the progress
         $('#play_marker').css('left',19+(6.8333333*event.jPlayer.status.currentTime));
         $('#play_marker').text(Math.round(event.jPlayer.status.duration-event.jPlayer.status.currentTime));
@@ -199,8 +200,8 @@ $(document).ready(function(){
         $('#play_marker').text(Math.round(event.jPlayer.status.duration-event.jPlayer.status.currentTime));
     },
     loadeddata: function(event) {
-        $('#length_bar').css('width',6.8333333*event.jPlayer.status.duration);
-        $('#outer_length_bar').css('width',6.8333333*event.jPlayer.status.duration+18);
+        $('#progress_line').css('width',6.8333333*event.jPlayer.status.duration);
+        $('#full_line').css('width',6.8333333*event.jPlayer.status.duration+18);
     } 
     });
 
@@ -214,14 +215,14 @@ $(document).ready(function(){
 
     
     $('#player_button').click(function (){
-        $('#note_viewer_object').jPlayer("play");
+        $('#note_player').jPlayer("play");
     });
     
     $('#play_marker').draggable({axis:'x', containment: '#outer_length_bar', drag: function(event, ui) {
         pct=(ui.position.left-19)/$('#length_bar').width();
-        dur=$('#note_viewer_object').data("jPlayer").status.duration;
+        dur=$('#note_player').data("jPlayer").status.duration;
         $('#play_marker').text(Math.round(dur-(pct*dur)));
-        $('#note_viewer_object').jPlayer('playHead',Math.round(pct*100));
+        $('#note_player').jPlayer('playHead',Math.round(pct*100));
     }});
     
     $('#new_teams').click(CLASSROOM.go_vote).keyup(function(e){if(e.keyCode==13) $(this).click()});    

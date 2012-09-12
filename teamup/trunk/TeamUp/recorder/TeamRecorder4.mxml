@@ -93,7 +93,7 @@
                 ExternalInterface.addCallback("redoRecording", redoRecording);
                 ExternalInterface.addCallback("saveRecording", saveRecording);
                 _display.text='Recorder initialized.';
-                ExternalInterface.call("recorderInitialized");
+                ExternalInterface.call("recorder_initialized");
 			}
 			
 
@@ -108,11 +108,11 @@
                     switch (event.code) { 
                         case "Camera.Muted":
                             _display.text='Camera denied'; 
-                            ExternalInterface.call("cameraDenied"); 
+                            ExternalInterface.call("camera_denied"); 
                             break; 
                         case "Camera.Unmuted": 
                             _display.text='Camera accepted'; 
-                            ExternalInterface.call("cameraAccepted"); 
+                            ExternalInterface.call("camera_accepted"); 
                             break; 
                     } 
                 }
@@ -124,7 +124,7 @@
                     video.attachCamera(camera);
                     if (!camera.muted) {
                         _display.text='Camera always accepted'; 
-                        ExternalInterface.call("cameraAccepted"); 
+                        ExternalInterface.call("camera_accepted"); 
                     }
                 }
                 uic.addChild(video);
@@ -278,11 +278,11 @@
                 var ml:MultipartURLLoader = new MultipartURLLoader();
                 ml.addEventListener(Event.COMPLETE, onReady);
                 //ml.addEventListener(ProgressEvent.PROGRESS, onProgress);              
-                ExternalInterface.call("uploadingRecording");
+                ExternalInterface.call("uploading_recording");
                                 
                 function onReady(e:Event):void {
                     // notify teamup that we are done
-            		ExternalInterface.call("finishedRecording", ml.loader.data);
+            		ExternalInterface.call("finished_recording", ml.loader.data);
                 }
                 function onError(evt:IOErrorEvent):void {
                     _display.text="error:"+evt;
@@ -291,7 +291,7 @@
                 function forceFinish(event : Event) : void {
                     // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
                     // and the files are there. Send end notification.
-            		ExternalInterface.call("finishedRecording", ml.loader.data);
+            		ExternalInterface.call("finished_recording", ml.loader.data);
                 }
             
         		function onProgress(event : ProgressEvent) : void {
@@ -358,7 +358,7 @@
 			
 			
 			private function _miclevel(event:TimerEvent):void {
-                ExternalInterface.call("audioLevel", mymic.activityLevel);
+                ExternalInterface.call("audio_level", mymic.activityLevel);
 			}
 
     		private function _onRecording(event:RecordingEvent):void {
@@ -389,7 +389,7 @@
                     _display.text = 'Finished: ' + (mp3Encoder.mp3Data.length/1024).toFixed(1)+' kb.';
                     encoding_container.visible=false;
         			sound = new WavSound(recorder.output);
-            		ExternalInterface.call("encodingComplete");
+            		ExternalInterface.call("encoding_complete");
     			}
 			    mp3Encoder = new ShineMP3Encoder(recorder.output);
     			mp3Encoder.addEventListener(Event.COMPLETE, _mp3EncodeComplete);

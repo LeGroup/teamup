@@ -396,7 +396,7 @@ CLASSROOM.create_random_teams= function() {
     var colors=create_colors(teams_count);
     var nt, member;
     while (free_pupils.length>0) {
-        for (i=0;i<teams_count;i++) {
+        for (var i=0;i<teams_count;i++) {
             if (free_pupils.length>0) {
                 if (TEAMS.length<=i) {                    
                     nt=new Team();
@@ -411,6 +411,11 @@ CLASSROOM.create_random_teams= function() {
             }
         }    
     }
+    if (CONTROLLER.offline) {
+        TEAMS[0].notes.push(demo_note.uid);
+        CATALOG[demo_note.uid]=demo_note;
+    }
+
     if (MODERATOR && TEAMS.length>0) {
         for (var i=0;i<TEAMS.length;i++) {
             CONTROLLER.addChange(TEAMS[i]);
