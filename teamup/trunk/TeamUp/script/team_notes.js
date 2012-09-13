@@ -1,6 +1,8 @@
 // **********************************
 // Team notes view
 
+TEAM_NOTES.highlighted_question=0;
+
 TEAM_NOTES.next= function() {
     var next_team;    
     var team=getData($('#team_title'));
@@ -57,8 +59,21 @@ TEAM_NOTES.show = function() {
 }
 
 
+TEAM_NOTES.highlight_question= function(n) {
+    if (TEAM_NOTES.highlighted_question==n) {
+        return;
+    }
+    var q=$('#note_questions p');
+    $(q[TEAM_NOTES.highlighted_question]).removeClass('highlight').fadeIn('slow');
+    $(q[n]).addClass('highlight').fadeIn('slow');
+    TEAM_NOTES.highlighted_question=n;
+}
+
 TEAM_NOTES.create_team_notes= function(team) {
     CAMERA.on=false;
+    TEAM_NOTES.highlight_question(0);
+    $('#note_questions p').first().addClass('highlight');
+
     $('#note_recorder').hide();
 
     //$('#recorder_save_help').hide();
@@ -77,6 +92,10 @@ TEAM_NOTES.create_team_notes= function(team) {
     $('div.vumeter').hide();
     $('#rec_indicator').removeClass('red').removeClass('green');
     $('#save_note').addClass('disabled');
+    $('#full_line').css('width',464);
+    $('#progress_line').css('width',0);
+    $('#play_button').removeClass('active');
+
 
     //debug('create_team_notes calling setData');
     setData(tt, team);
@@ -194,8 +213,6 @@ TEAM_NOTES.empty_note= function() {
     $('#note_photo label').html('');
     $('#note_photo_img').hide();
     $('#note_player').jPlayer("setMedia", {mp3:''});
-    $('#note_questions p span').removeClass('highlight');
-    $('#i18n-what-we-did').addClass('highlight');
 }
 
 

@@ -643,7 +643,7 @@ div.recorder_panel {
     font-weight:bold;
 }
 
-#note_questions p span.highlight {
+#note_questions p.highlight {
     color:#fff;
 }
 
@@ -766,18 +766,25 @@ div.vumeter {
     position:relative;
     width:464px;
     height:6px;
-    top:12px;    
+    top:6px;    
 }
 #full_line {
     position:absolute;
     display:block;
     width:464px;
-    top:2px;
-    height:2px;
+    height:10px;
     left:0px;
-    background-color:#e0e0e0;
     z-index:0;
 }
+#full_line span.inner {
+    background-color:#e0e0e0;
+    position:absolute;
+    top:2px;
+    height:2px;
+    display:block;
+    width:100%;
+}
+
 #progress_line {
     position:absolute;
     display:block;
@@ -871,12 +878,22 @@ span.separator {
     background-image:url('images/play-green2.png');
 }
 
+#pause_button {
+    background-image:url('images/pause-green1.png');    
+}
+#pause_button:hover {
+    background-image:url('images/pause-green2.png');    
+}
+
 
 #timer_text {
     font-size:10pt;
     position:absolute;
     left:120px;
     top:24px;
+}
+#timer_text span.now {
+    color:#e0e0e0;
 }
 
 

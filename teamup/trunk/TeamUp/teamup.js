@@ -190,18 +190,36 @@ $(document).ready(function(){
 
 
     // Team notes
+
+    // Full line of progress bar is 464 pixels wide.
+    // 1 second = 464/60= 7.733333... pixels
     $('#note_player').jPlayer( { swfPath: "", ready:TEAM_NOTES.prepare_audio, supplied:"mp3", cssSelectorAncestor: "#player_interface", preload:'auto',
     timeupdate: function(event) { // Add a listener to report the progress
-        $('#play_marker').css('left',19+(6.8333333*event.jPlayer.status.currentTime));
-        $('#play_marker').text(Math.round(event.jPlayer.status.duration-event.jPlayer.status.currentTime));
+        var ct= event.jPlayer.status.currentTime;
+        $('#progress_line').css('width', ct*(464/60));
+        var now_minutes = Math.floor(ct/60);
+        var now_seconds = Math.floor(ct%60);
+        if (now_seconds>9) {
+            $('#timer_text span.now').text(''+now_minutes+':'+now_seconds);
+        } else {
+            $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
+        }
     },
-    play: function(event) { // Add a listener to report the time play began
-        $('#play_marker').css('left',19+(6.8333333*event.jPlayer.status.currentTime));
-        $('#play_marker').text(Math.round(event.jPlayer.status.duration-event.jPlayer.status.currentTime));
+    play: function(event) {
+        $('#progress_line').css({'background-color':'#00f000', 'width':event.jPlayer.status.currentTime*(464/60)});
     },
     loadeddata: function(event) {
-        $('#progress_line').css('width',6.8333333*event.jPlayer.status.duration);
-        $('#full_line').css('width',6.8333333*event.jPlayer.status.duration+18);
+        var ft= event.jPlayer.status.duration;
+        $('#progress_line').css('width',0);
+        $('#full_line').css('width',(464/60)*ft);
+        var full_minutes = Math.floor(ft/60);
+        var full_seconds = Math.floor(ft%60);
+        if (full_seconds>9) {
+            $('#timer_text span.max_duration').text(''+full_minutes+':'+full_seconds);
+        } else {
+            $('#timer_text span.max_duration').text(''+full_minutes+':0'+full_seconds);
+        }
+        $('#play_button').addClass('active');
     } 
     });
 
@@ -218,12 +236,13 @@ $(document).ready(function(){
         $('#note_player').jPlayer("play");
     });
     
-    $('#play_marker').draggable({axis:'x', containment: '#outer_length_bar', drag: function(event, ui) {
-        pct=(ui.position.left-19)/$('#length_bar').width();
+    $('#full_line').click(function (event) {
+        var x= event.pageX-$(this).offset().left;
+        var seconds=x/(464/60);
+        $('#progress_line').css({'background-color':'#00f000','width':x});
         dur=$('#note_player').data("jPlayer").status.duration;
-        $('#play_marker').text(Math.round(dur-(pct*dur)));
-        $('#note_player').jPlayer('playHead',Math.round(pct*100));
-    }});
+        $('#note_player').jPlayer('playHead',Math.round((seconds/dur)*100));
+    });
     
     $('#new_teams').click(CLASSROOM.go_vote).keyup(function(e){if(e.keyCode==13) $(this).click()});    
 
