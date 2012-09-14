@@ -204,6 +204,11 @@ $(document).ready(function(){
         } else {
             $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
         }
+        if (now_seconds==40) {
+            TEAM_NOTES.highlight_question(2);            
+        } else if (now_seconds==20) {
+            TEAM_NOTES.highlight_question(1)
+        }
     },
     play: function(event) {
         $('#progress_line').css({'background-color':'#00f000', 'width':event.jPlayer.status.currentTime*(464/60)});
@@ -223,18 +228,10 @@ $(document).ready(function(){
     } 
     });
 
-    $('#save_note').click(TEAM_NOTES.save_note);
-
     $('#recorder_toggle').click(RECORDER.prepare_recorder);
     $('#recorder_cam_button').click(RECORDER.takePhoto);
-    $('#recorder_retry_photo').click(RECORDER.redo_photoshoot);
-    $('#recorder_keep_photo').click(RECORDER.keep_photo);
-    $('#recorder_cancel_photo').click(RECORDER.cancel_recording);
+    $('#recorder_pause_button').click(RECORDER.pause);
 
-    
-    $('#player_button').click(function (){
-        $('#note_player').jPlayer("play");
-    });
     
     $('#full_line').click(function (event) {
         var x= event.pageX-$(this).offset().left;
@@ -242,6 +239,13 @@ $(document).ready(function(){
         $('#progress_line').css({'background-color':'#00f000','width':x});
         dur=$('#note_player').data("jPlayer").status.duration;
         $('#note_player').jPlayer('playHead',Math.round((seconds/dur)*100));
+        if (seconds>39) {
+            TEAM_NOTES.highlight_question(2);            
+        } else if (seconds>19) {
+            TEAM_NOTES.highlight_question(1);            
+        } else {
+            TEAM_NOTES.highlight_question(0);            
+        }
     });
     
     $('#new_teams').click(CLASSROOM.go_vote).keyup(function(e){if(e.keyCode==13) $(this).click()});    

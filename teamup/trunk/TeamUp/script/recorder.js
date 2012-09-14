@@ -1,7 +1,7 @@
 // **********************************
 // Team recorder 
 
-RECORDER={on:false, vumeter_values:[], vumeters: [$('#vumeter_0'), 
+RECORDER={on:false, duration:60, vumeter_values:[], vumeters: [$('#vumeter_0'), 
     $('#vumeter_1'),
     $('#vumeter_2'),
     $('#vumeter_3'),
@@ -12,7 +12,22 @@ RECORDER={on:false, vumeter_values:[], vumeters: [$('#vumeter_0'),
 }
 
 RECORDER.prepare_recorder=function() {
+
+    // hide, disable or reset everything related to playback
+    debug('preparing recorder')
+    $('#rec_indicator').removeClass('red').removeClass('green');
+    $('#save_note').addClass('disabled');
+    $('#full_line').css('width',464);
+    $('#progress_line').css('width',0);
+    $('#recorder_pause_button').hide();
+    $('#recorder_buttons').show();
+    $('#player_buttons').hide();
+    $('#stop_button').removeClass('green').removeClass('red');
     $('#recorder_toggle').hide();
+    $('#note_player').jPlayer("setMedia", {mp3:''});
+    $('#timer_text span.now').text('0:00');
+    $('#timer_text span.max_duration').text('0:00');
+
     if (!RECORDER.getRecorder()) {
         swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     }
@@ -45,8 +60,8 @@ RECORDER.initialized=function() {
 }
 
 RECORDER.camera_accepted=function() {
-        $('#recorder_toggle').show().css('border-color', '#33aa33').off('click').click(RECORDER.start_recording);
-        $('div.vumeter').show();
+        $('#recorder_toggle').show().off('click').click(RECORDER.start_recording); //.css('border-color', '#33aa33')
+        $('div.vumeter').show(); 
         debug('camera accepted');
 }
 RECORDER.camera_denied=function() {
@@ -69,29 +84,21 @@ RECORDER.start_recording = function() {
 RECORDER.recording_timer = function(t) {
     // every 10th second, max 600 
     $('#progress_line').width((t/600)*464);
-    var seconds;
-    var t=Math.floor(t/10);
-    if (t<10) {
-        seconds="0"+t.toString();
+    t=t/10;
+    RECORDER.duration=t;
+    var now_minutes = Math.floor(t/60);
+    var now_seconds = Math.floor(t%60);
+    if (now_seconds>9) {
+        $('#timer_text span.now').text(''+now_minutes+':'+now_seconds);
     } else {
-        seconds=t.toString();
+        $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
     }
-    if (t==20) {
-            $("#i18n-what-we-did").removeClass('highlight').next('span.check').fadeIn('slow');
-            $("#i18n-what-we-will-do").addClass('highlight');
-    } else if (t==40) {
-            $("#i18n-what-we-will-do").removeClass('highlight').next('span.check').fadeIn('slow');
-            $("#i18n-any-problems").addClass('highlight');
-    } else if (t==59) {
-            $("#i18n-any-problems").removeClass('highlight').next('span.check').fadeIn('slow');
+    if (now_seconds==40) {
+        TEAM_NOTES.highlight_question(2);            
+    } else if (now_seconds==20) {
+        TEAM_NOTES.highlight_question(1)
     }
-
-    $('#timer_text').text("0:"+seconds+" / 1:00");
-    if (t>200) {
-
-    } else if (t>400) {
-
-    }
+    
 }
 
 RECORDER.countdown = function(t) {
@@ -111,13 +118,41 @@ RECORDER.stop_recording = function() {
     }
 }
 
+RECORDER.recording_stopped = function() {
+    debug('recorder stopped');
+    $('#rec_indicator').removeClass('red').off('click');
+    $('#stop_button').removeClass('red').off('click');
+    $('span.check').show();
+    $('div.vumeter').hide();
+    $('#timer_text span.now').text('0:00');
+    var full_minutes = Math.floor(RECORDER.duration/60);
+    var full_seconds = Math.floor(RECORDER.duration%60);
+    if (full_seconds>9) {
+        $('#timer_text span.max_duration').text(''+full_minutes+':'+full_seconds);
+    } else {
+        $('#timer_text span.max_duration').text(''+full_minutes+':0'+full_seconds);
+    }
+    $('#play_button').addClass('active');
+
+
+}
 
 RECORDER.play = function() {
     var rec = RECORDER.getRecorder();
     if (rec) {
         rec.startPlaying();
         $('#rec_indicator').addClass('green');
-        $('#stop_button').removeClass('green_play').addClass('green').off('click').click(RECORDER.stop_playing);
+        $('#stop_button').addClass('green').click(RECORDER.stop_playing);
+        $('#recorder_play_button').hide();
+        $('#recorder_pause_button').show();
+    }
+}
+RECORDER.pause = function() {
+    var rec = RECORDER.getRecorder();
+    if (rec) {
+        rec.pausePlaying();
+        $('#recorder_play_button').show();
+        $('#recorder_pause_button').hide();
     }
 }
 
@@ -130,31 +165,15 @@ RECORDER.stop_playing = function() {
 
 RECORDER.stopped_playing = function() {
     $('#rec_indicator').removeClass('green');
-    $('#stop_button').removeClass('green').addClass('green_play').off('click').click(RECORDER.play);
-}
-
-
-RECORDER.recording_stopped = function() {
-    debug('recorder stopped');
-    $('#rec_indicator').removeClass('red').off('click');
-    $('#stop_button').removeClass('red').off('click');
-    $('span.check').show();
-    $('div.vumeter').hide();
-}
-
-RECORDER.cancel_recording = function() {
-    RECORDER.on=false;
-    debug('canceling recording')
-    $('#note_recorder').hide();
-    $('div.vumeter').hide();
-    $('#rec_indicator').removeClass('red').removeClass('green');
-    $('#stop_button').removeClass('red').removeClass('green');
+    $('#stop_button').removeClass('green').off('click');
+    $('#recorder_play_button').off('click').addClass('green').click(RECORDER.play);
 }
 
 RECORDER.encoding_complete= function() {
-    $("#save_note").removeClass('disabled');
+    $("#save_note").removeClass('disabled').click(RECORDER.save_note);
     $('#rec_indicator').addClass('red');
-    $('#stop_button').removeClass('red').addClass('green_play').click(RECORDER.play);
+    $('#recorder_play_button').off('click').addClass('active').click(RECORDER.play);
+
 }
 
 RECORDER.audio_level=function(level) {
@@ -183,8 +202,8 @@ RECORDER.save_note= function() {
     if (rec) {
         rec.saveRecording(server_path, class_uid, note_uid); 
     }        
+    $('#save_note').off('click');
 }
-
 
 RECORDER.finished_recording= function(path) {
     $('#upload-panel').dialog('close');
@@ -213,6 +232,7 @@ RECORDER.uploading_recording= function() {
     var notes=$('#available_recordings');
     $('#record_note img').show();
     $('#record_note span').hide();
+    $("#save_note").addClass('disabled');
 }
 
 // redirect Flash ExternalInterface calls: 

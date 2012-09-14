@@ -5,8 +5,9 @@ var MODERATOR=true;
 var SMART_ENABLED=false;
 
 //var SERVER_URL='http://teamup.aalto.fi/';
-// var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
-var SERVER_URL='http://127.0.0.1/servTeamup/'; 
+var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
+//var SERVER_URL='http://127.0.0.1/servTeamup/'; 
+
 
 var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'Spanish', 'et-ET':'Estonian', 'fr-FR':'Francais', 'he-HE':'Hebrew', 'hu-HU':'Hungarian', 'it-IT':'Italian','lt-LT':'Lithuanian', 'nl-NL':'Dutch', 'no-NO':'Norwegian', 'pt-PT':'Portuguese','sk-SK':'Slovak', 'tr-TR':'Turkish'};
 

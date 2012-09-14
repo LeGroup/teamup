@@ -94,6 +94,9 @@ TEAM_NOTES.create_team_notes= function(team) {
     $('#save_note').addClass('disabled');
     $('#full_line').css('width',464);
     $('#progress_line').css('width',0);
+    $('#recorder_buttons').hide();
+    $('#player_buttons').show();
+
     $('#play_button').removeClass('active');
 
 
@@ -213,6 +216,9 @@ TEAM_NOTES.empty_note= function() {
     $('#note_photo label').html('');
     $('#note_photo_img').hide();
     $('#note_player').jPlayer("setMedia", {mp3:''});
+    $('#timer_text span.now').text('0:00');
+    $('#timer_text span.max_duration').text('0:00');
+
 }
 
 

@@ -683,7 +683,8 @@ div.recorder_panel {
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     background:rgba(53,53,53,0.7);
-    background-image:url('images/camera-alpha.png');
+    background-image:url('images/rec.png');
+    background-size:53px 53px;
     background-repeat:no-repeat;
     background-position:center;
     display:none;
@@ -691,16 +692,10 @@ div.recorder_panel {
 
 #note_camera_toggle:hover {
     background:rgba(73,73,73,0.7);
-    background-image:url('images/camera-alpha.png');
-    background-repeat:no-repeat;
-    background-position:center;
 }
 
 #note_camera_toggle:active {
     background:rgba(93,93,93,0.7);
-    background-image:url('images/camera-alpha.png');
-    background-repeat:no-repeat;
-    background-position:center;
 }
 div.vumeter {
     display:inline-block;
@@ -775,6 +770,7 @@ div.vumeter {
     height:10px;
     left:0px;
     z-index:0;
+    cursor:pointer;
 }
 #full_line span.inner {
     background-color:#e0e0e0;
@@ -827,7 +823,7 @@ span.separator {
     background-image:url('images/record-green.png');    
 }
 
-#stop_button, #play_button, #pause_button {
+#stop_button, #play_button, #pause_button, #recorder_play_button, #recorder_pause_button {
     background: #3D3D3B;
     background-repeat:no-repeat;
     display:inline-block;
@@ -837,6 +833,10 @@ span.separator {
     background-position:center;
     position:relative;
     top:12px;    
+}
+#recorder_buttons, #player_buttons {
+    display:inline-block;
+    position:relative;   
 }
 
 #stop_button {
@@ -859,38 +859,33 @@ span.separator {
 #stop_button.green:hover {
     background-image:url('images/stop-green2.png');
 }
-#stop_button.green_play {
-    background-image:url('images/play-green1.png');
-    cursor: pointer;
-}
 
-#stop_button.green_play:hover {
-    background-image:url('images/play-green2.png');
-}
-
-#play_button {
+#play_button, #recorder_play_button {
     background-image:url('images/play-grey.png');
 }
-#play_button.active {
+#play_button.active, #recorder_play_button.active {
     background-image:url('images/play-green1.png');
+    cursor:pointer;
 }
-#play_button.active:hover {
+#play_button.active:hover, #recorder_play_button.active:hover {
     background-image:url('images/play-green2.png');
 }
 
-#pause_button {
+#pause_button, #recorder_pause_button {
     background-image:url('images/pause-green1.png');    
+    cursor:pointer;
 }
-#pause_button:hover {
+#pause_button:hover, #recorder_pause_button:hover {
     background-image:url('images/pause-green2.png');    
 }
 
 
 #timer_text {
+    display:inline;
     font-size:10pt;
-    position:absolute;
-    left:120px;
-    top:24px;
+    top:4px;
+    left:4px;
+    position:relative;
 }
 #timer_text span.now {
     color:#e0e0e0;
@@ -1577,6 +1572,9 @@ div.ui-dialog-buttonset button{
 	cursor: pointer;
 }
 
+#save_note {
+    padding: 4px 12px;
+}
 
 
     

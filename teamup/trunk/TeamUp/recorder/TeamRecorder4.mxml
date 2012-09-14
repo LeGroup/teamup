@@ -57,7 +57,7 @@
             
             
 			private function init():void {
-                _display.visible=true;
+                _display.visible=false;
 			    //Security.loadPolicyFile(server_path+'crossdomain.php');
                 camw=240;
                 camh=240;
