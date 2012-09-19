@@ -1,6 +1,43 @@
 // **********************************
 // Team recorder 
 
+
+/**
+
+Mic button:
+lt_grey: active, click:start recording -> turn to red
+lt_grey:hover : lighter mic button
+red: recording, click:stop recording -> turn to dk_grey (encode mp3) -> turn to lt_grey
+red:hover : red stop button
+dk_grey: inactive
+
+Play button:
+lt_grey: active, click:start playing -> turn into pause button (hide play, show pause)
+lt_grey:hover : lighter play button
+dk_grey: inactive
+
+Pause button:
+lt_grey: active, click:pause playing -> turn into play button (hide pause, show play) 
+lt_grey:hover : lighter pause button
+
+styles and skin files required:
+-------Mic------
+rec_indicator.active          mic_lt_grey1.png
+rec_indicator.active:hover    mic_lt_grey2.png
+rec_indicator                 mic_dk_grey.png
+rec_indicator.recording       mic_red.png
+rec_indicator.recording:hover stop_red.png
+-------Play-----
+recorder_play_button.active         play_lt_grey1.png
+recorder_play_button.active:hover   play_lt_grey2.png
+recorder_play_button                play_dk_grey.png
+-------Pause----
+recorder_pause_button               pause_lt_grey1.png
+recorder_pause_button:hover         pause_lt_grey2.png
+
+**/
+
+
 RECORDER={on:false, duration:60, vumeter_values:[], vumeters: [$('#vumeter_0'), 
     $('#vumeter_1'),
     $('#vumeter_2'),
@@ -14,7 +51,7 @@ RECORDER={on:false, duration:60, vumeter_values:[], vumeters: [$('#vumeter_0'),
 RECORDER.prepare_recorder=function() {
 
     // hide, disable or reset everything related to playback
-    debug('preparing recorder')
+    debug(': preparing recorder')
     $('#rec_indicator').removeClass('red').removeClass('green');
     $('#save_note').addClass('disabled');
     $('#full_line').css('width',464);
@@ -22,7 +59,6 @@ RECORDER.prepare_recorder=function() {
     $('#recorder_pause_button').hide();
     $('#recorder_buttons').show();
     $('#player_buttons').hide();
-    $('#stop_button').removeClass('green').removeClass('red');
     $('#recorder_toggle').hide();
     $('#note_player').jPlayer("setMedia", {mp3:''});
     $('#timer_text span.now').text('0:00');
@@ -31,7 +67,6 @@ RECORDER.prepare_recorder=function() {
     if (!RECORDER.getRecorder()) {
         swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     }
-    debug('record mode on');
     $('#note_photo').hide();
     $('#note_recorder').show();
 }
@@ -40,7 +75,6 @@ RECORDER.prepare_recorder=function() {
 RECORDER.getRecorder=function() {
     var rec=swfobject.getObjectById('TeamRecorder');
     if (rec && rec.initCamera !== undefined) {
-        debug('Found recorder');
         return rec;
     } else {
         debug('no recorder available');
@@ -50,34 +84,38 @@ RECORDER.getRecorder=function() {
 
 RECORDER.initialized=function() {
     // recorder has loaded and its actionscript is reachable
+    debug('<-initialized');
+
     rec=RECORDER.getRecorder();
     if (rec) {
         debug('ping received from recorder');
+        debug('-> initCamera');
         rec.initCamera();
+        debug('-> initMic');
         rec.initMic();
         $('#recorder_toggle').hide();
+
     }
 }
 
 RECORDER.camera_accepted=function() {
         $('#recorder_toggle').show().off('click').click(RECORDER.start_recording); //.css('border-color', '#33aa33')
         $('div.vumeter').show(); 
-        debug('camera accepted');
+        debug('<- camera accepted');
 }
 RECORDER.camera_denied=function() {
-    debug('camera denied');
+    debug('<- camera denied');
 }
 
 RECORDER.start_recording = function() {
     var rec = RECORDER.getRecorder(); 
     if (rec) {
+        debug('-> startRecording')
         rec.startRecording();
         $('#recorder_toggle').css('border-color', 'transparent').hide();
-        $('#rec_indicator').removeClass('green').addClass('red');
-        $('#stop_button').removeClass('green').addClass('red');
+        $('#rec_indicator').removeClass('active').addClass('recording').off('click').click(RECORDER.stop_recording);
         $('#progress_line').show().width(0);
         $('#countdown').text("3").show();
-        $('#stop_button').click(RECORDER.stop_recording);         
     }
 }
 
@@ -97,11 +135,33 @@ RECORDER.recording_timer = function(t) {
         TEAM_NOTES.highlight_question(2);            
     } else if (now_seconds==20) {
         TEAM_NOTES.highlight_question(1)
-    }
-    
+    }    
 }
 
+RECORDER.playback_timer = function(t) {
+    // incoming t is 1/1000:s of seconds
+    t=t/100;
+    $('#progress_line').width((t/600)*464);
+    t=t/10;
+    var now_minutes = Math.floor(t/60);
+    var now_seconds = Math.floor(t%60);
+    if (now_seconds>9) {
+        $('#timer_text span.now').text(''+now_minutes+':'+now_seconds);
+    } else {
+        $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
+    }
+    if (now_seconds==40) {
+        TEAM_NOTES.highlight_question(2);            
+    } else if (now_seconds==20) {
+        TEAM_NOTES.highlight_question(1)
+    }    
+}
+
+
+
 RECORDER.countdown = function(t) {
+    debug('<- countdown '+t);
+
     if (t==0) {
         $('#countdown').hide();
         var team=getData($('#team_title'));
@@ -114,14 +174,14 @@ RECORDER.countdown = function(t) {
 RECORDER.stop_recording = function() {
     var rec = RECORDER.getRecorder(); 
     if (rec) {
+        debug('-> stopRecording')
         rec.stopRecording();
     }
 }
 
 RECORDER.recording_stopped = function() {
-    debug('recorder stopped');
-    $('#rec_indicator').removeClass('red').off('click');
-    $('#stop_button').removeClass('red').off('click');
+    debug('<- recorder stopped');
+    $('#rec_indicator').removeClass('recording').off('click');
     $('span.check').show();
     $('div.vumeter').hide();
     $('#timer_text span.now').text('0:00');
@@ -132,7 +192,6 @@ RECORDER.recording_stopped = function() {
     } else {
         $('#timer_text span.max_duration').text(''+full_minutes+':0'+full_seconds);
     }
-    $('#play_button').addClass('active');
 
 
 }
@@ -140,9 +199,8 @@ RECORDER.recording_stopped = function() {
 RECORDER.play = function() {
     var rec = RECORDER.getRecorder();
     if (rec) {
+        debug('-> startPlaying')
         rec.startPlaying();
-        $('#rec_indicator').addClass('green');
-        $('#stop_button').addClass('green').click(RECORDER.stop_playing);
         $('#recorder_play_button').hide();
         $('#recorder_pause_button').show();
     }
@@ -150,28 +208,30 @@ RECORDER.play = function() {
 RECORDER.pause = function() {
     var rec = RECORDER.getRecorder();
     if (rec) {
-        rec.pausePlaying();
-        $('#recorder_play_button').show();
-        $('#recorder_pause_button').hide();
-    }
-}
+        debug('-> stopPlaying (pause)')
 
-RECORDER.stop_playing = function() {
-    var rec = RECORDER.getRecorder();
-    if (rec) {
         rec.stopPlaying();
     }
 }
 
+RECORDER.go_to_position = function(t) {
+    var rec = RECORDER.getRecorder();
+    if (rec) {
+        debug('-> movePlaybackToPosition '+t)
+
+        rec.movePlaybackToPosition(t);
+    }
+
+}
+
 RECORDER.stopped_playing = function() {
-    $('#rec_indicator').removeClass('green');
-    $('#stop_button').removeClass('green').off('click');
-    $('#recorder_play_button').off('click').addClass('green').click(RECORDER.play);
+    $('#recorder_play_button').show();
+    $('#recorder_pause_button').hide();
 }
 
 RECORDER.encoding_complete= function() {
     $("#save_note").removeClass('disabled').click(RECORDER.save_note);
-    $('#rec_indicator').addClass('red');
+    $('#rec_indicator').addClass('active').click(RECORDER.start_recording);
     $('#recorder_play_button').off('click').addClass('active').click(RECORDER.play);
 
 }
@@ -203,6 +263,8 @@ RECORDER.save_note= function() {
         rec.saveRecording(server_path, class_uid, note_uid); 
     }        
     $('#save_note').off('click');
+    $('#rec_indicator').off('click').removeClass('active');
+    $('#recorder_play_button').off('click').removeClass('active');
 }
 
 RECORDER.finished_recording= function(path) {
@@ -247,3 +309,4 @@ countdown=RECORDER.countdown;
 camera_accepted=RECORDER.camera_accepted;
 camera_denied=RECORDER.camera_denied;
 stopped_playing=RECORDER.stopped_playing;
+playback_timer=RECORDER.playback_timer;

@@ -78,6 +78,9 @@
 				_flash=new BitmapData(camw,camh,false, 0xaaFF88);
 				sound_position=0;
 				
+                playTimer = new Timer(50);
+                playTimer.addEventListener(TimerEvent.TIMER, _showPlayProgress);
+
                 // Taking team photos 
                 ExternalInterface.addCallback("initCamera", initCamera);
                 ExternalInterface.addCallback("keepPhoto", keepPhoto);
@@ -220,14 +223,18 @@
                 // stop timers 
                 micTimer.stop();
                 sound_position=0;
+                playTimer.reset();
                 still_screen.visible=true;
 			}
 
-            private function startPlaying():void {
-                
-                function _showPlayProgress(e:TimerEvent):void {
-                    //
-                }
+
+            private function _showPlayProgress(e:TimerEvent):void {
+                sound_position=playback_channel.position;
+                ExternalInterface.call("playback_timer", sound_position);
+            }
+
+
+            private function startPlaying():void {    
 
     			function _autoStopPlaying(e:Event):void {
                     sound_position=0;
@@ -236,8 +243,6 @@
     			if (camera) {
         			still_screen.visible=true;  
     			}  			
-				playTimer = new Timer(50);
-				playTimer.addEventListener(TimerEvent.TIMER, _showPlayProgress);
     			playTimer.start();
 
     			micTimer.stop();
@@ -246,8 +251,6 @@
     			_display.text = 'Playback started...';
     			playback_channel.addEventListener(Event.SOUND_COMPLETE, _autoStopPlaying);
             }
-
-
 
             private function stopPlaying():void {
                 playTimer.stop();                

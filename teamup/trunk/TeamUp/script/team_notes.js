@@ -90,13 +90,14 @@ TEAM_NOTES.create_team_notes= function(team) {
     tt.text(team.name);
     $('#note_photo').css('background-color',team.color).show(); 
     $('div.vumeter').hide();
-    $('#rec_indicator').removeClass('red').removeClass('green');
-    $('#save_note').addClass('disabled');
+    $('#save_note').off('click').addClass('disabled');
+    $('#rec_indicator').off('click').removeClass('active').removeClass('recording');
+    $('#recorder_play_button').off('click').removeClass('active');
     $('#full_line').css('width',464);
     $('#progress_line').css('width',0);
     $('#recorder_buttons').hide();
     $('#player_buttons').show();
-
+    // jPlayer disables its buttons, we need to care only about looks  
     $('#play_button').removeClass('active');
 
 

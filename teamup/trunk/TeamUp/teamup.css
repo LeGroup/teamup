@@ -802,28 +802,12 @@ span.separator {
     background-color:#3D3D3B;    
 }
 
-#rec_indicator {
-	background: #3D3D3B;
-    background-repeat:no-repeat;
+#recorder_buttons, #player_buttons {
     display:inline-block;
-    width:26px;
-    height:26px;
-    background-image:url('images/record-grey.png');
-    background-repeat:no-repeat;
-    background-position:center;
-    position:relative;
-    top:12px;    
+    position:relative;   
 }
 
-#rec_indicator.red {
-    background-image:url('images/record-red.png');
-}
-
-#rec_indicator.green {
-    background-image:url('images/record-green.png');    
-}
-
-#stop_button, #play_button, #pause_button, #recorder_play_button, #recorder_pause_button {
+#rec_indicator, #play_button, #pause_button, #recorder_play_button, #recorder_pause_button {
     background: #3D3D3B;
     background-repeat:no-repeat;
     display:inline-block;
@@ -834,49 +818,76 @@ span.separator {
     position:relative;
     top:12px;    
 }
-#recorder_buttons, #player_buttons {
-    display:inline-block;
-    position:relative;   
+
+#rec_indicator {
+    background-image:url('images/mic_dk_grey.png');
 }
 
-#stop_button {
-    background-image:url('images/stop-grey.png');
+#rec_indicator.active {
+    background-image:url('images/mic_lt_grey1.png');
+    cursor:pointer;
 }
 
-#stop_button.red {
-    background-image:url('images/stop-red1.png');
-    cursor: pointer;
+#rec_indicator.active:hover {
+    background: #4C4C4C;
+    background-repeat:no-repeat;
+    background-image:url('images/mic_lt_grey2.png');    
 }
 
-#stop_button.red:hover {
-    background-image:url('images/stop-red2.png');
-}
-#stop_button.green {
-    background-image:url('images/stop-green1.png');
-    cursor: pointer;
+#rec_indicator.active:active {
+    background: #535353;
+    background-repeat:no-repeat;
+    background-image:url('images/mic_lt_grey2.png');    
 }
 
-#stop_button.green:hover {
-    background-image:url('images/stop-green2.png');
+#rec_indicator.recording {
+    background-image:url('images/mic_red.png');
+    cursor:pointer;
 }
+#rec_indicator.recording:hover {
+    background: #4C4C4C;
+    background-repeat:no-repeat;
+    background-image:url('images/stop_red.png');
+}
+#rec_indicator.recording:hover {
+    background: #535353;
+    background-repeat:no-repeat;
+    background-image:url('images/stop_red.png');
+}
+
 
 #play_button, #recorder_play_button {
-    background-image:url('images/play-grey.png');
+    background-image:url('images/play_dk_grey.png');
 }
 #play_button.active, #recorder_play_button.active {
-    background-image:url('images/play-green1.png');
+    background-image:url('images/play_lt_grey1.png');
     cursor:pointer;
 }
 #play_button.active:hover, #recorder_play_button.active:hover {
-    background-image:url('images/play-green2.png');
+    background-repeat:no-repeat;
+    background: #4C4C4C;
+    background-image:url('images/play_lt_grey2.png');
+}
+#play_button.active:active, #recorder_play_button.active:active {
+    background-repeat:no-repeat;
+    background: #535353;
+    background-image:url('images/play_lt_grey2.png');
 }
 
+
 #pause_button, #recorder_pause_button {
-    background-image:url('images/pause-green1.png');    
+    background-image:url('images/pause_lt_grey1.png');    
     cursor:pointer;
 }
 #pause_button:hover, #recorder_pause_button:hover {
-    background-image:url('images/pause-green2.png');    
+    background: #4C4C4C;
+    background-repeat:no-repeat;
+    background-image:url('images/pause_lt_grey2.png');    
+}
+#pause_button:active, #recorder_pause_button:active {
+    background: #535353;
+    background-repeat:no-repeat;
+    background-image:url('images/pause_lt_grey2.png');    
 }
 
 
@@ -1574,6 +1585,7 @@ div.ui-dialog-buttonset button{
 
 #save_note {
     padding: 4px 12px;
+    color:#e0e0e0;
 }
 
 
