@@ -253,16 +253,14 @@ function localize(){
         },
         complete: function(data) {
             // Change all of the static strings in index.html
-            debug('changing anyway');
             var place;
             var localizedStrings=$.parseJSON(data.responseText);
             var text_ids=['i18n_class','i18n_teams','keep_photo','try_again_photo','cancel_photo','label_team_size','label_show_names',
             'i18n_interests_heading','i18n_grouping_heading',
-            'i18n-play','i18n-pause','i18n-stop','i18n-mute','i18n-unmute',
             'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems',
             'i18n_new_teams','options', 'i18n_options', 'label_reset_teams',
-            'i18n-reset-confirmation', 'i18n-del-confirmation', 'i18n-download_confirm', 'i18n-download-no', 'i18n-download-complete','i18n-cancel','i18n-bad-photo', 'recording_help_1', 'recording_help_2','recording_help_3','recording_help_4','recording_help_5', 
-            'label_language', 'label_teacher_url', 'label_learner_url', 'i18n-upload-message','i18n-del-note-confirmation'];
+            'i18n-reset-confirmation', 'i18n-del-confirmation','i18n-cancel',  
+            'label_language', 'label_teacher_url', 'label_learner_url','i18n-del-note-confirmation'];
             for (var i=0;i<text_ids.length;i++) {
                 place=$('#'+text_ids[i]);
                 place.html(i18n(place.html()));
@@ -271,11 +269,8 @@ function localize(){
             //'topic_0','topic_1','topic_2','topic_3'
             
             // alt/title:  'add_person'
-            $('#welcome-panel').attr('title',i18n($('#welcome-panel').attr('title')));
             $('#delete-confirm-panel').attr('title',i18n($('#delete-confirm-panel').attr('title')));
             $('#delete-note-confirm-panel').attr('title',i18n($('#delete-note-confirm-panel').attr('title')));
-            $('#names_submit').val(i18n($('#names_submit').val()));
-            $('#join_submit').val(i18n($('#join_submit').val()));
             $('#reset_teams').val(i18n($('#reset_teams').val()));
             $('#add_person').attr('alt',i18n($('#add_person').attr('alt')));
             $('#add_person').attr('title',i18n($('#add_person').attr('title')));
@@ -290,10 +285,10 @@ function localize(){
                 $(this).val(i18n('Enter topic'));
             }
             });
-            $('.property_picker_item').each(function() {
-                $(this).attr('alt', i18n($(this).attr('alt')));
-                $(this).attr('title', i18n($(this).attr('title')));
-            })
+            //$('.property_picker_item').each(function() {
+            //    $(this).attr('alt', i18n($(this).attr('alt')));
+            //    $(this).attr('title', i18n($(this).attr('title')));
+            //})
             }
         }           
     );

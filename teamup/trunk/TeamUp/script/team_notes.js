@@ -94,7 +94,6 @@ TEAM_NOTES.create_team_notes= function(team) {
     $('#rec_indicator').off('click').removeClass('active').removeClass('recording');
     $('#recorder_play_button').off('click').removeClass('active');
     $('#full_line').css('width',464).off('click');
-
     $('#progress_line').css({'width':0,'background-color':team.color});
     $('#recorder_buttons').hide();
     $('#player_buttons').show();

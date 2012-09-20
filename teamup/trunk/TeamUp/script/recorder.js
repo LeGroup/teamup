@@ -68,7 +68,7 @@ RECORDER.prepare_recorder=function() {
         swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
     }
     $('#note_photo').hide();
-    $('#note_recorder').show();
+    $('#note_recorder').css('border-color','transparent').show();
 }
 
 
@@ -268,14 +268,12 @@ RECORDER.encoding_complete= function() {
 }
 
 RECORDER.audio_level=function(level) {
-    //RECORDER.vumeter.height(level*3);
-    RECORDER.vumeter_values.push(1+level);
+    RECORDER.vumeter_values.push(level*0.75);
     if (RECORDER.vumeter_values.length>10) {
         RECORDER.vumeter_values.shift()
     }
     for (var i=0; i<RECORDER.vumeter_values.length; i++) {
         $('#vumeter_'+i).height(RECORDER.vumeter_values[i]);
-        //RECORDER.vumeters[i].height(RECORDER.vumeter_values[i]);
     }
 
 }
