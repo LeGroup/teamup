@@ -618,20 +618,29 @@ div.team_face label {
 }
 
 #note_recorder {
-    margin-right:24px;
     display:none;
     border:1px solid transparent;
+    width:240px;
+    height:240px;
+    margin:0px;
+    padding:0px;
 }
 
+#note_photo {
+    border:1px solid transparent;
+    width:240px;
+    height:240px;
+    margin:0px;
+    padding:0px;
+}
+
+
 div.recorder_panel {
-    width: 220px;
+    width: 240px;
     height: 240px;
     margin: 0px;
     padding: 0px;
     overflow: hidden;
-}
-
-#note_questions {
 }
 
 #note_questions p {
@@ -690,12 +699,21 @@ div.recorder_panel {
     display:none;
 }
 
-#note_camera_toggle:hover {
+
+#recorder_toggle.active:hover {
     background:rgba(73,73,73,0.7);
+    background-image:url('images/rec.png');
+    background-size:53px 53px;
+    background-repeat:no-repeat;
+    background-position:center;
 }
 
-#note_camera_toggle:active {
-    background:rgba(93,93,93,0.7);
+#note_camera_toggle.active:active {
+    background:rgba(93,93,93,0.9);
+    background-image:url('images/rec.png');
+    background-size:53px 53px;
+    background-repeat:no-repeat;
+    background-position:center;
 }
 div.vumeter {
     display:inline-block;
@@ -761,7 +779,7 @@ div.vumeter {
     position:relative;
     width:464px;
     height:6px;
-    top:6px;    
+    top:6px;
 }
 #full_line {
     position:absolute;
@@ -769,7 +787,7 @@ div.vumeter {
     width:464px;
     height:10px;
     left:0px;
-    z-index:0;
+    z-index:10;
     cursor:pointer;
 }
 #full_line span.inner {
@@ -804,7 +822,8 @@ span.separator {
 
 #recorder_buttons, #player_buttons {
     display:inline-block;
-    position:relative;   
+    position:relative; 
+    z-index:0;  
 }
 
 #rec_indicator, #play_button, #pause_button, #recorder_play_button, #recorder_pause_button {
@@ -816,7 +835,7 @@ span.separator {
     background-repeat:no-repeat;
     background-position:center;
     position:relative;
-    top:12px;    
+    top:12px;
 }
 
 #rec_indicator {
@@ -903,29 +922,6 @@ span.separator {
 }
 
 
-#play_marker {
-    position:absolute;
-    top:-20px;
-    left:19px;
-    height:18px;
-    width:18px;
-    text-align:center;
-    background-image:url('images/bubble-blue.png');
-    font-size:9pt;
-    font-weight:bold;
-    color:#fff;
-    padding-top:2px;
-    cursor:pointer;
-}
-
-#note_photo {
-    position:absolute;
-    top:0px;
-    left:0px;
-    width:240px;
-    height:240px;
-}
-
 
 span.available_recordings {
     position: absolute;
@@ -938,34 +934,6 @@ span.available_recordings {
 span.available_recordings:hover span {
     background: #fff;
     color: #d00;
-}
-
-
-#vol_control {
-    position:absolute;
-    top:0px;
-    right:0px;
-    width:65px;
-    height:15px;
-}
-
-div.jp-volume-bar {
-    margin-top:4px;
-    display:inline-block;
-	position: absolute;
-	background-color: #EBF1E4;
-	width:46px;
-	height:5px;
-	cursor: pointer;
-}
-div.jp-volume-bar-value {
-	background-color: #2997D9;
-	width:0px;
-	height:5px;
-}
-
-#upload-panel .ui-dialog-titlebar-close {
-    display:none;
 }
 
 

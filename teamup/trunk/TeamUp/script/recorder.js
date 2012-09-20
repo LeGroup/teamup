@@ -54,7 +54,7 @@ RECORDER.prepare_recorder=function() {
     debug(': preparing recorder')
     $('#rec_indicator').removeClass('red').removeClass('green');
     $('#save_note').addClass('disabled');
-    $('#full_line').css('width',464);
+    $('#full_line').css('width',464).off("click");
     $('#progress_line').css('width',0);
     $('#recorder_pause_button').hide();
     $('#recorder_buttons').show();
@@ -112,13 +112,17 @@ RECORDER.start_recording = function() {
     var rec = RECORDER.getRecorder(); 
     if (rec) {
         debug('-> startRecording')
+        $('div.vumeter').show();
+
         rec.startRecording();
         $('#recorder_play_button').removeClass('active');
-        $('#recorder_toggle').css('border-color', 'transparent').hide();
+        $('#recorder_toggle').css('border-color', 'transparent').removeClass('active').hide();
         $('#rec_indicator').removeClass('active').addClass('recording').off('click').click(RECORDER.stop_recording);
-        $('#full_line').css('width',464);
+        $('#full_line').css('width',464).off("click");
         $('#progress_line').show().width(0).css('background-color','#e00000');
         $('#countdown').text("3").show();
+        $('#note_recorder').css('border-color','transparent');
+
     }
 }
 
@@ -157,9 +161,10 @@ RECORDER.playback_timer = function(t) {
         TEAM_NOTES.highlight_question(2);            
     } else if (now_seconds==20) {
         TEAM_NOTES.highlight_question(1)
-    }    
+    } else if (now_seconds==0) {
+        TEAM_NOTES.highlight_question(0)        
+    }
 }
-
 
 
 RECORDER.countdown = function(t) {
@@ -184,6 +189,7 @@ RECORDER.stop_recording = function() {
 
 RECORDER.recording_stopped = function() {
     debug('<- recorder stopped');
+    var team=getData($('#team_title'));
     $('#rec_indicator').removeClass('recording').off('click');
     $('div.vumeter').hide();
     $('#timer_text span.now').text('0:00');
@@ -194,40 +200,57 @@ RECORDER.recording_stopped = function() {
     } else {
         $('#timer_text span.max_duration').text(''+full_minutes+':0'+full_seconds);
     }
-
+    $('#full_line').off("click").click(RECORDER.jump_in_timeline).css('width',(RECORDER.duration/60)*464);
+    $('#progress_line').css({width:0, 'background-color':team.color});
 
 }
 
 RECORDER.play = function() {
     var rec = RECORDER.getRecorder();
-    var team=getData($('#team_title'));
     if (rec) {
-        debug('-> startPlaying')
+        debug('-> startPlaying');
         rec.startPlaying();
         $('#recorder_play_button').hide();
         $('#recorder_pause_button').show();
         $('#full_line').css('width',(RECORDER.duration/60)*464);
-        $('#progress_line').show().css('background-color',team.color);
     }
 }
 RECORDER.pause = function() {
     var rec = RECORDER.getRecorder();
     if (rec) {
-        debug('-> stopPlaying (pause)')
-
+        debug('-> stopPlaying (pause)');
         rec.stopPlaying();
     }
 }
 
-RECORDER.go_to_position = function(t) {
+
+RECORDER.jump_in_timeline = function(event) {   
+    var x= event.pageX-$(this).offset().left;
+    var seconds=x/(464/60);
+    $('#progress_line').css('width',x);
     var rec = RECORDER.getRecorder();
     if (rec) {
-        debug('-> movePlaybackToPosition '+t)
-
-        rec.movePlaybackToPosition(t);
+        debug('-> movePlaybackToPosition '+seconds*1000);
+        rec.movePlaybackToPosition(seconds*1000);
+    }
+    var now_minutes = Math.floor(seconds/60);
+    var now_seconds = Math.floor(seconds%60);
+    if (now_seconds>9) {
+        $('#timer_text span.now').text(''+now_minutes+':'+now_seconds);
+    } else {
+        $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
     }
 
+
+    if (seconds>39) {
+        TEAM_NOTES.highlight_question(2);            
+    } else if (seconds>19) {
+        TEAM_NOTES.highlight_question(1);            
+    } else {
+        TEAM_NOTES.highlight_question(0);            
+    }
 }
+
 
 RECORDER.stopped_playing = function() {
     $('#recorder_play_button').show();
@@ -275,8 +298,6 @@ RECORDER.save_note= function() {
 }
 
 RECORDER.finished_recording= function(path) {
-    $('#upload-panel').dialog('close');
-    $('div.recorder_panel').hide();
     debug('Received a record:'+path);
     // Create an empty note but don't catalog it yet
     var note = new TeamNote(false);
@@ -297,7 +318,6 @@ RECORDER.finished_recording= function(path) {
 
 RECORDER.uploading_recording= function() {
     debug('Uploading recording...');
-    //$('#upload-panel').dialog('open');
     var notes=$('#available_recordings');
     $('#record_note img').show();
     $('#record_note span').hide();

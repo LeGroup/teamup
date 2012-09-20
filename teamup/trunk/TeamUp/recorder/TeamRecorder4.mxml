@@ -23,7 +23,7 @@
             import flash.system.Security;
 
             import flash.external.ExternalInterface;
-            import mx.core.FlexGlobals;
+            //import mx.core.FlexGlobals;
 			private var soundBytes:ByteArray = new ByteArray();
 			private var _file:FileReference; 
 			private var mymic:Microphone;
@@ -34,6 +34,7 @@
             //private var stillTimer:Timer;
             private var flashTimer:Timer;
             private var uploaderTimer:Timer;
+            private var playing:Boolean;
             private var prep_counter:Number;
             private var volume:Number = .5;
             private var wavEncoder:WaveEncoder = new WaveEncoder( volume );
@@ -43,7 +44,7 @@
     		private var recording_seconds:Number;
     		private var mp3Encoder:ShineMP3Encoder;
     		private var _bitmapData:BitmapData;
-    		private var _flash:BitmapData;
+    		private var _flash_bmp:Bitmap;
     		private var photo_jpg:ByteArray;
     		private var jpegEncoder:JPGEncoder= new JPGEncoder(80);
     		private var camera:Camera;
@@ -53,7 +54,6 @@
             private var camw:Number;
             private var camh:Number;
             private var sound_position:Number;
-            private var recording:Boolean;
             
             
 			private function init():void {
@@ -75,8 +75,9 @@
                 format.bold = true;
                 format.underline = false;
     				
-				_flash=new BitmapData(camw,camh,false, 0xaaFF88);
+				_flash_bmp=new Bitmap(new BitmapData(camw,camh,false, 0xaaFF88));
 				sound_position=0;
+                playing=false;
 				
                 playTimer = new Timer(50);
                 playTimer.addEventListener(TimerEvent.TIMER, _showPlayProgress);
@@ -138,11 +139,11 @@
             private function takePhoto():void {
                 flashTimer.reset();                
                 flashTimer.start(); // --> _addStill
-                _switchStill(new Bitmap(_flash))
+                _switchStill(_flash_bmp)
                 still_screen.visible=true;
                 _bitmapData=new BitmapData(camw, camh);
                 _bitmapData.draw(video);
-                video.attachCamera(null);
+                video.visible=false;
 
                 //ExternalInterface.call("tookGroupPhoto");
             }
@@ -201,6 +202,9 @@
     		    _display.text = 'Prepare...'
     		    preparationTimer.reset();
     		    recording_seconds=0;
+                // if there is a previous still, clean it out and grap camera again
+                still_screen.visible=false;
+                video.visible=true;
                 preparationTimer.start(); // --> _prepareAnnouncement, _prepareComplete
 			}
 			
@@ -218,8 +222,7 @@
 			
 			private function stopRecording():void {
 			    recorder.stop();
-                video.attachCamera(null);
-
+                video.visible=false;
                 // stop timers 
                 micTimer.stop();
                 sound_position=0;
@@ -246,7 +249,7 @@
     			playTimer.start();
 
     			micTimer.stop();
-
+                playing=true;
     			playback_channel=sound.play(sound_position);
     			_display.text = 'Playback started...';
     			playback_channel.addEventListener(Event.SOUND_COMPLETE, _autoStopPlaying);
@@ -257,15 +260,18 @@
                 _display.text='Stopped.';
                 playback_channel.stop();
                 ExternalInterface.call("stopped_playing");
-                //sound_position=timeSlider.value*1000;                
+                playing=false;
             }
 
             private function movePlaybackToPosition(p:Number):void {
-                if (recording) {return;} // shouldn't happen 
                 if (p < sound.length) {
                     sound_position=p;
                 } else {
                     sound_position=sound.length;
+                }
+                if (playing) {
+                    playback_channel.stop();
+                    playback_channel=sound.play(sound_position);
                 }
             }
 
@@ -410,8 +416,8 @@
 	</mx:UIComponent>	    
 	<mx:Label color="0xffffff" x="10" y="10" id="_display" visible="false" text="00:00:00"/>
 	<mx:Label color="0xffffff" x="10" y="100" id="_error" visible="false" text=""/>
-    <mx:Box id="encoding_container" visible="false" x="0" y="50" width="240" height="60" backgroundColor="#555555" alpha="0.8">
-	<mx:ProgressBar id="encoding" x="40" y="0" width="240" mode="manual" label="Encoding..." fontSize="10" chromeColor="0x008844" color="0xdddddd"/>
+    <mx:Box id="encoding_container" visible="false" x="0" y="60" width="240" height="40" backgroundColor="#444444" alpha="1">
+	<mx:ProgressBar id="encoding" x="40" y="0" width="240" mode="manual" label="Encoding..." fontSize="10" color="0xdddddd"/>
 	</mx:Box>
 	
 	

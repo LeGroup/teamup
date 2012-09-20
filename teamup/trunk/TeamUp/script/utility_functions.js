@@ -282,7 +282,6 @@ function localize(){
             $('#remove_person').attr('alt',i18n($('#remove_person').attr('alt')));
             $('#remove_person').attr('title',i18n($('#remove_person').attr('title')));
             $('#delete-confirm-panel').attr('title',i18n($('#delete-confirm-panel').attr('title')));
-            $('#upload-panel').attr('title',i18n($('#upload-panel').attr('title')));
             $('div.left_nav').attr('title',i18n($('div.left_nav').attr('title')));
             $('div.right_nav').attr('title',i18n($('div.right_nav').attr('title')));
             $('#camera_button').attr('title',i18n($('#camera_button').attr('title')));

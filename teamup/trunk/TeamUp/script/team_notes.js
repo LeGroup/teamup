@@ -93,7 +93,7 @@ TEAM_NOTES.create_team_notes= function(team) {
     $('#save_note').off('click').addClass('disabled');
     $('#rec_indicator').off('click').removeClass('active').removeClass('recording');
     $('#recorder_play_button').off('click').removeClass('active');
-    $('#full_line').css('width',464);
+    $('#full_line').css('width',464).off('click');
 
     $('#progress_line').css({'width':0,'background-color':team.color});
     $('#recorder_buttons').hide();
@@ -166,8 +166,7 @@ TEAM_NOTES.create_team_notes= function(team) {
         }
     } else {
         TEAM_NOTES.empty_note();
-        $('#recorder_toggle').css('border-color', 'transparent').show().off('click').click(RECORDER.prepare_recorder);
-
+        $('#recorder_toggle').css('border-color', team.color).show().off('click').click(RECORDER.prepare_recorder).addClass('active');
     }
     $('#record_note').click(RECORDER.prepare_recorder);        
 
@@ -241,6 +240,7 @@ TEAM_NOTES.load_note= function(note) {
     }
     $('#note_player').jPlayer("setMedia", {mp3:note.audio_url});
     debug('loading '+note.audio_url+' to jPlayer');
+
 }
 
 TEAM_NOTES.view_mode= function(event) {
@@ -266,4 +266,63 @@ TEAM_NOTES.prepare_audio= function() {
     }
     $('#note_player').jPlayer("setMedia", {mp3:rec});
 }
+
+TEAM_NOTES.play = function(event) {
+    $('#progress_line').css('width',event.jPlayer.status.currentTime*(464/60));
+}
+
+TEAM_NOTES.show_play_progress = function(event) {
+    var ct= event.jPlayer.status.currentTime;
+    $('#progress_line').css('width', ct*(464/60));
+    var now_minutes = Math.floor(ct/60);
+    var now_seconds = Math.floor(ct%60);
+    if (now_seconds>9) {
+        $('#timer_text span.now').text(''+now_minutes+':'+now_seconds);
+    } else {
+        $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
+    }
+    if (now_seconds==40) {
+        TEAM_NOTES.highlight_question(2);            
+    } else if (now_seconds==20) {
+        TEAM_NOTES.highlight_question(1)
+    }
+}
+
+// Full line of progress bar is 464 pixels wide.
+// 1 second = 464/60= 7.733333... pixels
+
+
+TEAM_NOTES.set_up_timeline = function(event) {
+    var ft= event.jPlayer.status.duration;
+    $('#progress_line').css('width',0);
+    $('#full_line').css('width',(464/60)*ft);
+    var full_minutes = Math.floor(ft/60);
+    var full_seconds = Math.floor(ft%60);
+    if (full_seconds>9) {
+        $('#timer_text span.max_duration').text(''+full_minutes+':'+full_seconds);
+    } else {
+        $('#timer_text span.max_duration').text(''+full_minutes+':0'+full_seconds);
+    }
+    $('#play_button').addClass('active');    
+    $('#full_line').off("click").click(TEAM_NOTES.jump_in_timeline);
+
+}
+
+TEAM_NOTES.jump_in_timeline = function(event) {   
+    var x= event.pageX-$(this).offset().left;
+    var seconds=x/(464/60);
+    $('#progress_line').css({'background-color':'#00f000','width':x});
+    dur=$('#note_player').data("jPlayer").status.duration;
+    $('#note_player').jPlayer('playHead',Math.round((seconds/dur)*100));
+    if (seconds>39) {
+        TEAM_NOTES.highlight_question(2);            
+    } else if (seconds>19) {
+        TEAM_NOTES.highlight_question(1);            
+    } else {
+        TEAM_NOTES.highlight_question(0);            
+    }
+}
+
+    
+
 
