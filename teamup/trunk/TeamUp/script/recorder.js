@@ -105,6 +105,7 @@ RECORDER.camera_accepted=function() {
 }
 RECORDER.camera_denied=function() {
     debug('<- camera denied');
+    alert('Cannot record without access to camera')
 }
 
 RECORDER.start_recording = function() {
@@ -112,9 +113,11 @@ RECORDER.start_recording = function() {
     if (rec) {
         debug('-> startRecording')
         rec.startRecording();
+        $('#recorder_play_button').removeClass('active');
         $('#recorder_toggle').css('border-color', 'transparent').hide();
         $('#rec_indicator').removeClass('active').addClass('recording').off('click').click(RECORDER.stop_recording);
-        $('#progress_line').show().width(0);
+        $('#full_line').css('width',464);
+        $('#progress_line').show().width(0).css('background-color','#e00000');
         $('#countdown').text("3").show();
     }
 }
@@ -182,7 +185,6 @@ RECORDER.stop_recording = function() {
 RECORDER.recording_stopped = function() {
     debug('<- recorder stopped');
     $('#rec_indicator').removeClass('recording').off('click');
-    $('span.check').show();
     $('div.vumeter').hide();
     $('#timer_text span.now').text('0:00');
     var full_minutes = Math.floor(RECORDER.duration/60);
@@ -198,11 +200,14 @@ RECORDER.recording_stopped = function() {
 
 RECORDER.play = function() {
     var rec = RECORDER.getRecorder();
+    var team=getData($('#team_title'));
     if (rec) {
         debug('-> startPlaying')
         rec.startPlaying();
         $('#recorder_play_button').hide();
         $('#recorder_pause_button').show();
+        $('#full_line').css('width',(RECORDER.duration/60)*464);
+        $('#progress_line').show().css('background-color',team.color);
     }
 }
 RECORDER.pause = function() {
@@ -227,6 +232,9 @@ RECORDER.go_to_position = function(t) {
 RECORDER.stopped_playing = function() {
     $('#recorder_play_button').show();
     $('#recorder_pause_button').hide();
+    if ($('#full_line').css('width')-$('#progress_line').css('width')<3) {
+        $('#progress_line').css('width', $('#full_line').css('width'));
+    }
 }
 
 RECORDER.encoding_complete= function() {
@@ -238,11 +246,10 @@ RECORDER.encoding_complete= function() {
 
 RECORDER.audio_level=function(level) {
     //RECORDER.vumeter.height(level*3);
-    RECORDER.vumeter_values.push(3+level*3);
+    RECORDER.vumeter_values.push(2+level*2);
     if (RECORDER.vumeter_values.length>10) {
         RECORDER.vumeter_values.shift()
     }
-    $('#vumeter').height(3+level*3);
     for (var i=0; i<RECORDER.vumeter_values.length; i++) {
         $('#vumeter_'+i).height(RECORDER.vumeter_values[i]);
         //RECORDER.vumeters[i].height(RECORDER.vumeter_values[i]);

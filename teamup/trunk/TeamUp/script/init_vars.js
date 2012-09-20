@@ -1,6 +1,6 @@
 
 var DEMO=true;
-var DEBUG_MODE=true;
+var DEBUG_MODE=false;
 var MODERATOR=true;
 var SMART_ENABLED=false;
 
@@ -15,7 +15,7 @@ var LANGUAGES= {'fi-FI':'Suomi', 'en-EN':'English', 'de-AT':'Deutsch', 'es-ES':'
 var VOTES_PER_PERSON = 3;
 var DEFAULT_IMAGE = 'images/defaultUser.png';
 
-var PARAMS = null; // class creation parameters send by server, shouldn't change once initialized
+var PARAMS = null; // class creation parameters sent by server, shouldn't change once initialized
 var URL_VARS= getUrlVars();
 var PRIVATE_STATE = {}; // Moodle launch will set private state values, which should only be read once.
 var TEAM_VIEW = false; // classroom is showing teams (round tables) or class (grid)
