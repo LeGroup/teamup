@@ -718,41 +718,50 @@ div.recorder_panel {
 div.vumeter {
     display:inline-block;
     height:0px;
-    width:4px;
-    background:#44ee00;
+    width:2px;
+    background:#e0e0e0;;
     position:absolute;
-    bottom: 4px;
-    left:0px;
-}
-#vumeter_9 {
-    left:74px;
-}
-#vumeter_8 {
-    left:68px;
-}
-#vumeter_7 {
-    left:62px;
-}
-#vumeter_6 {
-    left:56px;
-}
-#vumeter_5 {
-    left:50px;
-}
-#vumeter_4 {
-    left:44px;
-}
-#vumeter_3 {
-    left:38px;
-}
-#vumeter_2 {
-    left:32px;
-}
-#vumeter_1 {
-    left:26px;
+    bottom: 0px;
 }
 #vumeter_0 {
-    left:20px;
+    background:#505050;;
+    right:78px;
+}
+#vumeter_1 {
+    background:#606060;;
+    right:72px;
+}
+#vumeter_2 {
+    background:#707070;;
+    right:66px;
+}
+#vumeter_3 {
+    background:#808080;;
+    right:60px;
+}
+#vumeter_4 {
+    background:#909090;;
+    right:54px;
+}
+#vumeter_5 {
+    background:#a0a0a0;;
+    right:48px;
+}
+#vumeter_6 {
+    background:#b0b0b0;;
+    right:42px;
+}
+#vumeter_7 {
+    background:#c0c0c0;;
+    right:36px;
+}
+#vumeter_8 {
+    background:#d0d0d0;;
+    right:30px;
+}
+#vumeter_9 {
+    background:#e0e0e0;;
+    right:24px;
 }
 
 #countdown {

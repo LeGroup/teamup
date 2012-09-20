@@ -311,7 +311,7 @@ TEAM_NOTES.set_up_timeline = function(event) {
 TEAM_NOTES.jump_in_timeline = function(event) {   
     var x= event.pageX-$(this).offset().left;
     var seconds=x/(464/60);
-    $('#progress_line').css({'background-color':'#00f000','width':x});
+    $('#progress_line').css('width',x);
     dur=$('#note_player').data("jPlayer").status.duration;
     $('#note_player').jPlayer('playHead',Math.round((seconds/dur)*100));
     if (seconds>39) {

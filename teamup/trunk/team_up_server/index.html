@@ -334,6 +334,8 @@ jQuery(document).ready(function() {
         $.get('bridge.php', data, function(instance_url) {
             if (instance_url=='not found') {
                 no_class();
+            } else if (instance_url=='no server') {
+                debug('no server');
             } else {
                 url=instance_url;
                 go_there();

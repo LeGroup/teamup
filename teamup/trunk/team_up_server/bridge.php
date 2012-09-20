@@ -2,13 +2,14 @@
 require_once("php/WookieConnectorService.php");
 date_default_timezone_set('Europe/Helsinki');
 $primary_server='http://localhost:8080/wookie/';  //'http://localhost:8080/wookie/'
-$primary_api_key='TEST';
+$primary_api_key='JUKKA';
 $secondary_server='http://localhost:8081/wookie/';
 $secondary_api_key='TEST';
 $widgetid='http://wookie.apache.org/widgets/teamup';
 $shareddatakey= ($_REQUEST['shareddatakey']) ? $_REQUEST['shareddatakey'] : 'testi123';
 $userid= ($_REQUEST['userid']) ? $_REQUEST['userid'] : '123123123';
 $task= ($_REQUEST['task']) ? $_REQUEST['task'] : 'get_instance';
+
 
 $primary_wookie = new WookieConnectorService($primary_server, $primary_api_key, $shareddatakey, $userid, $userid);
 $secondary_wookie = new WookieConnectorService($secondary_server, $secondary_api_key, $shareddatakey, $userid, $userid);
@@ -46,6 +47,7 @@ if ($task=='create_instance') {
        echo('fail');
        return;
    }
+   
    $propertyvalue=stripslashes($_POST['propertyvalue']);
    if ($propertyvalue=='') {
        fwrite($log, 'Broken propertystring given. Something was not serialized correctly.');
@@ -53,7 +55,12 @@ if ($task=='create_instance') {
        echo('fail');
        return;
    }
+   //$user=new User($userid, 'admin');
+   //$primary_wookie->addParticipant($widget,$user);
+
    $prop=new Property('PARAMS', $propertyvalue, true); 
+   //$prop=new Property('PARAMS', 'heijaa', true); 
+
    $primary_wookie->setProperty($widget,$prop);
    fwrite($log, "PARAMS set to ".$prop->getValue()."\n");
    $send_to=$_POST['moderator_email'];
@@ -77,17 +84,25 @@ if ($task=='create_instance') {
         fclose($log);
         echo($widget->getURL());
         return;
-    }
+    } else {
+        fwrite($log, "<server1> Didn't find class from new server.\n");
+    } 
     $widget=$secondary_wookie->getOrCreateInstance($widgetid);
+    if (!$widget) {
+        fwrite($log, "<server2> couldn't reach old server.\n");
+        fclose($log);
+        echo('no server');
+        return;
+    }
     $prop=new Property('PARAMS','',true); 
-    $prop=$primary_wookie->getProperty($widget,$prop);
+    $prop=$secondary_wookie->getProperty($widget,$prop);
     if ($prop) {
         fwrite($log, "<server2> Found class from old server.\n");
         fclose($log);
         echo($widget->getURL());
         return;
     }
-    fwrite($log, "Class not found.\n");
+    fwrite($log, "Class not found in either server.\n");
     fclose($log);
     echo('not found'); 
     return;

@@ -30,8 +30,6 @@ $fh=fopen($pic_name, 'w');
 fwrite($fh, $picture);
 fclose($fh); 
 
-$success = "1";
-
 fwrite($log, "Wrote file ".$pic_name."\n");
 fclose($log); 
 

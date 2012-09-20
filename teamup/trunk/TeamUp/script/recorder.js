@@ -269,7 +269,7 @@ RECORDER.encoding_complete= function() {
 
 RECORDER.audio_level=function(level) {
     //RECORDER.vumeter.height(level*3);
-    RECORDER.vumeter_values.push(2+level*2);
+    RECORDER.vumeter_values.push(1+level);
     if (RECORDER.vumeter_values.length>10) {
         RECORDER.vumeter_values.shift()
     }

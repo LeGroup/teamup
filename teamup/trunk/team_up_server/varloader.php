@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Europe/Helsinki');
 $log = fopen("log/teamup.log", 'a');
 fwrite($log, date("r")." --- Incoming newsflash:\n");
 if (isset($_FILES['photo'])) {
@@ -33,9 +34,5 @@ $aud_name=$base.'/'.$dir1.'/'.$class_id.'/'.$record_id.'_rec.mp3';
 move_uploaded_file($audio, $aud_name);
 fwrite($log, "Wrote file ".$aud_name."\n");
 fclose($log);
-$success = "1";
-$returnVars = array();
-$returnVars['success'] = $success;
-$returnString = http_build_query($returnVars);
-echo $returnString;
+echo $base.'/'.$dir1.'/'.$class_id.'/'.$record_id;
 ?>
