@@ -192,7 +192,7 @@ CLASSROOM.build_class_view = function (animate) {
 		
 		for (i = 0; i < TEAMS.length; i++) {        
 			tteam=TEAMS[i];
-			team_note_obj = $('<div style="background-color: '+tteam.color+'" data-teamId="'+i+'">'+tteam.notes.length+'</div>');
+			team_note_obj = $('<div style="background-color: '+tteam.color+'" data-teamId="'+i+'" title="'+tteam.name+'">'+tteam.notes.length+'</div>');
 			team_note_obj.click(CLASSROOM.go_team_notes_by_number);
 			$('.team_notes').append(team_note_obj);
 		}
@@ -346,8 +346,7 @@ CLASSROOM.build_team_view = function(animate) {
         if (tteam.notes.length==0) {
             team_box.find('span.available_recordings').hide();
         } else {
-            team_box.find('span.available_recordings').show();
-            team_box.find('span.available_recordings').text(tteam.notes.length)
+            team_box.find('span.available_recordings').show().text(tteam.notes.length);
         }
         //team_box.find('input.team_name').css({left: new_x, top: 0new_y+icon_center-20}).val(tteam.name);
         //team_box.find('span.team_name').css({left: new_x, top: new_y+icon_center-20}).text(tteam.name);

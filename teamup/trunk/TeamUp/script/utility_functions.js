@@ -123,9 +123,12 @@ function isVisible(jqobj) {
 
 
 function i18n(str){
-    if (localizedStrings == null) return str;
+    if (!localizedStrings || !str) return str;
     var locstr = localizedStrings[str];
-    if (locstr == null || locstr == "") locstr = str;
+    if (locstr == null || locstr == "") {
+        debug('missing: '+str);
+        locstr = str;
+    }
     return locstr;
 }
 
@@ -254,16 +257,21 @@ function localize(){
         complete: function(data) {
             // Change all of the static strings in index.html
             var place;
-            var localizedStrings=$.parseJSON(data.responseText);
-            var text_ids=['i18n_class','i18n_teams','keep_photo','try_again_photo','cancel_photo','label_team_size','label_show_names',
+            localizedStrings=$.parseJSON(data.responseText);
+            var text_ids=['i18n_grid', 'i18n_teams','keep_photo','try_again_photo','label_team_size','label_show_names', 'classname',
             'i18n_interests_heading','i18n_grouping_heading',
             'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems',
-            'i18n_new_teams','options', 'i18n_options', 'label_reset_teams',
-            'i18n-reset-confirmation', 'i18n-del-confirmation','i18n-cancel',  
+            'i18n_new_teams', 'i18n_options', 'label_reset_teams','i18n_next',
+            'i18n-reset-confirmation', 'i18n-del-confirmation',  
             'label_language', 'label_teacher_url', 'label_learner_url','i18n-del-note-confirmation'];
+            debug(''+Object.keys(localizedStrings).length+' translation keys available');
             for (var i=0;i<text_ids.length;i++) {
                 place=$('#'+text_ids[i]);
-                place.html(i18n(place.html()));
+                if (place.length>0) {
+                    place.html(i18n(place.html()));
+                } else {
+                    debug('id '+text_ids[i]+' not found');
+                }
             }
             // Values
             //'topic_0','topic_1','topic_2','topic_3'
@@ -271,14 +279,14 @@ function localize(){
             // alt/title:  'add_person'
             $('#delete-confirm-panel').attr('title',i18n($('#delete-confirm-panel').attr('title')));
             $('#delete-note-confirm-panel').attr('title',i18n($('#delete-note-confirm-panel').attr('title')));
+            $('#language-panel').attr('title',i18n($('#language-panel').attr('title')));
             $('#reset_teams').val(i18n($('#reset_teams').val()));
             $('#add_person').attr('alt',i18n($('#add_person').attr('alt')));
-            $('#add_person').attr('title',i18n($('#add_person').attr('title')));
+            $('#add_person, #new_person').attr('title',i18n($('#add_person').attr('title')));
             $('#remove_person').attr('alt',i18n($('#remove_person').attr('alt')));
             $('#remove_person').attr('title',i18n($('#remove_person').attr('title')));
             $('#delete-confirm-panel').attr('title',i18n($('#delete-confirm-panel').attr('title')));
-            $('div.left_nav').attr('title',i18n($('div.left_nav').attr('title')));
-            $('div.right_nav').attr('title',i18n($('div.right_nav').attr('title')));
+            $('#prefs_button').attr('title',i18n($('#prefs_button').attr('title')));
             $('#camera_button').attr('title',i18n($('#camera_button').attr('title')));
             $('input.topic').each(function () {
             if ($(this).val()=='Enter topic') { 

@@ -157,6 +157,7 @@ $(document).ready(function(){
     $('#join_submit').click(CLASSROOM.join_classroom);
     CONTROLLER.init();
     OPTIONS.language=guess_language();
+    debug('Language: '+OPTIONS.language);
     localize();
     if (top !== self) $('#leave_iframe').show();
     if (CONTROLLER.offline && getUrlVars().first) $('#teacher-panel').dialog('open');     

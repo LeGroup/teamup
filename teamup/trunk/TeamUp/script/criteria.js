@@ -24,9 +24,6 @@ CRITERIA.show= function(dir){
     if (!TEAMS_PREVIEW.length) CRITERIA.team_up();
     CRITERIA.update_preview();
         
-    $('div.left_nav').attr('title',i18n('Vote for topics'));
-    $('div.right_nav').attr('title', (i18n('Class')+'/'+i18n('Teams')));
-
     $('div.criteria').show('slide',{direction:dir},300);
     $('div.criteria_picker').show('slide',{direction:'down'},300);
     view=CRITERIA;
