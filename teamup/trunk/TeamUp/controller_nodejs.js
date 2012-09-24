@@ -46,11 +46,12 @@ CONTROLLER.stateUpdated=function(data){
                 debug('*** Loading PARAMS ***')
                 CONTROLLER.setParams(item);
                 if (MODERATOR) {
-                    $('#i18n-teacher').show()
+                    debug('**** MODERATOR ****');
+                    $('#teacher_url').val(PARAMS.teacher_url);
+                    $('#admin_tag').show();
                 } else {
-                    $('#i18n-teacher').hide()
-                }                
-                $('#i18n-offline').hide();
+                    CLASSROOM.adjust_for_learners();
+                }
                 $('#class_name_hint').text(PARAMS.class_key);
             }
         } else if (key=='SHOW_ICONS') {

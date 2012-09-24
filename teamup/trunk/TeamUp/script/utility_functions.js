@@ -133,6 +133,7 @@ function i18n(str){
 }
 
 function create_colors(n) {
+    // using hsv-colors to have a visually pleasing and balanced set of colors
     var step=1.0/n;
     var s=.67;
     var v=.79;
@@ -142,14 +143,9 @@ function create_colors(n) {
         h+=step;
         ar.push(hsvToRgb(h,s,v));
     }
-    //for(var j, x, i = ar.length; i; j = parseInt(Math.random() * i), x = ar[--i], ar[i] = ar[j], ar[j] = x);
     var l=ar.length;
     var j;
     var rr=[];
-    for (var a=0;a<l;a++) {
-        debug(ar[a]);
-    }
-
     for (var a=0;a<l;a++) {
         j=parseInt(Math.random()*ar.length);
         rr.push(ar.splice(j,1));
@@ -238,7 +234,10 @@ function guess_language(){
 }
 
 function localize(){
-    /* Ensure language code is in the format aa-AA. */
+    // The idea is that some html-entities are marked for translation (class 'i18n'). The content text of these html-entities (= english text) is used as a key in translation dict (localizedStrings) and it is checked for possible translation available and replaced if available. 
+    // This is enough for us, but would not scale for larger program. (Homonyms in english would translate identically for differing purposes.)
+
+    // Ensure language code is in the format aa-AA:
 	var lang = OPTIONS.language.replace(/_/, '-').toLowerCase();
 	if (lang.length > 3) {
 		lang = lang.substring(0, 3) + lang.substring(3).toUpperCase();
@@ -258,45 +257,19 @@ function localize(){
             // Change all of the static strings in index.html
             var place;
             localizedStrings=$.parseJSON(data.responseText);
-            var text_ids=['i18n_grid', 'i18n_teams','keep_photo','try_again_photo','label_team_size','label_show_names', 'classname',
-            'i18n_interests_heading','i18n_grouping_heading',
-            'i18n-what-we-did','i18n-what-we-will-do','i18n-any-problems',
-            'i18n_new_teams', 'i18n_options', 'label_reset_teams','i18n_next',
-            'i18n-reset-confirmation', 'i18n-del-confirmation',  
-            'label_language', 'label_teacher_url', 'label_learner_url','i18n-del-note-confirmation'];
             debug(''+Object.keys(localizedStrings).length+' translation keys available');
-            for (var i=0;i<text_ids.length;i++) {
-                place=$('#'+text_ids[i]);
-                if (place.length>0) {
-                    place.html(i18n(place.html()));
-                } else {
-                    debug('id '+text_ids[i]+' not found');
-                }
-            }
-            // Values
-            //'topic_0','topic_1','topic_2','topic_3'
-            
-            // alt/title:  'add_person'
-            $('#delete-confirm-panel').attr('title',i18n($('#delete-confirm-panel').attr('title')));
-            $('#delete-note-confirm-panel').attr('title',i18n($('#delete-note-confirm-panel').attr('title')));
-            $('#language-panel').attr('title',i18n($('#language-panel').attr('title')));
-            $('#reset_teams').val(i18n($('#reset_teams').val()));
-            $('#add_person').attr('alt',i18n($('#add_person').attr('alt')));
-            $('#add_person, #new_person').attr('title',i18n($('#add_person').attr('title')));
-            $('#remove_person').attr('alt',i18n($('#remove_person').attr('alt')));
-            $('#remove_person').attr('title',i18n($('#remove_person').attr('title')));
-            $('#delete-confirm-panel').attr('title',i18n($('#delete-confirm-panel').attr('title')));
-            $('#prefs_button').attr('title',i18n($('#prefs_button').attr('title')));
-            $('#camera_button').attr('title',i18n($('#camera_button').attr('title')));
+            $('.i18n').each(function (i) {
+                $(this).html(i18n($(this).html()));
+            })
+
+            $('.i18n_title').each(function (i) {
+                $(this).attr('title', i18n($(this).attr('title')));
+            })
             $('input.topic').each(function () {
             if ($(this).val()=='Enter topic') { 
                 $(this).val(i18n('Enter topic'));
             }
             });
-            //$('.property_picker_item').each(function() {
-            //    $(this).attr('alt', i18n($(this).attr('alt')));
-            //    $(this).attr('title', i18n($(this).attr('title')));
-            //})
             }
         }           
     );

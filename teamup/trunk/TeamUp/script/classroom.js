@@ -168,7 +168,6 @@ CLASSROOM.build_class_view = function (animate) {
     var box_height=$('div.main_area').height()-120; // 72 px bottom margin, 12 px top margin
     
     var box_ratio=box_height/box_width;
-    debug(box_ratio);
     var per_row=Math.floor(Math.sqrt(PUPILS.length/box_ratio));
     var size=box_height/Math.ceil(PUPILS.length/per_row);
     if (size>255) size=255;
