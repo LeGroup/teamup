@@ -26,13 +26,13 @@
 "Any problems?": "Oliko ongelmia?",
 "Are you sure you want to permanently remove this note?" : "Oletko varma että haluat pysyvästi poistaa tämän viestin?",
 
-"New teams — Collect topics and choose favorites" : "Uudet ryhmät — kerätkää aiheita ja valitkaa suosikit",
+"New teams - Collect topics and choose favorites" : "Uudet ryhmät - kerätkää aiheita ja valitkaa suosikit",
 "Enter topic" : "Anna aihe",
 "Drag pictures here": "Vedä kuvat tänne",
 "next": "seuraava",
 "Select criteria": "Valitse kriteerit",
 
-"New teams — Set rules and team up" : "Uudet ryhmät - asettakaa kriteerit ja kokeilkaa ryhmäjakoja",
+"New teams - Set rules and team up" : "Uudet ryhmät - asettakaa kriteerit ja kokeilkaa ryhmäjakoja",
 "Preview": "Esikatselu",
 "Recalculate teams": "Laske uudet ryhmät",
 "Keep these teams": "Pidä nämä ryhmät",

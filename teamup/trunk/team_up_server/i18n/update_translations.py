@@ -1,7 +1,7 @@
 import codecs
 
 server_path='./'   # this path should point to team_up_server i18n.
-teamup_path='/Users/purma/itec-wp3/trunk/TeamUp/i18n/' # this path should point to TeamUp's i18n, relative or absolute
+teamup_path='/Users/purma/itec-wp3/teamup/trunk/TeamUp/i18n/' # this path should point to TeamUp's i18n, relative or absolute
 
 name_base='localized_%s.%s'
 base=codecs.open(server_path+name_base % ('fi-FI','js'),'r','utf_8_sig')
@@ -31,7 +31,7 @@ for line in base.readlines():
 base.close()
 
 
-others=['de-AT','et-ET', 'fi-FI', 'fr-FR','he-HE','hu-HU','it-IT', 'lt-LT', 'nl-NL','no-NO','pt-PT','tr-TR']
+others=['de-AT','es-ES', 'et-ET', 'fi-FI', 'fr-FR','he-HE','hu-HU','it-IT', 'lt-LT', 'nl-NL','no-NO','pt-PT','sk-SK','tr-TR']
 
 for lang_code in others:
     file1=codecs.open(server_path+name_base % (lang_code, 'js'),'r','utf_8_sig')
@@ -52,9 +52,9 @@ for lang_code in others:
     #new_file.write( codecs.BOM_UTF8 )
     new_file.write('{\n')
     count=0
-    for key in server_keys:
+    for key in teamup_keys:
         count+=1
-        if (key==server_keys[-1]):
+        if (key==teamup_keys[-1]):
             line_ending='\n}'
         else:
             line_ending=',\n'
@@ -65,9 +65,9 @@ for lang_code in others:
             count=0
     new_file.write('\n\n{\n')
     count=0
-    for key in teamup_keys:
+    for key in server_keys:
         count+=1
-        if (key==teamup_keys[-1]):
+        if (key==server_keys[-1]):
             line_ending='\n}'
         else:
             line_ending=',\n'
