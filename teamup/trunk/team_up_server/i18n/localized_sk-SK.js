@@ -7,9 +7,9 @@
 
 "New to TeamUp?": "Nový v TeamUp?",
 "Create new classroom": "Vytvoriť novú triedu",
-"Go to classroom": "Choď do triedy",
-"Create classroom": "Vytvoriť triedu",
-"Go to it!": "Choď na to!",
+"Go to classroom": "Ísť do triedy",
+"Create classroom": "Vytvor triedu",
+"Go to it!": "Urob to!",
 
 "Classroom name": "Meno triedy",
 "Sorry, no such classroom.": "Prepáčte, daná trieda neexistuje.",
