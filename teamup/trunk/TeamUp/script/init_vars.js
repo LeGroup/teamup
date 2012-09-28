@@ -5,7 +5,7 @@ var MODERATOR=true;
 var SMART_ENABLED=false;
 
 //var SERVER_URL='http://teamup.aalto.fi/';
-var SERVER_URL='http://localhost/~purma/team_up_server/'; // localhost:8081 for node.js
+var SERVER_URL='http://teamup.aalto.fi/'; // localhost:8081 for node.js
 //var SERVER_URL='http://127.0.0.1/servTeamup/'; 
 
 

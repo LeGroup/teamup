@@ -1564,6 +1564,8 @@ div.ui-dialog-buttonset button{
 #save_note {
     padding: 4px 12px;
     color:#e0e0e0;
+    background-color: #3D3D3B !important;
+    z-index:20;
 }
 
 

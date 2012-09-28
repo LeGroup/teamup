@@ -183,7 +183,7 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 	 * @throws WookieConnectorException
 	 */
 
-	public function getInstance($Widget_or_GUID) {
+	public function getInstance($Widget_or_GUID, $userid) {
 		try {
 			if($Widget_or_GUID instanceof Widget) {
 				$guid = $Widget_or_GUID->getIdentifier();
@@ -194,18 +194,19 @@ class WookieConnectorService implements WookieConnectorServiceInterface {
 				throw new WookieConnectorException("No GUID nor Widget object");
 			}
 			$requestUrl = $this->getConnection()->getURL().'widgetinstances';
-			$request.= '?api_key='.urlencode($this->getConnection()->getApiKey());
-			$request.= '&userid='.urlencode($this->getUser()->getLoginName());
-			$request.= '&shareddatakey='.urlencode($this->getConnection()->getSharedDataKey());
-			$request.= '&widgetid='.urlencode($guid);
-		    if($locale = $this->getLocale()) {
-                $request .= '&locale='.urlencode($locale);
-            }
+			$data=array(
+				'api_key' => $this->getConnection()->getApiKey(),
+				'userid' => $userid,
+				'shareddatakey' => $this->getConnection()->getSharedDataKey(),
+				'widgetid' => $guid,
+                                'locale' => $this->getLocale()
+				);
+                	$request = @http_build_query($data);
 
 			if(!$this->checkURL($requestUrl)) {
 				throw new WookieConnectorException("URL for supplied Wookie Server is malformed: ".$requestUrl);
 			}
-			$response = $this->do_request($requestUrl.$request, false, 'GET');
+			$response = new HTTP_Response(@file_get_contents($requestUrl.'?'.$request, false, $this->getHttpStreamContext()), $http_response_header);
             if($response->getStatusCode() == 404) {
     			$this->getLogger()->write("not found");
                 return false;

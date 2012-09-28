@@ -39,7 +39,7 @@ function setInstanceParams() {
         return;
     }    
     data.task='set_params';
-    $.post('bridge.php', data, function(success) {
+    $.post('new_bridge.php', data, function(success) {
         if (success=='ok') {
             $('#progress').css('background','#aa0').show();
             go_there();
@@ -273,7 +273,7 @@ jQuery(document).ready(function() {
         data=getJoinData();
         data.task='get_instance';       
         $('#progress').css('background','#a0a').show();
-        $.get('bridge.php', data, function(instance_url) {
+        $.get('new_bridge.php', data, function(instance_url) {
             if (instance_url=='not found') {
                 no_class();
             } else {
@@ -331,7 +331,7 @@ jQuery(document).ready(function() {
         data=getJoinData();
         data.task='get_instance';       
         $('#progress').css('background','#a0a').show();
-        $.get('bridge.php', data, function(instance_url) {
+        $.get('new_bridge.php', data, function(instance_url) {
             if (instance_url=='not found') {
                 no_class();
             } else if (instance_url=='no server') {
@@ -360,7 +360,7 @@ jQuery(document).ready(function() {
         searching=true;
         data=getData();
         data.task='create_instance';
-        $.get('bridge.php', data, function(instance_url) {
+        $.get('new_bridge.php', data, function(instance_url) {
             $('#progress').css('background','#fa0').show();
             if (instance_url=='reserved') {
                 already_there();

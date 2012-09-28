@@ -52,7 +52,13 @@ TEAM_NOTES.show = function() {
     $('div.recordings').css('height', WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT);
     enable_nav();
     enable_bottom();
-    table.css('top',(WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480)/2+TOP_HEIGHT);
+    table.css('top',Math.max((WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480)/2, -20)+TOP_HEIGHT);
+    if (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480<-20) {
+        $('div.recordings table tr').first().hide();
+    } else {
+        $('div.recordings table tr').first().show();
+    }
+
     $('div.recordings').show('slide', {direction:'down'},300);
     $('#available_recordings').show('slide',{direction:'down'},300);
     view=TEAM_NOTES;    

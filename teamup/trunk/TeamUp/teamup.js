@@ -185,7 +185,15 @@ $(document).ready(function(){
             }
         } else if (view==LEARNER_VIEW) {
             $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
-        } 
+        } else if (view==TEAM_NOTES) {
+            $('div.recordings table').css('top',Math.max((WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480)/2, -40)+TOP_HEIGHT);
+            if (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480<-40) {
+                $('div.recordings table tr').first().hide();
+            } else {
+                $('div.recordings table tr').first().show();
+            }
+
+        }        
     });
 
 
