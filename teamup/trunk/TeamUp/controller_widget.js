@@ -8,9 +8,10 @@ if (typeof wave!== 'undefined') {
     CONTROLLER.init= function() {
         CONTROLLER.updateUser();
         wave.setStateCallback(CONTROLLER.stateUpdated);
-        //wave.setParticipantCallback(CONTROLLER.availablePeopleChanged);
+        wave.setParticipantCallback(CONTROLLER.availablePeopleChanged);
     }
     CONTROLLER.user={};
+    CONTROLLER.availablePeopleChanged=function() {}
     CONTROLLER.getLocale=function() { return widget.locale; }
     CONTROLLER.updateUser=function(){
     	if (wave.getViewer() != null){

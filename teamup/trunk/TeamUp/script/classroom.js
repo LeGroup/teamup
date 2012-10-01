@@ -63,7 +63,13 @@ CLASSROOM.populate_class= function() {
         }
     }
     
-    if (MODERATOR) $('div.face').draggable({zIndex:2700}).droppable({greedy:false, over:CLASSROOM.drag_over, out:CLASSROOM.drag_out, drop:CLASSROOM.drag_drop, tolerance:'pointer', scroll:false});
+    if (MODERATOR) {
+        $('div.face').draggable({zIndex:2700}).droppable({greedy:false, over:CLASSROOM.drag_over, out:CLASSROOM.drag_out, drop:CLASSROOM.drag_drop, tolerance:'pointer', scroll:false});
+        $('#new_person').show();        
+    } else {
+        $('#new_person').hide();
+    }
+
 
     $('div.face').click(LEARNER_VIEW.view_learner);
 //    $('span.away').click(function(event) {

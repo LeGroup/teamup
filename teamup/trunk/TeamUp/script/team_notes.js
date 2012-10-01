@@ -215,6 +215,8 @@ TEAM_NOTES.remove_note=function(event, confirmed) {
 TEAM_NOTES.load_this_note= function(event) {
     TEAM_NOTES.load_note(getData($(this)));
     TEAM_NOTES.view_mode(event);
+    // autoplay is now enabled-- TODO 1.10. 
+    $('#note_player').jPlayer("play", 0);
 }  
 
 TEAM_NOTES.empty_note= function() {
@@ -224,7 +226,6 @@ TEAM_NOTES.empty_note= function() {
     $('#note_player').jPlayer("setMedia", {mp3:''});
     $('#timer_text span.now').text('0:00');
     $('#timer_text span.max_duration').text('0:00');
-
 }
 
 

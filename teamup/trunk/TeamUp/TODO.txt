@@ -1,0 +1,9 @@
+TODO
+1.10. 2012:
+
+-Autoplay on when viewing videos -- fixed 1.10
+-Keep-button closer to player/recorder  -- fixed 1.10
+-Larger font for instruction text -- fixed 1.10
+-Hide new_student -button from student's class view. -- fixed 1.10
+
+
