@@ -306,7 +306,7 @@ $(document).ready(function(){
 });
 
 
-window.onbeforeunload = function(e){ return "Note: Please don't use refresh or previous page buttons to navigate in TeamUp"; };
+//window.onbeforeunload = function(e){ return "Note: Please don't use refresh or previous page buttons to navigate in TeamUp"; };
 
 // **********************************
 // Options view
