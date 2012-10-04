@@ -1,6 +1,12 @@
 <?php
 date_default_timezone_set('Europe/Helsinki');
-$log = fopen("log/teamup.log", 'a');
+header("Expires: Mon, 25 Jan 1970 05:00:00 GMT");   
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT"); 
+header("Cache-Control: no-store, no-cache, must-revalidate");  
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+$log = fopen("log/teamup2.log", 'a');
 fwrite($log, date("r")." --- Incoming newsflash:\n");
 if (isset($_FILES['photo'])) {
     fwrite($log, $_FILES['photo']['size']." bytes.\n");

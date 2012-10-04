@@ -1,7 +1,7 @@
 {
 "Language code": "pt-PT",
 "Translator": "José Moura Carvalho",
-"Translator email": "jose.moura.carvalho@dgidc.min-edu.pt",
+"Translator email": "jose.moura.carvalho@dge.mec.pt",
 "Form teams based on skills and interests, record teams' progress.": "Formar equipas baseadas nas competências e interesses, gravar o progresso das equipas",
 "Already in a classroom?": "Já faz parte de uma equipa?",
 

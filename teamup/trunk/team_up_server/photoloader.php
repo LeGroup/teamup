@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('Europe/Helsinki');
-$log = fopen("log/teamup.log", 'a');
+$log = fopen("log/teamup2.log", 'a');
 if (getenv("HTTP_CLIENT_IP")) 
   $ip = getenv("HTTP_CLIENT_IP"); 
 else if(getenv("HTTP_X_FORWARDED_FOR")) 
