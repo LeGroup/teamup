@@ -33,12 +33,6 @@ var PUPILS=[];
 var TEAMS=[];
 var TOPICS=[];
 
-OPTIONS.language='';
-OPTIONS.show_icons=true;
-OPTIONS.always_show_names = false;
-OPTIONS.team_size = 4;
-OPTIONS.color=false;
-OPTIONS.clicker='None';
 
 
 // Creating criteria. These could also come from somewhere else.
@@ -145,7 +139,7 @@ $(document).ready(function(){
     $('div.left_menu_nav').click(go_left_slider);
     $('div.right_menu_nav').click(go_right_slider);
     $('#leave_iframe').click(function () {window.open(self.location, 'TeamUp')});
-    $('#prefs_button').click(CLASSROOM.go_options).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#prefs_button').click(OPTIONS.toggle).keyup(function(e){if(e.keyCode==13) $(this).click()});
 
     
     // Classroom functionalities
@@ -156,8 +150,7 @@ $(document).ready(function(){
     $('#names_submit').click(CLASSROOM.prepare_new_classroom);
     $('#join_submit').click(CLASSROOM.join_classroom);
     CONTROLLER.init();
-    OPTIONS.language=guess_language();
-    debug('Language: '+OPTIONS.language);
+    OPTIONS.guess_language();
     localize();
     if (top !== self) $('#leave_iframe').show();
     if (CONTROLLER.offline && getUrlVars().first) $('#teacher-panel').dialog('open');     
@@ -253,46 +246,7 @@ $(document).ready(function(){
     $("#try_again_photo").click(CAMERA.redo_photoshoot),
     $("#cancel_photo").click(CAMERA.finish_photoshoot),
     // Options
-    $('#team_size').val(OPTIONS.team_size);
-    $('#team_size').change(function(event) {OPTIONS.team_size=$(this).val();});
-    $('#show_icons').attr('checked', OPTIONS.show_icons);
-    $('#show_icons').change(function(event) {
-        OPTIONS.show_icons=this.checked;
-        CONTROLLER.setOption('SHOW_ICONS', OPTIONS.show_icons);
-        CONTROLLER.sendChanges();
-        });
-    $('#show_names').change(function(event) {
-        OPTIONS.always_show_names=this.checked;
-        CLASSROOM.update_faces();
-        });
-    var s="";
-    var check;
-    for (key in LANGUAGES) {
-        s+='<option value="'+key+'">'+LANGUAGES[key]+'</option>';
-    }
-    $('#language_select').html(s);
-    $('#language_select').val(OPTIONS.language);
-    $('#language_select').change(function(event) {
-        OPTIONS.language=$(this).val();
-        URL_VARS['locale']=OPTIONS.language;
-        if (window.location.href.indexOf('?')==-1) {
-            window.location=window.location.href+'?'+$.param(URL_VARS);
-        } else {            
-            window.location=window.location.href.slice(0,window.location.href.indexOf('?')+1)+$.param(URL_VARS);
-        }
-    });
-    $('#teacher_url, #learner_url, #panel_teacher_url, #panel_learner_url').click(function () {$(this).focus().select()});
-    $('#clicker_select').val(OPTIONS.clicker);
-    $('#clicker_select').change(function(event) {
-        OPTIONS.clicker=$(this).val();
-        SMART_ENABLED= (OPTIONS.clicker=='SMART');
-        if (SMART_ENABLED) {
-            smart_clicker_enable()
-        } else {
-            $('#smart_receiver').hide();
-        }
-    });
-    $('#clicker_select').change();
+    OPTIONS.init();
 
     LEARNER_VIEW.update_property_choices();
     // CLASSROOM has already been before we know if the user is moderator or not.
@@ -307,13 +261,6 @@ $(document).ready(function(){
 
 
 //window.onbeforeunload = function(e){ return "Note: Please don't use refresh or previous page buttons to navigate in TeamUp"; };
-
-// **********************************
-// Options view
-
-OPTIONS.hide = function() {
-    $('div.options').hide();     
-}
 
 
 // **********************************

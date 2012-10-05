@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<head>
+    <!-- TeamUp - a teacher's tool for forming learner teams
+    Copyright (C) 2011 Jukka Purma 
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see http://www.gnu.org/licenses/. --> 
+<META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<title>TeamUp - demo</title>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+<script type="text/javascript" src="/wookie/dwr/util.js"></script>
+<script type="text/javascript" src="/wookie/dwr/engine.js"></script>
+<script type="text/javascript" src="/wookie/dwr/interface/WidgetImpl.js"></script>
+<script type="text/javascript" src="/wookie/shared/js/wookie-wrapper.js"></script>
+<script type="text/javascript" src="/wookie/dwr/interface/WaveImpl.js"></script>
+<script type="text/javascript" src="/wookie/shared/js/wave.js"></script>
+<script language="javascript" type="text/javascript" src="jquery-1.7.2.min.js"></script>
+<script language="javascript" type="text/javascript" src="jquery.json.js"></script>
+<script>
+
+var MODERATOR=false;
+var PARAMS;
+
+if (typeof wave!== 'undefined') {
+    
+    var CONTROLLER = {};
+    CONTROLLER.delta={};
+    CONTROLLER.offline=false;
+
+    CONTROLLER.init= function() {
+        CONTROLLER.updateUser();
+        wave.setStateCallback(CONTROLLER.stateUpdated);
+        wave.setParticipantCallback(CONTROLLER.availablePeopleChanged);
+    }
+    CONTROLLER.user={};
+    CONTROLLER.availablePeopleChanged=function() {}
+    CONTROLLER.getLocale=function() { return widget.locale; }
+    CONTROLLER.updateUser=function(){
+        if (wave.getViewer() != null){
+            CONTROLLER.user.id = wave.getViewer().getId();
+            CONTROLLER.user.username = wave.getViewer().getDisplayName() || CONTROLLER.user.id;
+            CONTROLLER.user.thumbnail  = wave.getViewer().getThumbnailUrl();
+        }
+        if (CONTROLLER.user.thumbnail == "" || CONTROLLER.user.thumbnail == null) CONTROLLER.user.thumbnail = "anon.png";
+        if (CONTROLLER.user.username == null || CONTROLLER.user.username == ""){
+            CONTROLLER.user.username = "anonymouse";        
+            CONTROLLER.user.id = "anonymous";
+        }
+    }
+    
+    CONTROLLER.stateUpdated=function(){
+        $('body').append('State update called\n')
+        var state=wave.getState();        
+        if (!state) {
+            $('body').append('No state\n');
+            return;
+        }
+        var keys=state.getKeys();
+        map={};
+        for (var i=0;i<keys.length;i++) {
+
+            if (keys[i]=='PARAMS') {
+                // PARAMS need to be loaded only once per instance.
+                $('body').append('Setting params\n');
+                if (!PARAMS) {
+                    CONTROLLER.setParams(state.get(keys[i]));
+                }
+            }
+            map[keys[i]]=$.parseJSON(state.get(keys[i]));
+        }
+        if (MODERATOR) {
+            $('body').text($.toJSON(state.map));
+        }
+    }
+    
+    
+    CONTROLLER.setParams=function(param_json) {
+        PARAMS=$.parseJSON(param_json);
+        MODERATOR=(PARAMS.moderator_id==CONTROLLER.user.id);
+        $(document).attr('title', 'TeamUP - '+PARAMS.class_key);
+    }
+    
+    CONTROLLER.addChange=function(changed_object) {
+    }
+    
+    OPTIONS.addOption=function(option_key, value) {
+    }
+    
+    // arrays are different to objects as they need a given key, they don't have an uid that can be used.
+    // they also contain whole objects, so they have to be flattened to uids before sending. 
+    CONTROLLER.addArray=function(array_key, changed_array) {
+    }
+            
+    CONTROLLER.sendChanges=function() {
+    }
+
+}
+
+$(document).ready(function(){
+    $('body').append('document ready');
+    CONTROLLER.init();
+});
+</script>
+</head>
+<body>
+    Data goes here
+</body>
+</html>

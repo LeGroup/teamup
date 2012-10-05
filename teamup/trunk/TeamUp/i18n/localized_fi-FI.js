@@ -11,6 +11,7 @@
 "New learner" : "Uusi oppilas",
 "new teams" : "uudet ryhmät", 
 "Add learner":  "Uusi oppilas",
+"vote": "äänestä",
 
 "Remove learner": "Poista oppilas",
 "Take your photo" : "Ota kuva",

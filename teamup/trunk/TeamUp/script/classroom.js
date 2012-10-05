@@ -201,7 +201,9 @@ CLASSROOM.build_class_view = function (animate) {
 			team_note_obj.click(CLASSROOM.go_team_notes_by_number);
 			$('.team_notes').append(team_note_obj);
 		}
-	}
+	} else {
+        $('div.face').css('border-color','transparent');
+    }
     if (animate){
         $('div.face').animate({width:inner_size, height:inner_size});
         $('div.face img').animate({width:inner_size, height:inner_size});
@@ -430,35 +432,6 @@ CLASSROOM.create_random_teams= function() {
     CLASSROOM.redraw_team_labels();   
 }
 
-CLASSROOM.reset_teams= function(confirmed) {
-    if (!confirmed) {
-        var team_names='';
-        debug('Checking if teams have newsflashes...');
-        for( var i=0;i<TEAMS.length;i++) {
-            if (TEAMS[i].notes.length>0) {
-                team_names+=TEAMS[i].name+'<br/>';
-            }
-        }
-        if (team_names.length>0) {
-            debug('Found items... alerting user.');
-            $('#reset-confirm-panel').dialog("option", "buttons", { "Reset": function() {$(this).dialog("close");CLASSROOM.reset_teams(true); }, "Cancel": function() {$(this).dialog("close");} } );
-            $('#reset-confirm-panel').find('b').html(team_names);
-            $('#reset-confirm-panel').dialog('open');
-            $('div.ui-dialog-buttonpane').find('button:last').focus();
-            return;
-        }
-        debug("Didn't find news, continuing reset"); 
-    }
-    debug("Reset confirmed");
-    TEAMS=[];
-    if (MODERATOR) {
-        CONTROLLER.addArray('TEAMS', TEAMS);
-        CONTROLLER.sendChanges();
-    }
-    $('#grid_button').addClass('selected');
-    $('#teams_button').removeClass('selected');
-    CLASSROOM.build_class_view(true);
-}
 
 CLASSROOM.redraw_team_labels= function() {
     function focus_to_team_input() {
@@ -586,22 +559,6 @@ CLASSROOM.go_team_notes_by_number = function(event) {
     TEAM_NOTES.create_team_notes(team);
     CLASSROOM.hide();
     TEAM_NOTES.show();
-}
-
-CLASSROOM.go_options= function(event) {
-    if (view==OPTIONS) {
-        if (TEAM_VIEW) {
-            CLASSROOM.select_team_view();
-        } else {
-            CLASSROOM.select_class_view();
-        }
-        return;
-    }
-    view.hide();
-    disable_bottom();
-    disable_nav();
-    $('div.options').show('slide',{direction:'down'},300);
-    view=OPTIONS;
 }
 
 CLASSROOM.show = function(dir){

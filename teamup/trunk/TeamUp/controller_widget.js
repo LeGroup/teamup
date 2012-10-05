@@ -3,6 +3,7 @@ if (typeof wave!== 'undefined') {
     
     var CONTROLLER = {};
     CONTROLLER.delta={};
+    CONTROLLER.options_delta={};
     CONTROLLER.offline=false;
 
     CONTROLLER.init= function() {
@@ -60,8 +61,14 @@ if (typeof wave!== 'undefined') {
                     debug('*** Loading PARAMS ***')
                     CONTROLLER.setParams(state.get(key));
                 }
+            // this is deprecated, but better keep this to avoid problems (5.10. 2012)
             } else if (key=='SHOW_ICONS') {
                 OPTIONS.show_icons=$.parseJSON(state.get(key));
+            // this is the new way of setting options (5.10. 2012)
+            } else if (key=='OPTIONS') {
+                if (!OPTIONS.are_loaded) {
+                    OPTIONS.setOptions(state.get(key));
+                }
             } else {
                 if (CATALOG[key]) {
                     existing=$.extend(true, {}, CATALOG[key]);
@@ -300,6 +307,13 @@ if (typeof wave!== 'undefined') {
         }
     }
     
+    CONTROLLER.setOptions=function(option_json) {
+        opts=$.parseJSON(option_json);
+        for (var k in opts) {
+            OPTIONS[k]=opts[k];            
+        } 
+        OPTIONS.are_loaded=true;
+    }
     
     CONTROLLER.setParams=function(param_json) {
         debug(param_json);
@@ -335,9 +349,9 @@ if (typeof wave!== 'undefined') {
         CONTROLLER.delta[changed_object.uid]=JSON.stringify(changed_object);
     }
     
-    CONTROLLER.setOption=function(option_key, value) {
+    CONTROLLER.addOption=function(option_key, value) {
         debug('Changed option '+option_key+' to '+value);
-        CONTROLLER.delta[option_key]=JSON.stringify(value);
+        CONTROLLER.options_delta[option_key]=value;
     }
     
     // arrays are different to objects as they need a given key, they don't have an uid that can be used.
@@ -354,6 +368,11 @@ if (typeof wave!== 'undefined') {
         
     CONTROLLER.sendChanges=function() {
         CONTROLLER.checkConsistency();
+        if (Object.keys(CONTROLLER.options_delta).length>0) {
+            CONTROLLER.delta['OPTIONS']=JSON.stringify(CONTROLLER.options_delta);
+            CONTROLLER.options_delta={};
+        }
+
         debug('*** sending changes ***');
         wave.getState().submitDelta(CONTROLLER.delta);        
         CONTROLLER.delta={};

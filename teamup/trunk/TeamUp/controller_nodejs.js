@@ -259,7 +259,7 @@ CONTROLLER.addChange=function(changed_object) {
     CONTROLLER.delta[changed_object.uid]= changed_object; //JSON.stringify(changed_object);
 }
 
-CONTROLLER.setOption=function(option_key, value) {
+OPTIONS.addOption=function(option_key, value) {
     debug('Changed option '+option_key+' to '+value);
     CONTROLLER.delta[option_key]= value; //JSON.stringify(value);
 }

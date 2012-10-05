@@ -2,6 +2,8 @@
 
 var CONTROLLER = {};
 CONTROLLER.delta={};
+CONTROLLER.options_delta={};
+
 CONTROLLER.offline=true;
 CONTROLLER.init= function() {
 }
@@ -47,9 +49,9 @@ CONTROLLER.addChange=function(changed_object) {
     CONTROLLER.delta[changed_object.uid]=JSON.stringify(changed_object);
 }
 
-CONTROLLER.setOption=function(option_key, value) {
+CONTROLLER.addOption=function(option_key, value) {
     debug('Changed option '+option_key+' to '+value);
-    CONTROLLER.delta[option_key]=JSON.stringify(value);
+    CONTROLLER.options_delta[option_key]=value;
 }
 
 // arrays are different to objects as they need a given key, they don't have an uid that can be used.
@@ -66,6 +68,11 @@ CONTROLLER.addArray=function(array_key, changed_array) {
     
 CONTROLLER.sendChanges=function() {
     CONTROLLER.checkConsistency();
+    if (Object.keys(CONTROLLER.options_delta).length>0) {
+        CONTROLLER.delta['OPTIONS']=JSON.stringify(CONTROLLER.options_delta);
+        CONTROLLER.options_delta={};
+    }
+
     debug('*** sending changes called (offline) ***');
     CONTROLLER.delta={};
     return;
