@@ -203,6 +203,7 @@ function hslToRgb(h, s, l){
 
 
 function getUrlVars() {
+    debug('getting URL vars...');
     var vars = {};
     if (window.location.href.indexOf('?')==-1) return vars;
     var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
@@ -210,7 +211,8 @@ function getUrlVars() {
     {
         hash = hashes[i].split('=');
         vars[hash[0]] = hash[1];
-    }
+        debug('URL var:'+hash[0]+', '+hash[1]);
+    }    
     return vars;
 }
 
@@ -230,7 +232,8 @@ function fs_friendly_string(s) {
 }
 
 function guess_language(){
-    return URL_VARS.locale || CONTROLLER.getLocale() || navigator.language || navigator.userLanguage;
+    debug(URL_VARS.locale+'|'+CONTROLLER.getLocale()+'|'+OPTIONS.default_language+'|'+navigator.language+'|'+navigator.userLanguage)
+    return URL_VARS.locale || CONTROLLER.getLocale() || OPTIONS.default_language || navigator.language || navigator.userLanguage;
 }
 
 function localize(){

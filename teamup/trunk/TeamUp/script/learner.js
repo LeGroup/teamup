@@ -401,7 +401,7 @@ LEARNER_VIEW.populate_person_properties= function(props) {
         } else {
             class_name='property_picker_item';
         }
-        s='<div class="'+class_name+'" alt="'+i18n(prop.name)+'" title="'+i18n(prop.name)+'" id="prop'+i+'">';
+        s='<div class="'+class_name+'" id="prop'+i+'">';
         if (prop.img_src!=null) {
             s+='<img src="'+prop.img_src+'" width="60" height="60" />';
         } else {

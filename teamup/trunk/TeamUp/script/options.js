@@ -1,12 +1,14 @@
 
 // defaults: 
 OPTIONS.language='';
+OPTIONS.default_language='';
 OPTIONS.show_icons=true;
 OPTIONS.always_show_names = false;
 OPTIONS.team_size = 4;
 OPTIONS.color=false;
 OPTIONS.clicker='None';
 OPTIONS.are_loaded=false;
+OPTIONS.wait_for_load=false;
 
 OPTIONS.init = function() {
     var s="";
@@ -119,16 +121,23 @@ OPTIONS.set_show_names = function(event) {
 OPTIONS.set_language = function(event) {
     OPTIONS.language=$(this).val();
     URL_VARS['locale']=OPTIONS.language;
+    new_url='';
+    if (window.location.href.indexOf('?')==-1) {
+        new_url=window.location.href+'?'+$.param(URL_VARS);
+    } else {            
+        new_url=window.location.href.slice(0,window.location.href.indexOf('?')+1)+$.param(URL_VARS);
+    }
     if (MODERATOR) {
+        OPTIONS.default_language=OPTIONS.language;
 	    CONTROLLER.addOption('default_language', OPTIONS.default_language);
     	CONTROLLER.sendChanges();
     }
 	OPTIONS.are_loaded=true;
 
-    if (window.location.href.indexOf('?')==-1) {
-        window.location=window.location.href+'?'+$.param(URL_VARS);
-    } else {            
-        window.location=window.location.href.slice(0,window.location.href.indexOf('?')+1)+$.param(URL_VARS);
+    if (MODERATOR) {
+        $('#reload_link').attr('href', new_url).show();
+    } else {
+        window.location=new_url;
     }
 }
 

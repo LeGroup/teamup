@@ -150,8 +150,11 @@ $(document).ready(function(){
     $('#names_submit').click(CLASSROOM.prepare_new_classroom);
     $('#join_submit').click(CLASSROOM.join_classroom);
     CONTROLLER.init();
-    OPTIONS.guess_language();
-    localize();
+    if (!OPTIONS.wait_for_update) {
+        OPTIONS.guess_language();
+        localize();
+        OPTIONS.init();
+    }
     if (top !== self) $('#leave_iframe').show();
     if (CONTROLLER.offline && getUrlVars().first) $('#teacher-panel').dialog('open');     
     if (CONTROLLER.offline) $('#debug').hide();
@@ -245,8 +248,6 @@ $(document).ready(function(){
     $("#keep_photo").click(CAMERA.keep_photo),
     $("#try_again_photo").click(CAMERA.redo_photoshoot),
     $("#cancel_photo").click(CAMERA.finish_photoshoot),
-    // Options
-    OPTIONS.init();
 
     LEARNER_VIEW.update_property_choices();
     // CLASSROOM has already been before we know if the user is moderator or not.

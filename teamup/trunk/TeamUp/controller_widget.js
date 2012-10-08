@@ -10,6 +10,7 @@ if (typeof wave!== 'undefined') {
         CONTROLLER.updateUser();
         wave.setStateCallback(CONTROLLER.stateUpdated);
         wave.setParticipantCallback(CONTROLLER.availablePeopleChanged);
+        OPTIONS.wait_for_update=true;
     }
     CONTROLLER.user={};
     CONTROLLER.availablePeopleChanged=function() {}
@@ -67,7 +68,12 @@ if (typeof wave!== 'undefined') {
             // this is the new way of setting options (5.10. 2012)
             } else if (key=='OPTIONS') {
                 if (!OPTIONS.are_loaded) {
-                    OPTIONS.setOptions(state.get(key));
+                    debug('*** Setting options ***');
+                    CONTROLLER.setOptions(state.get(key));
+                    OPTIONS.are_loaded=true;
+                    OPTIONS.guess_language();
+                    localize();
+                    OPTIONS.init();
                 }
             } else {
                 if (CATALOG[key]) {
@@ -309,10 +315,11 @@ if (typeof wave!== 'undefined') {
     
     CONTROLLER.setOptions=function(option_json) {
         opts=$.parseJSON(option_json);
+        debug(option_json)
         for (var k in opts) {
-            OPTIONS[k]=opts[k];            
+            OPTIONS[k]=opts[k];
+            debug('setting option '+k+' to '+opts[k])            
         } 
-        OPTIONS.are_loaded=true;
     }
     
     CONTROLLER.setParams=function(param_json) {
