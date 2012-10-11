@@ -3,7 +3,6 @@ if (typeof wave!== 'undefined') {
     
     var CONTROLLER = {};
     CONTROLLER.delta={};
-    CONTROLLER.options_delta={};
     CONTROLLER.offline=false;
 
     CONTROLLER.init= function() {
@@ -48,33 +47,44 @@ if (typeof wave!== 'undefined') {
         var key, existing, update, change, obj;
         debug('received '+keys.length+' objects');
     
+        // set params
+        if (state.get('PARAMS')) {
+            // PARAMS need to be loaded only once per instance.
+            if (!PARAMS) {
+                debug('*** Loading PARAMS ***')
+                CONTROLLER.setParams(state.get('PARAMS'));
+            }
+        }
+
+        if (state.get('OPTIONS')) {
+            if (!OPTIONS.are_loaded) {
+                debug('*** Setting options ***');
+                CONTROLLER.setOptions(state.get('OPTIONS'));
+                OPTIONS.are_loaded=true;
+                OPTIONS.guess_language();
+                localize();
+                OPTIONS.init();
+            }
+        } else if (!OPTIONS.are_loadead) {
+            debug('*** no options in state, initializing them ***')
+            OPTIONS.are_loaded=true;
+            OPTIONS.guess_language();
+            localize();
+            OPTIONS.init();
+        }
+        if (state.get('SHOW_ICONS')) {
+            OPTIONS.show_icons=$.parseJSON(state.get('SHOW_ICONS'));            
+        }
+
+
         for (var i=0;i<keys.length;i++) {
             key=keys[i];
             if (key=='deleted') {
                 // this holds list of uids for objects that should be deleted
                 continue;
-            } else if (key=='TOPICS' || key=='TEAMS' || key=='PUPILS') {
+            } else if (key=='TOPICS' || key=='TEAMS' || key=='PUPILS' || key=='PARAMS' || key=='OPTIONS' || key=='SHOW_ICONS') {
                 // ignore these arrays. they will be checked and updated later when each new object has uid.
                 continue;
-            } else if (key=='PARAMS') {
-                // PARAMS need to be loaded only once per instance.
-                if (!PARAMS) {
-                    debug('*** Loading PARAMS ***')
-                    CONTROLLER.setParams(state.get(key));
-                }
-            // this is deprecated, but better keep this to avoid problems (5.10. 2012)
-            } else if (key=='SHOW_ICONS') {
-                OPTIONS.show_icons=$.parseJSON(state.get(key));
-            // this is the new way of setting options (5.10. 2012)
-            } else if (key=='OPTIONS') {
-                if (!OPTIONS.are_loaded) {
-                    debug('*** Setting options ***');
-                    CONTROLLER.setOptions(state.get(key));
-                    OPTIONS.are_loaded=true;
-                    OPTIONS.guess_language();
-                    localize();
-                    OPTIONS.init();
-                }
             } else {
                 if (CATALOG[key]) {
                     existing=$.extend(true, {}, CATALOG[key]);
@@ -135,6 +145,7 @@ if (typeof wave!== 'undefined') {
                 }
             }
         }
+
         var teams_changed=false;
         var people_changed=false;
         var order_changed=false;
@@ -315,10 +326,8 @@ if (typeof wave!== 'undefined') {
     
     CONTROLLER.setOptions=function(option_json) {
         opts=$.parseJSON(option_json);
-        debug(option_json)
         for (var k in opts) {
             OPTIONS[k]=opts[k];
-            debug('setting option '+k+' to '+opts[k])            
         } 
     }
     
@@ -358,7 +367,7 @@ if (typeof wave!== 'undefined') {
     
     CONTROLLER.addOption=function(option_key, value) {
         debug('Changed option '+option_key+' to '+value);
-        CONTROLLER.options_delta[option_key]=value;
+        CONTROLLER.delta['OPTIONS']=JSON.stringify(OPTIONS.save_options());
     }
     
     // arrays are different to objects as they need a given key, they don't have an uid that can be used.
@@ -375,10 +384,6 @@ if (typeof wave!== 'undefined') {
         
     CONTROLLER.sendChanges=function() {
         CONTROLLER.checkConsistency();
-        if (Object.keys(CONTROLLER.options_delta).length>0) {
-            CONTROLLER.delta['OPTIONS']=JSON.stringify(CONTROLLER.options_delta);
-            CONTROLLER.options_delta={};
-        }
 
         debug('*** sending changes ***');
         wave.getState().submitDelta(CONTROLLER.delta);        

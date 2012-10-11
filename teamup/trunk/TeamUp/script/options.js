@@ -13,12 +13,15 @@ OPTIONS.wait_for_load=false;
 OPTIONS.init = function() {
     var s="";
     var check;
+    debug('Initializing options sheet');
 
     $('#team_size').val(OPTIONS.team_size);
     $('#team_size').change(OPTIONS.set_team_size);
     $('#show_icons').attr('checked', OPTIONS.show_icons);
     $('#show_icons').change(OPTIONS.set_show_icons);
-    $('#show_names').change(OPTIONS.set_show_names)
+    $('#show_names').change(OPTIONS.set_show_names);
+    $('#show_names').attr('checked', OPTIONS.always_show_names);
+
     for (key in LANGUAGES) {
         s+='<option value="'+key+'">'+LANGUAGES[key]+'</option>';
     }
@@ -31,6 +34,14 @@ OPTIONS.init = function() {
     $('#clicker_select').val(OPTIONS.clicker);
     $('#clicker_select').change(OPTIONS.set_clicker);
     $('#clicker_select').change();
+}
+OPTIONS.save_options = function() {
+    var d={};
+    d.default_language= OPTIONS.default_language;
+    d.show_icons= OPTIONS.show_icons;
+    d.always_show_names= OPTIONS.always_show_names;
+    d.team_size= OPTIONS.team_size;
+    return d;
 }
 
 OPTIONS.guess_language= function() {

@@ -1,6 +1,6 @@
 
 var DEMO=true;
-var DEBUG_MODE=true;
+var DEBUG_MODE=false;
 var MODERATOR=true;
 var SMART_ENABLED=false;
 
