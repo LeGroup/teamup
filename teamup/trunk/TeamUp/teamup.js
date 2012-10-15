@@ -199,7 +199,8 @@ $(document).ready(function(){
         ready:TEAM_NOTES.prepare_audio,        
         timeupdate: TEAM_NOTES.show_play_progress,
         play: TEAM_NOTES.play,
-        loadeddata: TEAM_NOTES.set_up_timeline 
+        loadeddata: TEAM_NOTES.set_up_timeline,
+        backgroundColor: '#3D3D3B'
     });
 
     $('#recorder_toggle').click(RECORDER.prepare_recorder);

@@ -93,7 +93,8 @@
     </div>
     <div class="person">
         <table><tr>
-            <td class="center" style="position:relative;">
+            <td class="center">
+                <div style="position:relative;">
                 <div class="portrait">
                     <img src="" class="large_portrait" width="220" />
 					<div class="namebox"><input id="namebox" type="text" size="40" value="" /></div>
@@ -104,7 +105,7 @@
                     
                     <div id="PhotoBooth">Requires Flash 10.3 or greater with camera support.</div>
                 </div>
-
+                </div>
             </td>
             <td rowspan="2" valign="top" id="right_side_of_camera">
             	<div id="save_portrait">
@@ -196,7 +197,8 @@
         </td></tr>
 
         <tr height="240">
-        <td valign="top" width="240" height="240" style="position:relative">
+        <td valign="top" width="240" height="240">
+            <div style="position:relative">
             <div id="note_recorder">
                 <div id="TeamRecorder">Requires Flash 10.3 or greater with camera support.</div>
             </div>
@@ -205,11 +207,12 @@
                 <img src="" alt="" id="note_photo_img" width="240" height="240" />
             </div>
             <div id="recorder_toggle" class="button"></div>
-            
+            </div>
 
         </td>
         
-            <td width="240" align="left" style="position:relative">
+            <td width="240" align="left">
+                <div style="position:relative">
                 <div class="recorder_panel" id="note_questions">
                     <p><span class="i18n">What we did.</span> <span class="check">&#x2713;</span></p>
                     <p><span class="i18n">What we will do.</span> <span class="check">&#x2713;</span></p>
@@ -225,12 +228,13 @@
                 <div id="vumeter_7" class="vumeter"></div>
                 <div id="vumeter_8" class="vumeter"></div>
                 <div id="vumeter_9" class="vumeter"></div>
+            </div>
             </td>
         </tr>
         <tr>
-        <td colspan="2" style="position:relative">
+        <td colspan="2">
+            <div style="position:relative">
 
-            <div id="note_player" class="jp-jplayer"></div>               
             <div id="player_interface" class="jp-interface">
 
 
@@ -255,11 +259,14 @@
             </div>                                    
             </div>
             <div id="save_note" class="button disabled i18n">keep</div>
-
+            </div>
         </td>
         </tr>
         
         </table>
+        <div id="note_player" class="jp-jplayer"></div>               
+
+    </center>
     
     
 

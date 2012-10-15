@@ -247,7 +247,8 @@ function localize(){
 	} else if (lang.length == 2) {
 	    lang = lang+'-'+lang.toUpperCase();   
 	}
-	if (lang=='en-EN') return;
+	if (lang=='en-EN' || lang=='en-US') return;
+    debug('loading i18n/localized_'+lang+'.js');
     jQuery.ajax("i18n/localized_"+lang+".js", {
         dataType: "json",
         isLocal: true,     
@@ -260,7 +261,6 @@ function localize(){
             // Change all of the static strings in index.html
             var place;
             localizedStrings=$.parseJSON(data.responseText);
-            debug(''+Object.keys(localizedStrings).length+' translation keys available');
             $('.i18n').each(function (i) {
                 $(this).html(i18n($(this).html()));
             })

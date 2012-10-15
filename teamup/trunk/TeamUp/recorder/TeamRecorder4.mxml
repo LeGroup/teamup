@@ -178,7 +178,7 @@
 				mymic.soundTransform = new SoundTransform(0,0);
 				mymic.setLoopBack(true);
 				
-				recorder= new MicRecorder( wavEncoder, mymic );
+				recorder= new MicRecorder( wavEncoder, mymic, 100,22);
     			recorder.addEventListener(RecordingEvent.RECORDING, _onRecording);
     			recorder.addEventListener(Event.COMPLETE, _onRecordComplete);
 
