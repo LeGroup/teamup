@@ -65,10 +65,11 @@ RECORDER.prepare_recorder=function() {
     $('#timer_text span.max_duration').text('0:00');
 
     if (!RECORDER.getRecorder()) {
-        swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{},{});
+        swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{wmode:"opaque"},{});
     }
     $('#note_photo').hide();
     $('#note_recorder').css('border-color','transparent').show();
+    RECORDER.on=true;
 }
 
 
@@ -289,7 +290,8 @@ RECORDER.save_note= function() {
 
     if (rec) {
         rec.saveRecording(server_path, class_uid, note_uid); 
-    }        
+    }
+
     $('#save_note').off('click');
     $('#rec_indicator').off('click').removeClass('active');
     $('#recorder_play_button').off('click').removeClass('active');
@@ -311,7 +313,8 @@ RECORDER.finished_recording= function(path) {
     team.notes.push(note.uid);
     CONTROLLER.addChange(team);
     CONTROLLER.sendChanges();
-    TEAM_NOTES.create_team_notes(team);        
+    TEAM_NOTES.create_team_notes(team);
+           
 }
 
 RECORDER.uploading_recording= function() {

@@ -76,7 +76,10 @@ TEAM_NOTES.highlight_question= function(n) {
 }
 
 TEAM_NOTES.create_team_notes= function(team) {
-    CAMERA.on=false;
+    if (RECORDER.on) {
+        
+    }
+    RECORDER.on=false;
     TEAM_NOTES.highlight_question(0);
     $('#note_questions p').first().addClass('highlight');
 
@@ -254,7 +257,7 @@ TEAM_NOTES.view_mode= function(event) {
         {return;}
     $('#note_recorder').hide();
     $('#save_note').addClass('disabled');
-    CAMERA.on=false;
+    RECORDER.on=false;
 }
 
 //    <div id="note_recorder_help" style="display:none">

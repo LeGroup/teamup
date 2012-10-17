@@ -178,7 +178,7 @@
 				mymic.soundTransform = new SoundTransform(0,0);
 				mymic.setLoopBack(true);
 				
-				recorder= new MicRecorder( wavEncoder, mymic, 100,22);
+				recorder= new MicRecorder( wavEncoder, mymic);
     			recorder.addEventListener(RecordingEvent.RECORDING, _onRecording);
     			recorder.addEventListener(Event.COMPLETE, _onRecordComplete);
 
@@ -282,7 +282,8 @@
                 startRecording();
             }
             private function saveRecording(server_path:String, class_name:String, group_name:String ): void {
-                _display.text = 'Sending audio file...';                
+                _display.text = 'Sending audio file...';
+                video.attachCamera(null);             
 
                 var ml:MultipartURLLoader = new MultipartURLLoader();
                 ml.addEventListener(Event.COMPLETE, onReady);
@@ -324,10 +325,10 @@
                     _display.text= error.message + error.toString();
                 } finally {};
                 
-				uploaderTimer = new Timer(10000);
-				uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
-                uploaderTimer.reset();                      
-                uploaderTimer.start();                      
+				//uploaderTimer = new Timer(10000);
+				//uploaderTimer.addEventListener(TimerEvent.TIMER, forceFinish);
+                //uploaderTimer.reset();                      
+                //uploaderTimer.start();                      
             }
             private function keepPhoto(server_path:String, class_name:String, group_name:String ) : void {
                 _display.text = 'Sending team photo...';                
@@ -344,7 +345,7 @@
                 function forceFinish(event : Event) : void {
                     // if the MultipartURLLoader hasn't responded in 20 seconds, assume that its return message is messed up
                     // and the files are there. Send end notification.
-                    ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
+                    //ExternalInterface.call("sentGroupPhoto", class_name+'/'+group_name);
                 }            
                 ml.addVariable('class_id', class_name);
                 ml.addVariable('record_id', group_name);                
