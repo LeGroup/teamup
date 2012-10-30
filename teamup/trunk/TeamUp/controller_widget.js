@@ -4,6 +4,7 @@ if (typeof wave!== 'undefined') {
     var CONTROLLER = {};
     CONTROLLER.delta={};
     CONTROLLER.offline=false;
+    CONTROLLER.state_received=false;
 
     CONTROLLER.init= function() {
         CONTROLLER.updateUser();
@@ -49,11 +50,17 @@ if (typeof wave!== 'undefined') {
     
         // set params
         if (state.get('PARAMS')) {
-            // PARAMS need to be loaded only once per instance.
+            // PARAMS need to be set only once per instance.
             if (!PARAMS) {
                 debug('*** Loading PARAMS ***')
                 CONTROLLER.setParams(state.get('PARAMS'));
             }
+        } else {
+            // Class has no PARAMS set, so it is created directly through moodle's wookie-block or some other widget launcher.
+            
+
+
+
         }
 
         if (state.get('OPTIONS')) {
@@ -260,6 +267,7 @@ if (typeof wave!== 'undefined') {
                 INTERESTS.draw_topics(false);
             }
         }
+        CONTROLLER.state_received=true;
     }
 
     CONTROLLER.fullUpdate= function() {
@@ -386,8 +394,10 @@ if (typeof wave!== 'undefined') {
         CONTROLLER.checkConsistency();
 
         debug('*** sending changes ***');
-        wave.getState().submitDelta(CONTROLLER.delta);        
-        CONTROLLER.delta={};
+        if (CONTROLLER.state_received) {
+            wave.getState().submitDelta(CONTROLLER.delta);        
+            CONTROLLER.delta={};
+        }
     }
 
 }

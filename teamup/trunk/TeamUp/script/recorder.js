@@ -38,7 +38,7 @@ recorder_pause_button:hover         pause_lt_grey2.png
 **/
 
 
-RECORDER={on:false, duration:60, vumeter_values:[], vumeters: [$('#vumeter_0'), 
+RECORDER={on:false, duration:60, this_note_uid:'', vumeter_values:[], vumeters: [$('#vumeter_0'), 
     $('#vumeter_1'),
     $('#vumeter_2'),
     $('#vumeter_3'),
@@ -291,6 +291,7 @@ RECORDER.save_note= function() {
     if (rec) {
         rec.saveRecording(server_path, class_uid, note_uid); 
     }
+    RECORDER.this_note_uid=note_uid
 
     $('#save_note').off('click');
     $('#rec_indicator').off('click').removeClass('active');
@@ -306,7 +307,7 @@ RECORDER.finished_recording= function(path) {
     note.photos.push(SERVER_URL+path+'_pic.jpg');
     // Give it a proper uid before cataloging
     var team=getData($('#team_title'));
-    note.uid= path;
+    note.uid=RECORDER.this_note_uid=note_uid;
     // Now catalog & finalize it
     CATALOG[note.uid]=note;
     CONTROLLER.addChange(note);
