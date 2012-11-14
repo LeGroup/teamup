@@ -21,9 +21,9 @@
 "Add language": "Dil ekle",
 "Are you sure you want to permanently remove learner from class?": "Ogrenciyi sınıftan kalici olarak kaldirmak istediginizden emin misiniz?",
 "keep": "tut, devam ettir",
-"What we did.": Yaptigimiz sey",
+"What we did.": "Yaptigimiz sey",
 
-"What we will do.": Yapacagimiz sey",
+"What we will do.": "Yapacagimiz sey",
 "Any problems?": "Herhangi bir sorun var mi?",
 "Are you sure you want to permanently remove this note?": "Bu notu kalici olarak kaldirmak istediginizden emin misiniz?",
 "New teams - Collect topics and choose favorites": "Yeni takimlar icin- konular toplayin ve favoriler secin",
