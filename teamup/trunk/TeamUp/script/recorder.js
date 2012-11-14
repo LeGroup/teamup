@@ -307,7 +307,7 @@ RECORDER.finished_recording= function(path) {
     note.photos.push(SERVER_URL+path+'_pic.jpg');
     // Give it a proper uid before cataloging
     var team=getData($('#team_title'));
-    note.uid=RECORDER.this_note_uid=note_uid;
+    note.uid=RECORDER.this_note_uid;
     // Now catalog & finalize it
     CATALOG[note.uid]=note;
     CONTROLLER.addChange(note);

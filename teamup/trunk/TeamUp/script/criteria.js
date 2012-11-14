@@ -41,14 +41,20 @@ CRITERIA.init_dragging = function(){
     $('div.criteria_picker_item').click(function(event) {$(this).effect('bounce', {}, 200, null)});
 }
 
+CRITERIA.team_up_and_save = function(){
+    if (MODERATOR) {
+        CRITERIA.confirm_before_teaming();
+    }
+}
 CRITERIA.next = function(){
-    CRITERIA.confirm_before_teaming();
+    debug('***CRITERIA NEXT CALLED -- nobody should be doing this***')
     view.hide();
     view= CLASSROOM
     CLASSROOM.redraw_team_labels();
     view.show('right');
-    CLASSROOM.select_team_view(null);
+    CLASSROOM.select_team_view(null);    
 }
+
 CRITERIA.prev = function(){
     view.hide();
     view= INTERESTS
@@ -178,11 +184,11 @@ CRITERIA.populate_criteria_picker = function(crits) {
     debug('populating criteria picker');
     for (var i=0; i<crits.length; i++) {
         critgroup=crits[i];
-        s='<div class="criteria_picker_item" alt="'+i18n(critgroup.name)+'" title="'+i18n(critgroup.name)+'" id="cp_'+critgroup.name+'">';
+        s='<div class="criteria_picker_item" alt="'+critgroup.name+'" title="'+critgroup.name+'" id="cp_'+critgroup.name+'">';
         if (critgroup.img_src!=null) {
             s+='<img src="'+critgroup.img_src+'" width="60" height="60" />';
         } else {
-            s+='<label>'+i18n(critgroup.name)+'</label>'
+            s+='<label>'+critgroup.name+'</label>'
         }
         s+='</div>';
         place.append(s);

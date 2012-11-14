@@ -219,7 +219,7 @@ $(document).ready(function(){
     //$("#team_up_button").click(CRITERIA.confirm_before_teaming).keyup(function(e){if(e.keyCode==13) $(this).click()});
     $(".criteria div.placeholder").droppable({greedy:true, activeClass:'markDroppable2', hoverClass:'drophover2', tolerance:'pointer', drop: CRITERIA.add_unifying_crit});
     $("td.criteria_background").droppable({accept:'div.criteria_item', drop:CRITERIA.remove_unifying_crit});
-    $('#criteria_next').click(CRITERIA.next).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#criteria_next').click(CRITERIA.team_up_and_save).keyup(function(e){if(e.keyCode==13) $(this).click()});
     $('#refresh_preview').click(function() { CRITERIA.team_up();CRITERIA.update_preview() }).keyup(function(e){if(e.keyCode==13) $(this).click()});
 
     // People functionalities

@@ -125,9 +125,9 @@ function isVisible(jqobj) {
 function i18n(str){
     if (!localizedStrings || !str) return str;
     var locstr = localizedStrings[str];
-    if (locstr == null || locstr == "") {
+    if (!locstr) {
         debug('missing: '+str);
-        locstr = str;
+        return str;
     }
     return locstr;
 }

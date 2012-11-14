@@ -27,6 +27,7 @@ CLASSROOM.populate_class= function() {
     var place=$('div.class_area');
     place.html('');
     var pup,s,obj, update;
+    debug('Populate class');
     for (var i=0; i<PUPILS.length; i++) {
         pup=PUPILS[i];
         s='<div class="face" id="pup'+pup.uid+'"><label>'+pup.name+'</label><img src="'+pup.img_src+'" width="100" height="100" /></div>';
@@ -47,6 +48,7 @@ CLASSROOM.populate_class= function() {
     }
     for (var i=0; i<TEAMS.length; i++) {
         team=TEAMS[i];
+
         if (!team.color) {
             var colors=create_colors(TEAMS.length);
             for (var k=0; k<TEAMS.length; k++) {
@@ -56,9 +58,11 @@ CLASSROOM.populate_class= function() {
                 update=true;
             }
         }
+        place=$('div.class_area');
         for (var j=0; j<team.members.length; j++) {
-            pup=team.members[j];
-            obj=place.find('#pup'+pup.uid);            
+            pup_uid=team.members[j];
+            debug(pup_uid);            
+            obj=place.find('#pup'+pup_uid);
             obj.css('border-color',team.color);            
         }
     }
@@ -186,8 +190,7 @@ CLASSROOM.build_class_view = function (animate) {
 	
 	
 	//Build team note icons
-	if(TEAMS.length > 0)
-	{
+	if(TEAMS.length > 0) {
 		if (animate) { $('div.team_notes').stop().animate({opacity:1.0},1200); }
 		
 		$('.team_notes').empty().css({ left: x - 50, top: y });
