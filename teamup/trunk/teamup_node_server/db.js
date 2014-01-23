@@ -5,22 +5,29 @@ var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
 
 DataProvider = function(host, port) {
-  this.db= new Db('teamup', new Server(host, port, {auto_reconnect: true}), {strict: true});
+  this.db= new Db('teamup', new Server(host, port, {auto_reconnect: true}), {strict: true, journal: true});
   this.db.open(function(){});
 };
 
 DataProvider.prototype.getCollection= function(classroom_id, callback) {
-  console.log('Reaching classroom '+classroom_id);  
-  this.db.collection(classroom_id, function(error, classroom) {
-    if( error ) {
-        console.log('Not found/error');
-        callback(error);
+    function exists(arr, collection) {
+        for(var i=0, len=arr.length; i<len; ++i) {
+            if(arr[i].name == "teamup." + collection) return true;
+        }
+        return false;
     }
-    else {
-        console.log('Classroom found');
-        callback(null, classroom);
-    }
-  });
+    var that=this;
+    this.db.collectionNames(function(err, names) {
+        if(err) throw err;
+        if(exists(names, classroom_id)) {
+            that.db.collection(classroom_id, function(err, classroom) {
+                if(err) throw err;
+                callback(null, classroom);
+                return;
+            });
+        }
+        else callback("Classroom does not exist");
+    });
 };
 
 DataProvider.prototype.createClassroom= function(data, callback) {  
@@ -34,7 +41,7 @@ DataProvider.prototype.createClassroom= function(data, callback) {
         console.log('Classroom created');
         // setting classroom properties
         classroom.save({uid:'setup', class_key:data.c, email:data.e, locale:data.l, teacher:data.u, teacher_link:data.tl, student_link:data.sl, names:data.n, version:1}, function (err) {
-            if (err) console.log("Error saving settings")
+            if (err) console.log("Error saving settings");
             else {
                 console.log("Saved settings"); 
                 callback(null);
@@ -76,7 +83,7 @@ DataProvider.prototype.giveFullClass = function(classroom_id, callback) {
         if (error) { 
             console.log("Couldn't find classroom to dump"); 
             callback(error, '');
-        } else {        
+        } else {
             classroom.find().toArray(function(err, arr) {
                 console.log("Returning as array, "+arr.length); 
                 callback(null,arr);

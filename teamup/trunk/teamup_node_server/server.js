@@ -52,8 +52,7 @@ function start() {
         var pathname = url.parse(request.url).pathname;
         //console.log("Request for " + pathname + " received.");
         if (pathname=='/app/') {
-            console.log("Connecting to client");
-            file.serve(request, response);        
+            file.serve(request, response);
         } else if (typeof handle[pathname] === 'function') {
             console.log("Request for "+pathname+" catched by requestHandler."); 
             handle[pathname](response, request)
@@ -97,7 +96,7 @@ function start() {
                             // at this point email should be sent
                             response.write('app/?c='+data.c);
                         }
-                        response.end()
+                        response.end();
                     });
                 } else {
                     console.log("Classroom exists, cannot create");                    
@@ -174,7 +173,7 @@ function start() {
                         socket.emit('full_update', data)
                     }
                 });
-                }
+            }
         });             
         console.log('done.');      
         });
