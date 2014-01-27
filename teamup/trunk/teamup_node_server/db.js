@@ -18,7 +18,11 @@ DataProvider.prototype.getCollection= function(classroom_id, callback) {
     }
     var that=this;
     this.db.collectionNames(function(err, names) {
-        if(err) throw err;
+        if(err)
+        {
+            console.log(err + ", is mongodb running?");
+            return;
+        }
         if(exists(names, classroom_id)) {
             that.db.collection(classroom_id, function(err, classroom) {
                 if(err) throw err;
@@ -30,8 +34,8 @@ DataProvider.prototype.getCollection= function(classroom_id, callback) {
     });
 };
 
-DataProvider.prototype.createClassroom= function(data, callback) {  
-  console.log('Creating classroom '+data.c);  
+DataProvider.prototype.createClassroom= function(data, callback) {
+  console.log('Creating classroom '+data.c);
   this.db.createCollection(data.c, function(error, classroom) {
     if( error ) {
         console.log('Error creating collection');
@@ -43,7 +47,7 @@ DataProvider.prototype.createClassroom= function(data, callback) {
         classroom.save({uid:'setup', class_key:data.c, email:data.e, locale:data.l, teacher:data.u, teacher_link:data.tl, student_link:data.sl, names:data.n, version:1}, function (err) {
             if (err) console.log("Error saving settings");
             else {
-                console.log("Saved settings"); 
+                console.log("Saved settings");
                 callback(null);
             }
         });
@@ -55,14 +59,14 @@ DataProvider.prototype.filterOldObjects = function(objectarray, classroom, callb
     var result_array=[];
     var item;
     function filter(i) {
-        if (i<objectarray.length) {                
+        if (i<objectarray.length) {
             item=objectarray[i];
             if (!item._id) {
                 result_array.push(item);
                 filter(i+1);
             } else {
                 classroom.findOne({_id:item._id}, function (err, found) {
-                if (err || !found || item.version>found.version) {                    
+                if (err || !found || item.version>found.version) {
                     result_array.push(item);
                 }
                 filter(i+1);
@@ -80,16 +84,16 @@ DataProvider.prototype.giveFullClass = function(classroom_id, callback) {
     //var data={};
     console.log('dp dumping classroom');
     this.getCollection(classroom_id, function(error, classroom) {
-        if (error) { 
-            console.log("Couldn't find classroom to dump"); 
+        if (error) {
+            console.log("Couldn't find classroom to dump");
             callback(error, '');
         } else {
             classroom.find().toArray(function(err, arr) {
-                console.log("Returning as array, "+arr.length); 
+                console.log("Returning as array, "+arr.length);
                 callback(null,arr);
             });
         }
-    }); 
+    });
 }
 
 DataProvider.prototype.save = function(objects, classroom, callback) {

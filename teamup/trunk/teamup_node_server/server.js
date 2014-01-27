@@ -43,40 +43,47 @@ function mkdir_p(parts, i, callback) {
 
 function start() {
     var handle = {}
-    handle["/check_classroom"] = checkClassroom; 
+    handle["/check_classroom"] = checkClassroom;
     handle["/create_classroom"] = createClassroom;
-    handle["/upload_photo"] = uploadPhoto; 
-    handle["/photoloader.php"] = uploadPhoto; 
-    
+    handle["/upload_photo"] = uploadPhoto;
+    handle["/photoloader.php"] = uploadPhoto;
+    handle["/isnode"] = isNode;
+
     function onRequest(request, response) {
         var pathname = url.parse(request.url).pathname;
         //console.log("Request for " + pathname + " received.");
         if (pathname=='/app/') {
             file.serve(request, response);
         } else if (typeof handle[pathname] === 'function') {
-            console.log("Request for "+pathname+" catched by requestHandler."); 
+            console.log("Request for "+pathname+" catched by requestHandler.");
             handle[pathname](response, request)
         } else {
             file.serve(request, response);
         }
     }
-    
+
+    function isNode(response, request) {
+        // Used to detect if a server is node.js server
+        response.writeHead(200);
+        response.end();
+    }
+
     function checkClassroom(response, request) {
         console.log("Checking if exists");
         data=url.parse(request.url, true).query;
         if (data && data.c) {
             db.getCollection(data.c, function(error, classroom) {
                 if (error) {
-                    console.log("Not found / error");                    
+                    console.log("Not found / error");
                     response.write('not found');
                 } else {
-                    console.log("Found, returning url");                    
+                    console.log("Found, returning url");
                     response.write('app/?c='+data.c);
                 }
                 response.end();
-            });                    
+            });
         } else {
-            console.log("Empty query");                    
+            console.log("Empty query");
             response.write('error');
             response.end();
         }
@@ -88,7 +95,7 @@ function start() {
         if (data && data.c) {
             db.getCollection(data.c, function(error, classroom) {
                 if (error) {
-                    console.log("class id available");                    
+                    console.log("class id available");
                     db.createClassroom(data, function(error) {
                         if (error) {
                             response.write('error');
@@ -99,13 +106,13 @@ function start() {
                         response.end();
                     });
                 } else {
-                    console.log("Classroom exists, cannot create");                    
+                    console.log("Classroom exists, cannot create");
                     response.write('already exists');
                     response.end();
                 }
             });
         }
-    }                    
+    }
 
     function uploadPhoto(response, request) {
         console.log("Receiving photo");
@@ -124,8 +131,8 @@ function start() {
                 console.log(files.upload);
                 console.log(util.inspect(files));
                 console.log(files.upload.path);
-                
-                
+
+
                 mkdir_p(['uploads',pre,post],0, function(error) {
                     if (error) {
                         fs.rename(files.upload.path, 'uploads/'+pre+'/'+post+'/'+fields.record_id+'.jpg', function(err) {
@@ -150,10 +157,10 @@ function start() {
     app.listen(8081);
     console.log("Server has started at :8081");
     var db = new DataProvider('localhost', 27017);
-    
+
     io.sockets.on('connection', function (socket) {
         socket.on('join_classroom', function(classroom_id) {
-        
+
         console.log("Joining classroom "+classroom_id);
         db.getCollection(classroom_id, function(error, classroom) {
             if (error) {
@@ -161,7 +168,7 @@ function start() {
                 socket.emit('message', 'Classroom '+classroom_id+' does not exist');
             } else {
                 console.log('Setting socket to room '+classroom_id);
-                socket.join(classroom_id);     
+                socket.join(classroom_id);
                 socket.set('classroom_id', classroom_id);
                 socket.emit('message', 'Joined classroom '+classroom_id);
                 socket.broadcast.emit('message', 'Joined classroom '+classroom_id);
@@ -174,8 +181,8 @@ function start() {
                     }
                 });
             }
-        });             
-        console.log('done.');      
+        });
+        console.log('done.');
         });
         socket.on('delta', function (delta) {
         console.log('Incoming changes.');
@@ -185,16 +192,16 @@ function start() {
                 socket.emit('message', 'No classroom_id stored for socket');
                 return;
             }
-        
-            db.getCollection(classroom_id, function(err, classroom) { 
+
+            db.getCollection(classroom_id, function(err, classroom) {
                 if (err) {
-                    console.log('No classroom found, exiting');            
+                    console.log('No classroom found, exiting');
                     return;
                 }
                 good_changes=[];
                 delta=JSON.parse(delta);
                 db.filterOldObjects(delta, classroom, function(err, good_changes) {
-                    if (err) console.log('error checking object versions')  
+                    if (err) console.log('error checking object versions')
                     else if (good_changes.length>0) {
                         console.log('preparing to save objects to db');
                         db.save(good_changes, classroom, function (err, objects) {
@@ -203,13 +210,13 @@ function start() {
                                 console.log('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
                                 socket.broadcast.to(classroom_id).emit('update', objects);
                                 //socket.broadcast.emit('update', objects);
-                                socket.emit('update', objects); 
-                                //socket.emit('message', 'server received delta');                    
+                                socket.emit('update', objects);
+                                //socket.emit('message', 'server received delta');
                                 }
                             } );
                     }
-                }); 
-            });       
+                });
+            });
         });
         console.log('Changes handled.');
         });
