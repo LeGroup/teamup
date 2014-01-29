@@ -7,6 +7,7 @@ var formidable=require("formidable");
 var crypto = require("crypto");
 var buffer = require("buffer");
 var express = require("express");
+var path = require("path");
 
 var Db= require("./db").DataProvider;
 
@@ -14,6 +15,11 @@ var io;// = require('socket.io');
 var app = express();
 var server=http.createServer(app)
 var file;
+
+function mkdirp(str, callback)
+{
+	mkdir_p(str.split(path.sep), 0, callback);
+}
 
 function mkdir_p(parts, i, callback) {
     if (i >= parts.length) {
@@ -45,9 +51,7 @@ function mkdir_p(parts, i, callback) {
 
 function getUpload(request, response)
 {
-    console.log("getUpload");
-
-	var filepath="uploads/" + request.params.classroom + "/" + request.params.entity;
+	var filepath=path.join("uploads", request.params.clid, request.params.classroom, request.params.entity);
 	fs.stat(filepath, function(err, stat)
 	{
 		if(err) throw err;
@@ -66,7 +70,7 @@ function start() {
     app.get("/upload_photo", uploadPhoto);
     app.post("/photoloader.php", uploadPhoto);
     app.get("/isnode", isNode);
-    app.get("/uploads/:classroom/:entity", getUpload);
+    app.get("/uploads/:clid/:classroom/:entity", getUpload);
 	app.get("/*", function(request, response)
 	{
 		file.serve(request, response);
@@ -134,8 +138,14 @@ function start() {
             } else if (!files) {
                 console.log('Files are missing');
             } else {
-                var uploadPath="uploads/" + fields.class_id + "/" + fields.record_id;
-                mkdir_p(['uploads',fields.class_id],0, function(error) {
+				var shasum = crypto.createHash('sha1');
+				shasum.update(fields.class_id);
+				var classidsha=shasum.digest('hex');
+				var pre=classidsha.slice(0,3);
+				var post=classidsha.slice(3);
+				var imageName="P" + fields.record_id + "_photo.jpg";
+				var uploadPath=path.join("uploads", pre, fields.class_id, imageName);
+				mkdirp(path.dirname(uploadPath), function(error) {
                     if(error) throw error;
 
                     var buf=new Buffer(fields.picture, "base64");
