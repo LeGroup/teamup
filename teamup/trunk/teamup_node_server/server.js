@@ -3,14 +3,16 @@ var util = require("util");
 var url = require("url");
 var static = require('node-static');
 var fs = require("fs");
-var formidable=require("formidable")
+var formidable=require("formidable");
 var crypto = require("crypto");
+var buffer = require("buffer");
+var express = require("express");
 
 var Db= require("./db").DataProvider;
 
-
 var io;// = require('socket.io');
-var app;
+var app = express();
+var server=http.createServer(app)
 var file;
 
 function mkdir_p(parts, i, callback) {
@@ -36,40 +38,49 @@ function mkdir_p(parts, i, callback) {
                 } else {
                     mkdir_p(parts, i+1, callback);
                 }
-            })
+            });
         }
-    })
+    });
+}
+
+function getUpload(request, response)
+{
+    console.log("getUpload");
+
+	var filepath="uploads/" + request.params.classroom + "/" + request.params.entity;
+	fs.stat(filepath, function(err, stat)
+	{
+		if(err) throw err;
+		var f=fs.readFileSync(filepath);
+		response.contentType="image/jpeg";
+		response.contentLength=stat.size;
+		response.end(f, "binary");
+	});
 }
 
 function start() {
-    var handle = {}
-    handle["/check_classroom"] = checkClassroom;
-    handle["/create_classroom"] = createClassroom;
-    handle["/upload_photo"] = uploadPhoto;
-    handle["/photoloader.php"] = uploadPhoto;
-    handle["/isnode"] = isNode;
+    var handle = {};
 
-    function onRequest(request, response) {
-        var pathname = url.parse(request.url).pathname;
-        //console.log("Request for " + pathname + " received.");
-        if (pathname=='/app/') {
-            file.serve(request, response);
-        } else if (typeof handle[pathname] === 'function') {
-            console.log("Request for "+pathname+" catched by requestHandler.");
-            handle[pathname](response, request)
-        } else {
-            file.serve(request, response);
-        }
-    }
+	app.get("/check_classroom", checkClassroom);
+    app.get("/create_classroom", createClassroom);
+    app.get("/upload_photo", uploadPhoto);
+    app.post("/photoloader.php", uploadPhoto);
+    app.get("/isnode", isNode);
+    app.get("/uploads/:classroom/:entity", getUpload);
+	app.get("/*", function(request, response)
+	{
+		file.serve(request, response);
+	})
 
-    function isNode(response, request) {
+    function isNode(request, response) {
         // Used to detect if a server is node.js server
         response.writeHead(200);
         response.end();
     }
 
-    function checkClassroom(response, request) {
+    function checkClassroom(request, response) {
         console.log("Checking if exists");
+		console.log(request.url);
         data=url.parse(request.url, true).query;
         if (data && data.c) {
             db.getCollection(data.c, function(error, classroom) {
@@ -89,7 +100,7 @@ function start() {
         }
     }
 
-    function createClassroom(response, request) {
+    function createClassroom(request, response) {
         console.log("Creating classroom");
         data=url.parse(request.url, true).query;
         if (data && data.c) {
@@ -114,7 +125,7 @@ function start() {
         }
     }
 
-    function uploadPhoto(response, request) {
+    function uploadPhoto(request, response) {
         console.log("Receiving photo");
         var form = new formidable.IncomingForm();
         form.parse(request, function(error, fields, files) {
@@ -123,38 +134,25 @@ function start() {
             } else if (!files) {
                 console.log('Files are missing');
             } else {
-                var shasum = crypto.createHash('sha1');
-                shasum.update(fields.class_id);
-                var class_id=shasum.digest('hex');
-                var pre=class_id.slice(0,3);
-                var post=class_id.slice(3);
-                console.log(files.upload);
-                console.log(util.inspect(files));
-                console.log(files.upload.path);
+                var uploadPath="uploads/" + fields.class_id + "/" + fields.record_id;
+                mkdir_p(['uploads',fields.class_id],0, function(error) {
+                    if(error) throw error;
 
-
-                mkdir_p(['uploads',pre,post],0, function(error) {
-                    if (error) {
-                        fs.rename(files.upload.path, 'uploads/'+pre+'/'+post+'/'+fields.record_id+'.jpg', function(err) {
-                          if (err) {
-                              console.log("error moving photo to place")
-                          }
-                        });
-                    }
+                    var buf=new Buffer(fields.picture, "base64");
+                    fs.writeFile(uploadPath, buf, "binary", function(err)
+                    {
+                        if(err) throw(err);
+                    });
                 });
-
-                console.log(pre);
-                console.log(post);
-                response.write('success=1');
+                response.write(uploadPath);
                 response.end();
             }
-        })
+        });
     }
 
     file = new(static.Server)('www');
-    app=http.createServer(onRequest)
-    io= require('socket.io').listen(app, {'log level':2,'heartbeat':true});
-    app.listen(8081);
+    io= require('socket.io').listen(server, {'log level':2,'heartbeat':true});
+    server.listen(8081);
     console.log("Server has started at :8081");
     var db = new DataProvider('localhost', 27017);
 
