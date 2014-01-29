@@ -240,6 +240,7 @@ $.get("/isnode", function()
 			$('#teacher_url').val(PARAMS.teacher_url);
 		}
 		$('#learner_url').val(PARAMS.learner_url || PARAMS.student_url);
+		$('#classname').text(PARAMS.class_key);
 		//if (!MODERATOR) CLASSROOM.adjust_for_learners();
 		//if (getUrlVars().first) $('#teacher-panel').dialog('open');
 	};
