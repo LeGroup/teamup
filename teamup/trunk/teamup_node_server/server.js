@@ -71,6 +71,7 @@ function start() {
     app.post("/photoloader.php", uploadPhoto);
     app.get("/isnode", isNode);
     app.get("/uploads/:clid/:classroom/:entity", getUpload);
+	app.post("/varloader.php", uploadRecording);
 	app.get("/*", function(request, response)
 	{
 		file.serve(request, response);
@@ -129,6 +130,17 @@ function start() {
         }
     }
 
+    function getUploadPath(classid, recordid, suffix)
+    {
+        var shasum=crypto.createHash("sha1");
+        shasum.update(classid);
+        var classidsha=shasum.digest("hex");
+        var pre=classidsha.slice(0,3);
+        var post=classidsha.slice(3);
+        var name=recordid + suffix;
+        return path.join("uploads", pre, classid, name);
+    }
+
     function uploadPhoto(request, response) {
         console.log("Receiving photo");
         var form = new formidable.IncomingForm();
@@ -138,14 +150,8 @@ function start() {
             } else if (!files) {
                 console.log('Files are missing');
             } else {
-				var shasum = crypto.createHash('sha1');
-				shasum.update(fields.class_id);
-				var classidsha=shasum.digest('hex');
-				var pre=classidsha.slice(0,3);
-				var post=classidsha.slice(3);
-				var imageName="P" + fields.record_id + "_photo.jpg";
-				var uploadPath=path.join("uploads", pre, fields.class_id, imageName);
-				mkdirp(path.dirname(uploadPath), function(error) {
+                var uploadPath=getUploadPath(fields.class_id, fields.record_id, "_photo.jpg");
+                mkdirp(path.dirname(uploadPath), function(error) {
                     if(error) throw error;
 
                     var buf=new Buffer(fields.picture, "base64");
@@ -156,6 +162,47 @@ function start() {
                 });
                 response.write(uploadPath);
                 response.end();
+            }
+        });
+    }
+
+    function moveFile(source, destination, callback)
+    {
+        var is=fs.createReadStream(source);
+        var os=fs.createWriteStream(destination);
+        is.pipe(os);
+        is.on("end", function() {
+            fs.unlinkSync(source);
+            if(callback) callback();
+        });
+    }
+
+    function uploadRecording(request, response)
+    {
+        function movesDone(response, uploadPath, recordid)
+        {
+            console.log("DONE. uploadPath: " + uploadPath);
+            response.send(200, path.dirname(uploadPath) + path.sep + recordid);
+        }
+        var form=new formidable.IncomingForm();
+        form.parse(request, function(error, fields, files) {
+            if(error) {
+                response.send("error");
+            } else if(!files) {
+                response.send("no files");
+            } else {
+                var uploadPath=getUploadPath(fields.class_id, fields.record_id, "_pic.jpg");
+                mkdirp(path.dirname(uploadPath), function(error)
+                {
+                    moveFile(files.photo.path, uploadPath, function()
+                    {
+                        uploadPath=getUploadPath(fields.class_id, fields.record_id, "_rec.mp3");
+                        moveFile(files.voice.path, uploadPath, function()
+                        {
+                            movesDone(response, uploadPath, fields.record_id);
+                        });
+                    });
+                });
             }
         });
     }
