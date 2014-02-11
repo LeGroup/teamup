@@ -24,7 +24,7 @@
 
 (function(window){
 
-  var WORKER_PATH = 'recorderWorker.js';
+  var WORKER_PATH = 'script/recorderWorker.js';
 
   var Recorder = function(source, cfg){
     var config = cfg || {};
@@ -78,6 +78,11 @@
     this.getBuffer = function(cb) {
       currCallback = cb || config.callback;
       worker.postMessage({ command: 'getBuffer' })
+    }
+
+    this.getMonoBuffer = function(cb) {
+      currCallback = cb || config.callback;
+      worker.postMessage({ command: 'getMonoBuffer' })
     }
 
     this.exportWAV = function(cb, type){

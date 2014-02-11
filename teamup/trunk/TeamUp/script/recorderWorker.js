@@ -34,17 +34,22 @@ var recLength = 0,
 this.onmessage = function(e){
   switch(e.data.command){
     case 'init':
+	  /*
 	  mp3codec = Lame.init();
 	  Lame.set_mode(mp3codec, Lame.MONO);
 	  Lame.set_num_channels(mp3codec, 1);
 	  Lame.set_out_samplerate(mp3codec, 44100);
 	  Lame.set_bitrate(mp3codec, 64);
 	  Lame.init_params(mp3codec);
+	  */
       init(e.data.config);
       break;
     case 'record':
+	  /*
 	  var mp3data= Lame.encode_buffer_ieee_float(mp3codec, e.data.buffer[0], e.data.buffer[1]);
       recordMono(mp3data.data);
+	  */
+	  recordMono(e.data.buffer[0]);
       break;
     case 'exportWAV':
       exportWAV(e.data.type);
@@ -53,14 +58,19 @@ this.onmessage = function(e){
       exportmp3(e.data.type);
       break;
 	case 'finish':
+	  /*
 	  var mp3data = Lame.encode_flush(mp3codec);
 	  record([mp3data.data, mp3data.data]);
 	  Lame.close(mp3codec);
 	  mp3codec=null;
+	  */
 	  break;
     case 'getBuffer':
       getBuffer();
       break;
+	case 'getMonoBuffer':
+	  getMonoBuffer();
+	  break;
     case 'clear':
       clear();
       break;
@@ -97,6 +107,11 @@ function exportmp3(type) {
   var uint8buf = new Uint8Array(floatbuffer);
   var audioBlob = new Blob([uint8buf], { type: type });
   this.postMessage(audioBlob);
+}
+
+function getMonoBuffer() {
+  var buf=mergeBuffers(recBuffersMono, recLength);
+  this.postMessage(buf);
 }
 
 function getBuffer() {

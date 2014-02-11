@@ -1,5 +1,5 @@
 // **********************************
-// Team recorder 
+// Team recorder
 
 
 /**
@@ -17,7 +17,7 @@ lt_grey:hover : lighter play button
 dk_grey: inactive
 
 Pause button:
-lt_grey: active, click:pause playing -> turn into play button (hide pause, show play) 
+lt_grey: active, click:pause playing -> turn into play button (hide pause, show play)
 lt_grey:hover : lighter pause button
 
 styles and skin files required:
@@ -38,7 +38,7 @@ recorder_pause_button:hover         pause_lt_grey2.png
 **/
 
 
-RECORDER={on:false, duration:60, this_note_uid:'', vumeter_values:[], vumeters: [$('#vumeter_0'), 
+RECORDER={on:false, duration:60, this_note_uid:'', vumeter_values:[], vumeters: [$('#vumeter_0'),
     $('#vumeter_1'),
     $('#vumeter_2'),
     $('#vumeter_3'),
@@ -47,6 +47,8 @@ RECORDER={on:false, duration:60, this_note_uid:'', vumeter_values:[], vumeters: 
     $('#vumeter_6'),
     $('#vumeter_7')]
 }
+
+RECORDER.AudioContext=null;
 
 RECORDER.prepare_recorder=function() {
 
@@ -72,15 +74,32 @@ RECORDER.prepare_recorder=function() {
     RECORDER.on=true;
 }
 
-
 RECORDER.getRecorder=function() {
-    var rec=swfobject.getObjectById('TeamRecorder');
-    if (rec && rec.initCamera !== undefined) {
-        return rec;
-    } else {
-        debug('no recorder available');
-        return null;
-    }
+	if(WEBRTC_REC.available) return WEBRTC_REC;
+	try {
+		navigator.getUserMedia = navigator.getUserMedia ||
+								 navigator.webkitGetUserMedia ||
+								 navigator.mozGetUserMedia ||
+								 navigator.msGetUserMedia;
+
+		window.AudioContext = window.AudioContext || window.webkitAudioContext;
+		WEBRTC_REC.context=new AudioContext();
+
+		navigator.getUserMedia({audio: true}, WEBRTC_REC.gotStream, WEBRTC_REC.noStream);
+		$("#TeamRecorder").hide(); // Flash warning text
+		return WEBRTC_REC;
+	}
+	catch(e)
+	{// Fallback to flash
+		debug("Flash");
+		var rec=swfobject.getObjectById('TeamRecorder');
+		if (rec && rec.initCamera !== undefined) {
+			return rec;
+		} else {
+			debug('no recorder available');
+			return null;
+		}
+	}
 }
 
 RECORDER.initialized=function() {
@@ -101,7 +120,7 @@ RECORDER.initialized=function() {
 
 RECORDER.camera_accepted=function() {
         $('#recorder_toggle').show().off('click').click(RECORDER.start_recording); //.css('border-color', '#33aa33')
-        $('div.vumeter').show(); 
+        $('div.vumeter').show();
         debug('<- camera accepted');
 }
 RECORDER.camera_denied=function() {
@@ -110,7 +129,7 @@ RECORDER.camera_denied=function() {
 }
 
 RECORDER.start_recording = function() {
-    var rec = RECORDER.getRecorder(); 
+    var rec = RECORDER.getRecorder();
     if (rec) {
         debug('-> startRecording')
         $('div.vumeter').show();
@@ -125,10 +144,10 @@ RECORDER.start_recording = function() {
         $('#note_recorder').css('border-color','transparent');
 
     }
-}
+};
 
 RECORDER.recording_timer = function(t) {
-    // every 10th second, max 600 
+    // every 10th second, max 600
     $('#progress_line').width((t/600)*464);
     t=t/10;
     RECORDER.duration=t;
@@ -140,11 +159,11 @@ RECORDER.recording_timer = function(t) {
         $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
     }
     if (now_seconds==40) {
-        TEAM_NOTES.highlight_question(2);            
+        TEAM_NOTES.highlight_question(2);
     } else if (now_seconds==20) {
-        TEAM_NOTES.highlight_question(1)
-    }    
-}
+        TEAM_NOTES.highlight_question(1);
+    }
+};
 
 RECORDER.playback_timer = function(t) {
     // incoming t is 1/1000:s of seconds
@@ -159,13 +178,13 @@ RECORDER.playback_timer = function(t) {
         $('#timer_text span.now').text(''+now_minutes+':0'+now_seconds);
     }
     if (now_seconds==40) {
-        TEAM_NOTES.highlight_question(2);            
+        TEAM_NOTES.highlight_question(2);
     } else if (now_seconds==20) {
-        TEAM_NOTES.highlight_question(1)
+        TEAM_NOTES.highlight_question(1);
     } else if (now_seconds==0) {
-        TEAM_NOTES.highlight_question(0)        
+        TEAM_NOTES.highlight_question(0);
     }
-}
+};
 
 
 RECORDER.countdown = function(t) {
@@ -175,14 +194,23 @@ RECORDER.countdown = function(t) {
         $('#countdown').hide();
         var team=getData($('#team_title'));
         $('#note_recorder').css('border-color',team.color);
-    } else {       
+    } else {
         $('#countdown').text(t).show();
     }
-}   
+}
+
+function html5Play(buf) {
+	var abuf=RECORDER.AudioContext.createBuffer(1, buf.length, RECORDER.AudioContext.sampleRate);
+	abuf.getChannelData(0).set(buf);
+	var src=RECORDER.AudioContext.createBufferSource();
+	src.buffer = abuf;
+	src.connect(RECORDER.AudioContext.destination);
+	src.start(0);
+}
 
 RECORDER.stop_recording = function() {
-    var rec = RECORDER.getRecorder(); 
-    if (rec) {
+    var rec = RECORDER.getRecorder();
+    if(rec) {
         debug('-> stopRecording')
         rec.stopRecording();
     }
@@ -225,7 +253,7 @@ RECORDER.pause = function() {
 }
 
 
-RECORDER.jump_in_timeline = function(event) {   
+RECORDER.jump_in_timeline = function(event) {
     var x= event.pageX-$(this).offset().left;
     var seconds=x/(464/60);
     $('#progress_line').css('width',x);
@@ -244,11 +272,11 @@ RECORDER.jump_in_timeline = function(event) {
 
 
     if (seconds>39) {
-        TEAM_NOTES.highlight_question(2);            
+        TEAM_NOTES.highlight_question(2);
     } else if (seconds>19) {
-        TEAM_NOTES.highlight_question(1);            
+        TEAM_NOTES.highlight_question(1);
     } else {
-        TEAM_NOTES.highlight_question(0);            
+        TEAM_NOTES.highlight_question(0);
     }
 }
 
@@ -289,7 +317,7 @@ RECORDER.save_note= function() {
     var note_uid= fs_friendly_string(team.uid)+'_note_'+note_id;
 
     if (rec) {
-        rec.saveRecording(server_path, class_uid, note_uid); 
+        rec.saveRecording(server_path, class_uid, note_uid);
     }
     RECORDER.this_note_uid=note_uid
 
@@ -315,7 +343,7 @@ RECORDER.finished_recording= function(path) {
     CONTROLLER.addChange(team);
     CONTROLLER.sendChanges();
     TEAM_NOTES.create_team_notes(team);
-           
+
 }
 
 RECORDER.uploading_recording= function() {
@@ -326,9 +354,9 @@ RECORDER.uploading_recording= function() {
     $("#save_note").addClass('disabled');
 }
 
-// redirect Flash ExternalInterface calls: 
+// redirect Flash ExternalInterface calls:
 recorder_initialized=RECORDER.initialized;
-recording_stopped=RECORDER.recording_stopped; 
+recording_stopped=RECORDER.recording_stopped;
 uploading_recording=RECORDER.uploading_recording;
 finished_recording=RECORDER.finished_recording;
 encoding_complete=RECORDER.encoding_complete;
