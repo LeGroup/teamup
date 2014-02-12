@@ -1,41 +1,54 @@
 WEBRTC_REC={available:false, stream:null, recorder: null, context: null, position: 0}
 
-WEBRTC_REC.gotStream = function(stream) {
+WEBRTC_REC.gotStream = function(stream, isVideo) {
+	console.log(arguments);
     window.URL = window.URL || window.webkitURL;
-    var video=$('#rtc_monitor')[0];
-    WEBRTC_REC.stream=stream;
-    debug('got stream')
-    WEBRTC_REC.available=true;
-	/*
-    if (window.URL) {
-        video.src=window.URL.createObjectURL(stream);
-    } else {
-        video.src=stream;
-    }
-    video.onerror = function(e) {
-        stream.stop();
-    };
-    stream.onended = WEBRTC_REC.noStream;
-    video.onloadedmetadata = function(e) {
-        // adjust position here if necessary
-    }
-    setTimeout(function() {
-        // adjust position here if necessary
-    }, 50)
-	*/
-	var src=WEBRTC_REC.context.createMediaStreamSource(stream);
-	WEBRTC_REC.recorder=new Recorder(src);
-    RECORDER.camera_accepted();
+	if(isVideo)
+	{
+		var video=$('#rtc_monitor_note')[0];
+		WEBRTC_REC.stream=stream;
+		debug('got video stream')
+		WEBRTC_REC.available=true;
+		if (window.URL) {
+			video.src=window.URL.createObjectURL(stream);
+		} else {
+			video.src=stream;
+		}
+		video.onerror = function(e) {
+			stream.stop();
+		};
+		stream.onended = WEBRTC_REC.noStream;
+		/*
+		video.onloadedmetadata = function(e) {
+			// adjust position here if necessary
+		}*/
+	}
+	else
+	{
+		var src=WEBRTC_REC.context.createMediaStreamSource(stream);
+		WEBRTC_REC.recorder=new Recorder(src);
+		RECORDER.camera_accepted();
+	}
 };
 
 WEBRTC_REC.startRecording=function()
 {
-	WEBRTC_REC.recorder.record();
-	var t=0;
-	WEBRTC_REC.recId=setInterval(function()
+	var cd=3;
+	WEBRTC_REC.countdownId=setInterval(function()
 	{
-		RECORDER.recording_timer(t++);
-	}, 100);
+		RECORDER.countdown(--cd);
+		if(cd === 0)
+		{
+			clearInterval(WEBRTC_REC.countdownId);
+			WEBRTC_REC.capture();
+			WEBRTC_REC.recorder.record();
+			var t=0;
+			WEBRTC_REC.recId=setInterval(function()
+			{
+				RECORDER.recording_timer(t++);
+			}, 100);
+		}
+	}, 1000);
 };
 
 WEBRTC_REC.stopRecording=function()
@@ -80,44 +93,64 @@ WEBRTC_REC.noStream = function(e) {
 };
 
 WEBRTC_REC.capture = function() {
-    var canvas=$('#rtc_canvas')[0];
+    var canvas=$('#rtc_canvas_note')[0];
     var ctx=canvas.getContext('2d');
-    var video=$('#rtc_monitor')[0];
+    var video=$('#rtc_monitor_note')[0];
     canvas.width=220;
     canvas.height=220;
     ctx.drawImage(video,80,0,480,480,0,0,220,220)
     //ctx.drawImage(video,80,0,480,480,0,0,220,220);
-    $('#WebRTC_monitor_area').hide();
-    $('#WebRTC_canvas_area').show();
-    RECORDER.tookPhoto();
+    $('#WebRTC_monitor_area_note').hide();
+    $('#WebRTC_canvas_area_note').show();
+    CAMERA.tookPhoto();
 }
 
 WEBRTC_REC.saveRecording = function(server_path, class_name, user_uid) {
 	RECORDER.uploading_recording();
-	$.post("/varloader.php", function(){
-		RECORDER.finished_recording();
+	var reader=new FileReader();
+    var canvas=$('#rtc_canvas_note')[0];
+	canvas.toBlob(function(imgblob)
+	{
+		var fd=new FormData();
+		fd.append("class_id", class_name);
+		fd.append("record_id", user_uid);
+		fd.append("Filename", "voice.mp3");
+		fd.append("voice", WEBRTC_REC.blob, "voice.mp3");
+		fd.append("Filename", "photo.jpg");
+		fd.append("photo", imgblob, "photo.jpg");
+		$.ajax({
+			type: "POST",
+			url: "/varloader.php",
+			data: fd,
+			processData: false,
+			contentType: false,
+			success: function(path){
+				RECORDER.finished_recording(path);
+				WEBRTC_REC.recorder.clear();
+			}
+		});
 	});
 }
 
 WEBRTC_REC.cancel = function() {
     WEBRTC_REC.stream.stop();
-    $('#WebRTC_monitor_area').hide();
-    $('#WebRTC_canvas_area').hide();
+    $('#WebRTC_monitor_area_note').hide();
+    $('#WebRTC_canvas_area_note').hide();
 }
 
 WEBRTC_REC.release = function() {
-    $('#WebRTC_monitor_area').show();
-    $('#WebRTC_canvas_area').hide();
+    $('#WebRTC_monitor_area_note').show();
+    $('#WebRTC_canvas_area_note').hide();
 }
 
 // Student photos
 
-WEBRTC_CAM={available:false, stream:null}
+WEBRTC_CAM={available:false, stream:null};
 WEBRTC_CAM.gotStream = function(stream) {
     window.URL = window.URL || window.webkitURL;
     var video=$('#rtc_monitor')[0];
     WEBRTC_CAM.stream=stream;
-    debug('got stream')
+    debug('got stream');
     WEBRTC_CAM.available=true;
     if (window.URL) {
         video.src=window.URL.createObjectURL(stream);
@@ -131,9 +164,10 @@ WEBRTC_CAM.gotStream = function(stream) {
     video.onloadedmetadata = function(e) {
         // adjust position here if necessary
     }
+	/*
     setTimeout(function() {
         // adjust position here if necessary
-    }, 50)
+    }, 50)*/
     CAMERA.cameraReady() // 'ping'
 
 }

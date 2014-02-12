@@ -85,6 +85,8 @@ RECORDER.getRecorder=function() {
 		window.AudioContext = window.AudioContext || window.webkitAudioContext;
 		WEBRTC_REC.context=new AudioContext();
 
+        $('#WebRTC_monitor_area_note').show();
+		navigator.getUserMedia({video: true}, function(s){WEBRTC_REC.gotStream(s, true);}, WEBRTC_REC.noStream);
 		navigator.getUserMedia({audio: true}, WEBRTC_REC.gotStream, WEBRTC_REC.noStream);
 		$("#TeamRecorder").hide(); // Flash warning text
 		return WEBRTC_REC;

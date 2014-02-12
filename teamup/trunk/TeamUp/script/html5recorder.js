@@ -68,7 +68,6 @@
 
     this.stop = function(){
       recording = false;
-	  worker.postMessage({ command: 'finish' });
     }
 
     this.clear = function(){

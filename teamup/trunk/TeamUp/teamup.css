@@ -1362,7 +1362,8 @@ div.drag_area {
     overflow:hidden;
 }
 
-#WebRTC_monitor_area {
+#WebRTC_monitor_area ,
+#WebRTC_monitor_area_note {
     display:none;
     background:#000055;
     width:220px;
@@ -1370,19 +1371,21 @@ div.drag_area {
     overflow:hidden;
 }
 
-#WebRTC_canvas_area {
+#WebRTC_canvas_area,
+#WebRTC_canvas_area_note {
     display:none;
     width:220px;
     height:220px;
     background:#002200;
 }
 
-#rtc_canvas {
+#rtc_canvas ,
+#rtc_canvas_note {
     background:#550000;
-    
 }
 
-#rtc_monitor {
+#rtc_monitor,
+#rtc_monitor_note {
     position:relative;
     left:-37px;
     width:293px;
