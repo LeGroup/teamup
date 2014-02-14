@@ -162,12 +162,7 @@ function start() {
                 var uploadPath=getUploadPath(fields.class_id, fields.record_id, "_photo.jpg");
                 mkdirp(path.dirname(uploadPath), function(error) {
                     if(error) throw error;
-
-                    var buf=new Buffer(fields.picture, "base64");
-                    fs.writeFile(uploadPath, buf, "binary", function(err)
-                    {
-                        if(err) throw(err);
-                    });
+					moveFile(files.picture.path, uploadPath);
                 });
                 response.write(uploadPath);
                 response.end();

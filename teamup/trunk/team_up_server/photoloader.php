@@ -10,10 +10,10 @@ else if(getenv("REMOTE_ADDR"))
 else 
   $ip = "UNKNOWN";
 fwrite($log, date("r")." --- Incoming user photo: ".$ip."\n");
-fwrite($log, strlen($_POST['picture'])." bytes.");
+//fwrite($log, strlen($_POST['picture'])." bytes.");
 
 $base='uploads';
-$picture = base64_decode($_POST['picture']);
+$picture = $_FILES['picture'];
 $class_id = $_POST['class_id'];
 $record_id = $_POST['record_id'];
 $class_hash= md5($class_id);
@@ -26,9 +26,7 @@ if (!file_exists($base.'/'.$dir1.'/'.$class_id)) {
     mkdir($base.'/'.$dir1.'/'.$class_id);
 }
 $pic_name=$base.'/'.$dir1.'/'.$class_id.'/'.$record_id.'_photo.jpg';
-$fh=fopen($pic_name, 'w');
-fwrite($fh, $picture);
-fclose($fh); 
+rename($picture['tmp_name'], $pic_name);
 
 fwrite($log, "Wrote file ".$pic_name."\n");
 fclose($log); 

@@ -212,14 +212,26 @@ WEBRTC_CAM.save = function(server_path, class_name, user_uid) {
     var sdata={};
     var canvas=$('#rtc_canvas')[0];
     var dataURL=canvas.toDataURL('image/png');
-    sdata.picture=dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-    sdata.class_id=class_name;
-    sdata.record_id=user_uid;
+	canvas.toBlob(function(imgblob)
+	{
+		var fd=new FormData();
+		fd.append("class_id", class_name);
+		fd.append("record_id", user_uid);
+		fd.append("Filename", "photo.jpg");
+		fd.append("picture", imgblob, "photo.jpg");
 
-    $.post(loc, sdata, function(path) {
-        debug('*** php replied:'+path);
-        CAMERA.savedPhoto(path);
-    });
+		$.ajax({
+			type: "POST",
+			url: loc,
+			data: fd,
+			processData: false,
+			contentType: false,
+			success: function(path){
+				debug('*** php replied:'+path);
+				CAMERA.savedPhoto(path);
+			}
+		});
+	});
 }
 
 WEBRTC_CAM.cancel = function() {
