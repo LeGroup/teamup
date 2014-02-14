@@ -52,12 +52,21 @@ function mkdir_p(parts, i, callback) {
 function getUpload(request, response)
 {
 	var filepath=path.join("uploads", request.params.clid, request.params.classroom, request.params.entity);
+	var contentType;
+	switch(path.extname(filepath))
+	{
+		case ".mp3": contentType="audio/mpeg"; break;
+		case ".jpg": contentType="image/jpeg"; break;
+		default: contentType="application/octet-stream"; break;
+	}
 	fs.stat(filepath, function(err, stat)
 	{
 		if(err) throw err;
 		var f=fs.readFileSync(filepath);
-		response.contentType="image/jpeg";
-		response.contentLength=stat.size;
+		response.set({
+			"Content-Type": contentType,
+			"Content-Length": stat.size
+		});
 		response.end(f, "binary");
 	});
 }
