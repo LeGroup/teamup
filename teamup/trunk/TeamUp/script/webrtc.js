@@ -42,6 +42,20 @@ WEBRTC_REC.startRecording=function()
 			clearInterval(WEBRTC_REC.countdownId);
 			WEBRTC_REC.capture();
 			WEBRTC_REC.recorder.record();
+			var prevlen=0;
+			WEBRTC_REC.levelId=setInterval(function()
+			{
+				WEBRTC_REC.recorder.getMonoBuffer(function(buf)
+				{
+					var max=0;
+					for(var i=prevlen; i<buf.length; ++i)
+					{
+						if(buf[i]>max) max=buf[i];
+					}
+					RECORDER.audio_level(max*100); // Max is 0-1, audio_level() expects 0-100
+					prevlen=buf.length-1;
+				});
+			}, 100);
 			var t=0;
 			WEBRTC_REC.recId=setInterval(function()
 			{
@@ -55,6 +69,7 @@ WEBRTC_REC.stopRecording=function()
 {
 	WEBRTC_REC.recorder.stop();
 	clearInterval(WEBRTC_REC.recId);
+	clearInterval(WEBRTC_REC.levelId);
 	RECORDER.recording_stopped();
 	WEBRTC_REC.recorder.getMonoBuffer(function(buf) {
 		WEBRTC_REC.Buffer=buf;
