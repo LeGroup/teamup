@@ -15,7 +15,7 @@
 "Sorry, no such classroom.": "Désolé, cette classe n'existe pas",
 "Classroom with same name already exists. Choose another name.": "Une classe avec le même nom existe déjà, merci de choisir un autre nom",
 "Missing or invalid class name. Too short or too long.": "Nom de classe manquant ou non valable. Trop court ou trop long.",
-"Your email address (optional)": "Votre adresse mél (facultatif)",
+"Your email address": "Votre adresse mél",
 
 "First names of people*": "Prénom des personnes*",
 "Separate names with commas.": "Séparez les noms avec des virgules.",

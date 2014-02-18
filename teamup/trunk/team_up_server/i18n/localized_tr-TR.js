@@ -15,7 +15,7 @@
 "Sorry, no such classroom.": "Uzgunum, boyle bir sinif yok",
 "Classroom with same name already exists. Choose another name.": "Ayni adli bir sinif zaten var. Baska bir isim sec",
 "Missing or invalid class name. Too short or too long.": "Eksik ya da gecersiz bir sinif adi. Cok kisa veya cok uzun",
-"Your email address (optional)": "e-posta adresiniz (istege bagli)",
+"Your email address": "e-posta adresiniz",
 
 "First names of people*": "insanlarin ilk isimleri",
 "Separate names with commas.": "Adlari virgulle ayirin",

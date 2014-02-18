@@ -15,7 +15,7 @@
 "Sorry, no such classroom.": "Prepáčte, daná trieda neexistuje.",
 "Classroom with same name already exists. Choose another name.": "Trieda s rovnakým menom už existuje. Zvoľte iné meno.",
 "Missing or invalid class name. Too short or too long.": "Chýbajúce alebo neplatné meno triedy. Príliš krátke alebo príliš dlhé.",
-"Your email address (optional)": "Vaša e-mailová adresa (odporúčané)",
+"Your email address": "Vaša e-mailová adresa",
 
 "First names of people*": "Mená ľudí*",
 "Separate names with commas.": "Mená oddeľte čiarkou.",

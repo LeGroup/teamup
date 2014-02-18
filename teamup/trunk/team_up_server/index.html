@@ -1,717 +1,162 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-<title>TeamUp -- Aalto</title>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-<script language="javascript" type="text/javascript" src="jquery-1.7.2.min.js"></script>
-<script language="javascript" type="text/javascript" src="swfobject.js"></script>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TeamUp - Aalto</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+      <![endif]-->
 
-<script type="text/javascript">
-
-var url='';
-var params={};
-var searching=false;
-var localizedStrings;
-var prev_width=0;
-
-var LANGUAGES= {'de-AT':'deutsch','et-ET':'eesti','en-EN':'english', 'es-ES':'español', 'fr-FR':'français', 'he-HE':'עִבְרִית', 'hu-HU':'magyar', 'it-IT':'italiano','lt-LT':'lietuvių', 'nl-NL':'nederlands', 'no-NO':'norsk', 'pt-PT':'português','sk-SK':'slovenčina', 'fi-FI':'suomi','tr-TR':'türkçe'};
-
-
-function setInstanceParams() {
-    $('#progress').css('background','#af0').show(); 
-    data=getData();
-    var params={};
-    params.class_key=data.shareddatakey;
-    params.moderator_id=data.userid;
-    params.names_list=validated_names_list() || 'Learner1, Learner2, Learner3';
-    $('#names_list').val(params.names_list);
-    params.teacher_url=setUrlVars(data, true);
-    params.learner_url=setUrlVars(data, false);
-    params.moderator_email=$.trim($('#email').val().replace(/\s/g, ''));
-    $('#email').val(params.moderator_email);
-    params.moderator_email=(is_email(params.moderator_email)) ? params.moderator_email : '';
-    data.moderator_email=params.moderator_email; 
-    data.msg_subject=i18n('Your TeamUp classroom');
-    data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+params.teacher_url+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+params.learner_url+'\n\n -- TeamUp service';
-    data.propertyvalue=JSON.stringify(params);
-    if (!data.propertyvalue || data.propertyvalue.length==0) {
-        debug('problems sending parameters');
-        return;
-    }    
-    data.task='set_params';
-    $.post('new_bridge.php', data, function(success) {
-        if (success=='ok') {
-            $('#progress').css('background','#aa0').show();
-            go_there();
-        } else {
-            $('#progress').hide();
-            debug('Something strange happened when reading learner list or email.');
-        }
-    }, 'text');
-}
-
-function validate_class_name(name) {
-    name=$.trim(name.replace(/[\\%\+*<>\n\t\r]/g, ''));
-    return name
-}
-
-function validated_names_list() {
-    nl=$.trim($('#names_list').val());
-    nl=nl.replace(/[\+#\\%<>]/g, ''); // remove bad chars
-    nl=nl.replace(/[,:;]\s+/g, ', ');  // linebreak/tab after separator is removed
-    nl=nl.replace(/[;:\n\t\r]/g, ','); // if there are linebreaks/tabs left, they are separators
-    nl=nl.replace(/\s/g, ' '); // all of the rest whitespaces are replaced with simple spaces
-    nl = (nl.search(',')==-1) ? nl.replace(/\s/g, ', ') : nl;
-    return nl
-}
-
-function go_there() {
-    $('#progress').css('background','#aa0').show();
-    if (data.locale.length<10) url+='&locale='+data.locale;
-    window.location=url;
-}
-
-function already_there(data, textStatus, jqXHR) {
-    $('#progress').css('background','#0a0').hide(); 
-    $('#classroom_already_exists').show();
-    searching=false;
-}
-
-function is_email(email) {
-  var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-  return regex.test(email);
-}
-
-function debug(text) {
-    $('#debugger').html($('#debugger').html()+text+'<br/>');
-}
-
-function no_class(data, textStatus, jqXHR) {
-    $('#progress').hide(); 
-    $('#classroom_not_available').show()
-}
-
-function getJoinData() {
-    data= new Object();
-    data.shareddatakey=validate_class_name($('#shareddatakey').val());
-    $('#shareddatakey').val(data.shareddatakey);
-    data.userid=$('#userid').val();
-    data.locale=$('#locale').val();
-    return data
-}    
-
-function getData() {
-    data= new Object();
-    data.shareddatakey=validate_class_name($('#new_classroom_key').val());
-    $('#new_classroom_key').val(data.shareddatakey);
-    data.userid=$('#userid').val();
-    data.locale=$('#locale').val();
-    return data
-}    
-
-function setUrlVars(data, teacher) {
-    var base=window.location.href.slice(0,(window.location.href.lastIndexOf('/')+1));
-    req_data={};
-    if (data.shareddatakey) {
-        base+='?class_key='+encodeURIComponent(data.shareddatakey);
-    } else {
-        return base;
-    }
-    if (!teacher) {
-        return base;
-    }
-    
-    if (data.userid) {
-        base+='&teacher='+encodeURIComponent(data.userid); // hex_md5()
-    }        
-    if (data.locale!='en-EN') {
-        base+='&lang='+encodeURIComponent(data.locale);
-    }
-    return base;
-}
-
-function getUrlVars() {
-    var vars = [], hash;
-    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-    for(var i = 0; i < hashes.length; i++)
-    {
-        hash = hashes[i].split('=');
-        vars.push(hash[0]);
-        vars[hash[0]] = hash[1];
-    }
-    return vars;
-}
-
-function check_flash_version(){
-    var playerVersion = swfobject.getFlashPlayerVersion();
-    if ((playerVersion.major>=10 && playerVersion.minor>=3) || (playerVersion.major>10)) {
-    } else {
-        var output = "You need to update your Flash player to record newsflashes in TeamUp."+"<br/>"+        
-        "Required Flash player 10.3 or more, you have: " +
-        playerVersion.major + "." + playerVersion.minor + "." +
-        playerVersion.release;
-        $('#flash_version').html(output);
-    }
-}
-
-function i18n(str){
-    if (localizedStrings == null) return str;
-    var locstr = localizedStrings[str];
-    if (locstr == null || locstr == "") locstr = str;
-    return locstr;
-}
-
-function localize(){
-    /* Ensure language code is in the format aa-AA. */
-	if (!params.lang || params.lang=='en-EN') return;
-    jQuery.ajax("i18n/localized_"+params.lang+".js", {
-        dataType: "json",
-        isLocal: true,     
-        error: function(jqXHR, textStatus, errorThrown){
-            debug('i18n failed:jqXHR='+jqXHR+' textStatus:'+textStatus+' errorThrown:'+errorThrown);
-            return jqXHR;
-                
-        },
-        complete: function(data) {
-            // Change all of the static strings in index.html
-            localizedStrings=$.parseJSON(data.responseText);
-            $('.i18n').each( function () {
-                item=$(this);
-                if (!localizedStrings[item.text()]) {
-                    //debug('missing: "'+item.html()+'"');
-                } else {
-                //    debug('found: '+item.text());
-                }
-                $(this).text(i18n($(this).text()));
-            });
-            $('.i18n-value').each( function () {
-                item=$(this);
-                if (!localizedStrings[item.val()]) {
-                    debug('missing: "'+item.val()+'"');
-                } else {
-                //    debug('found: '+item.val());
-                }
-                $(this).val(i18n($(this).val()));
-            });
-            }
-        }           
-    );
-    
-}
-
-function getCookie(c_name) {
-    var i,x,y,ARRcookies=document.cookie.split(";");
-    for (i=0;i<ARRcookies.length;i++) {
-      x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
-      y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
-      x=x.replace(/^\s+|\s+$/g,"");
-      if (x==c_name) {
-        return unescape(y);
-      }
-    }
-}
-
-function resize() {
-    var w=$(window).width();
-    if (w>700 && prev_width<702) {
-        $('#left_area').css('opacity',1);
-        $('#header-area').css('min-height',80);
-        $('#top-corner').css('top','1em');
-        $('#email_help').css({top:-10, left:-265})
-    } else if (w<700) {
-        var op=1+(w-700)/200;
-        op= (op>0.2) ? op : 0.2;
-        var h=80-(w-700);
-        h= (h<160) ? h : 160;
-        var y=8-(w-700);
-        y= (y<100) ? y : 100;
-        $('#left_area').css('opacity',op);
-        $('#header-area').css('min-height',h);
-        $('#top-corner').css('top',y);
-        $('#email_help').css({top:-60, left:4})
-    }
-    prev_width=w;   
-}
-
-jQuery(document).ready(function() {
-
-    $('#userid').val(getCookie("userid") || new Date().getTime());
-    $('input[type=text], textarea').each( function () {
-        if ($(this).val()!='') {
-            $(this).prev('label').hide();
-        }
-    });
-    resize();
-    $(window).resize(resize);
-    
-    params=getUrlVars();
-    s='';
-    for (key in LANGUAGES) {
-        if (params.lang==key || (key=='en-EN' && !params.lang)) {
-            s+='<span class="selected" id="lang_'+key+'">'+LANGUAGES[key]+'</span> | ';
-        } else {
-            s+='<a href="?lang='+key+'" class="lang" id="lang_'+key+'">'+LANGUAGES[key]+'</a> | ';
-        }
-    }
-    $('#language_column').html(s);
-    localize();
-
-    // if there are enough url parameters, we can try to jump directly to class. 
-    //If it fails, treat this as like the form was filled wrong. 
-    if (params.class_key) { 
-        $('#shareddatakey').val(validate_class_name(decodeURIComponent(params.class_key)));
-        $('#shareddatakey').prev('label').hide();
-        $('#join_classroom').attr('disabled',($('#shareddatakey').val()=='')); 
-        if (params.lang) {
-            $('#locale').val(decodeURIComponent(params.lang));
-        }
-        if (params.teacher) {
-            $('#userid').val(decodeURIComponent(params.teacher));
-        } else {
-            $('#userid').val(new Date().getTime());
-        }
-        data=getJoinData();
-        data.task='get_instance';       
-        $('#progress').css('background','#a0a').show();
-        $.get('new_bridge.php', data, function(instance_url) {
-            if (instance_url=='not found') {
-                no_class();
-            } else {
-                url=instance_url;
-                go_there();
-            }
-        }, 'text');              
-    } else if (params.lang) {
-        $('#locale').val(unescape(params.lang));
-    }
-
-    $('label').click(function () {
-        $(this).next('input, textarea').focus();
-    });
-
-    $('input, textarea').focus(function () {
-        $(this).prev('label').hide();
-    });
-    $('input, textarea').focusout(function () {
-        if ($(this).val()=='') {
-            $(this).prev('label').show();
-        };
-    });
-
-    $('#shareddatakey').change(function () {
-        $('#join_classroom').attr('disabled',($(this).val()==''));
-        $(this).val(validate_class_name($(this).val())); 
-    });
-    $('#shareddatakey').keyup(function (e) {
-        $('#join_classroom').attr('disabled',($(this).val()==''))
-        if(e.keyCode==13){
-            // Enter pressed
-            $('#join_classroom').click()
-        }
-    });
-
-    $('#new_classroom_key').change(function () {
-        $(this).val(validate_class_name($(this).val())); 
-    });
-
-    $('#names_list').change(function () {
-        $('#names_list').val(validated_names_list());
-    });
-
-    $('#email').focusin(function () {
-        $('#email').css('background-color','#fff');
-        $('#email_help').fadeIn();
-    });
-    $('#email').focusout(function () {
-        $('#email_help').fadeOut();
-    });
-        
-
-    $('#join_classroom').click(function () {
-        data=getJoinData();
-        data.task='get_instance';       
-        $('#progress').css('background','#a0a').show();
-        $.get('new_bridge.php', data, function(instance_url) {
-            if (instance_url=='not found') {
-                no_class();
-            } else if (instance_url=='no server') {
-                debug('no server');
-            } else {
-                url=instance_url;
-                go_there();
-            }
-        }, 'text');              
-    });
-
-    $('#create_classroom').click(function () {
-        if (searching) return;
-        if (!is_email($('#email').val())) {
-            $('#email').css('background-color','#ffaaaa');
-            return;
-        } 
-        if ($('#new_classroom_key').val().length < 3 || $('#new_classroom_key').val().length > 50) {
-            $('#bad_classroom_name').show();
-            return;
-        } else {            
-            $('#bad_classroom_name').hide();
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+      <!--<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>-->
+      <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+      <script src="js/bootstrap.min.js"></script>
+      <script language="javascript" type="text/javascript" src="teamup_loader.js"></script>
+      <style>
+        input[type=text], input[type=email], textarea {
+            max-width: 500px;
         }
 
-        $('#progress').css('background','#f00').show(); 
-        searching=true;
-        data=getData();
-        data.task='create_instance';
-        $.get('new_bridge.php', data, function(instance_url) {
-            $('#progress').css('background','#fa0').show();
-            if (instance_url=='reserved') {
-                already_there();
-            } else {
-                url=instance_url;
-                setInstanceParams();
-            }
-            }, 'text'); 
-    });
-    check_flash_version();
-});
-
-</script>
-<style>
-div#classroom_not_available {display:none}
-div#classroom_already_exists {display:none}
-body {
-    background:#1E1D1C;
-    color:#E8E8E8;
-    font-family: Helvetica, Verdana, sans-serif;
-    margin:0px;
-    padding:0px;
-}
-
-.content {
-    max-width:920px;
-    position:relative;
-    margin-left:auto;
-    margin-right:auto;
-    padding-top:0.4em;
-}
-
-#header-area {
-    background:#1E1D1C;
-    min-height:80px;
-}
-#main-area {
-    background:#292928;
-    min-height:400px;
-}
-
-#bottom-area {
-    background:#292928 url('images/bottomgradient.png') repeat-x left top;
-    color: #888;
-    font-size:70%;
-    height:80px;
-    margin:0.2em;
-    padding:0.2em;
-    line-height:18px;
-}
-
-#bottom-area .selected {
-    color: #eee;
-}
-
-#language_column {
-}
-
-#left_area {
-    display:inline-block;
-    position:absolute;
-    top:100px;
-    left:0px;
-}
-#right_area {
-    display:inline-block;
-    position:absolute;
-    top:20px;
-    right:6px;
-
-}
-
-#top-corner {
-    position: absolute;    
-    top: 1em;
-    right: 6px;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-a:link {
-    color: #999;
-    text-decoration:none;
-}
-
-a:visited {
-    color:#99a;
-    text-decoration:underline;
-}
-
-#titlelogo {    
-    margin-right:6px;
-    padding:0;
-    position:relative;
-    top:6px;
-}
-h1 {
-    font-size:34px;
-    margin:3px;
-    padding:0;
-}
-h4 {
-    margin:0.2em;
-    font-size:15px;
-    padding:0;
-    padding-bottom:6px;
-    font-weight:normal;
-}
-
-#big_alert {
-    background:#ff0000;
-    font-size:30px;
-    padding:1em;
-    text-align:center;
-    display:none;
-}
-
-p.gogo {
-    font-size:90%;
-    padding-bottom:0;
-    margin-bottom:0;
-}
-
-input[type=button] {
-    background:transparent;
-    font-family: Helvetica, Verdana, sans-serif;
-    font-size:80%;
-    font-weight:bold;
-    color:#464545;
-    width:140px;
-    height:30px;
-    border:none;
-    cursor:pointer;
-}
+        .note1, .note2, .note3, .note4 {
+            position:relative;
+            display:inline-block;
+            width: 60px;
+            font-size:12px;
+            text-align:left;
+            line-height:16px;
+            color:#aaa;
+        }
+        .note1 {
+        left:32px;
+        }
+        .note2 {
+        left:100px;
+        }
+        .note3 {
+        left:160px;
+        }
+        .note4 {
+        left:230px;
+        }
+        #bottom-area {
+            background:#292928 url('images/bottomgradient.png') repeat-x left top;
+            color: #aaa;
+            font-size:90%;
+            height:80px;
+            line-height:18px;
+        }
+        .has-error input, .has-error textarea {
+            background:#ffaaaa;
+        }
 
 
-#join_classroom {
-    background-image:url('images/join.png');
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;        
-}
-#join_classroom:hover {
-    background-color:#aaa; 
-    background-image:none;
-    color:#fff;
-}
+    </style>
+  </head>
+
+  <body>
+        <nav class="navbar navbar-inverse" role="navigation" >
+            <div class="container">
+
+            <div class="col-sm-8 col-md-7">
+                <h1><img src="images/teams_old.png" id="titlelogo" width="36" height="36" alt="" /> TeamUp </h1>
+                <p class="i18n">Form teams based on skills and interests, record teams' progress.</p>
+            </div>
+            <div class="col-sm-4 col-md-5">
+                <form role="form" style="margin-top: 2em; padding-left:0px;" class="navbar-form form-right">
+                    <div class="form-group">
+                        <label class="i18n sr-only" for="shareddatakey">Classroom name</label>
+                        <input style="margin-top:0.5em" type="text" class="form-control i18nplaceholder" id="shareddatakey" name="shareddatakey" value="" placeholder="Classroom name" />
+                        <button style="margin-top:0.5em" type="button" id="join_classroom" disabled="1" class="btn btn-primary i18n">Go to classroom</button>
+                        <span id="progress" class="navbar-text" style="display:none">&#x25b6;</span>
+                        <div id="classroom_not_available" class="i18n help-block" style="display:none">Sorry, no such classroom or cannot reach the server.</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </nav>
+    <div class="container">
+        <div id="main-area" class="row"> <!--content -->
+            <div class="col-sm-8 col-md-7" style="margin-top: 3em;">
+                <div class="visible-sm" style="margin-left:-15px;">
+                <p>
+                    <img src="images/4stepsalfa2x.png" width="500" height="92" />
+                </p>
+                    <span class="note1 i18n">Add people</span>
+                    <span class="note2 i18n">Choose topics</span>
+                    <span class="note3 i18n">Form teams</span>
+                    <span class="note4 i18n">Record progress</span>
+                </div>
+                <div class="hidden-sm">
+                <p>
+                    <img src="images/4stepsalfa2x.png" width="500" height="92" />
+                </p>
+                    <span class="note1 i18n">Add people</span>
+                    <span class="note2 i18n">Choose topics</span>
+                    <span class="note3 i18n">Form teams</span>
+                    <span class="note4 i18n">Record progress</span>
+                </div>
+                <p id="debugger"></p>
+                <p id="flash_version"></p>
+
+            </div>
+            <div class="col-sm-4 col-md-5">
+                <form>
+                    <div class="form-group">
+                        <input type="hidden" id="userid" name="userid" id="userid" value=""/>
+                        <input type="hidden" id="locale" name="locale" value="en-EN"/>
+                        <p class="gogo"><span class="i18n">New to TeamUp?</span>
+                            <span class="i18n">Create new classroom</span>!
+                        </p>
+                        <div class="form-group">
+                            <label for="new_classroom_key" class="i18n sr-only">Classroom name</label>
+                            <input class="i18nplaceholder form-control" type="text" id="new_classroom_key" name="new_classroom_key" size="20" value="" placeholder="Classroom name" />
+                            <div id="classroom_already_exists" style="display:none" class="help-block i18n">Classroom with same name already exists. Choose another name.</div>
+                            <div style="display:none" id="bad_classroom_name" class="help-block i18n">Missing or invalid class name. Too short or too long.</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="i18n sr-only">Your email address</label>
+                            <input class="form-control i18nplaceholder" type="email" id="email" name="email" value="" placeholder="Your email address" />
+                            <div id="email_help" style="display:none" class="help-block i18n">We use your email address only for sending you a link to access the classroom as a teacher.</div>
+                        </div>
+                        <div class="form-group"> 
+                            <label for="names_list" class="i18n sr-only">First names of people*</label><textarea id="names_list" rows="3" class="form-control i18nplaceholder" name="names_list" placeholder="First names of people*"></textarea> 
+                            <div id="tips" class="help-block ">* 
+                                <span class="i18n">Separate names with commas.</span> 
+                                <br/>
+                                <span class="i18n">First names are preferred for privacy.</span>
+                            </div> 
+                        </div>
+                        <button type="button" id="create_classroom" class="btn btn-primary i18n">Create classroom</button> 
+                    </div>
+                </form>
+                <!-- FACEBOOK CODE GOES HERE -->
+                <!-- FACEBOOK CODE ENDS -->
 
 
-div.input_row {
-    margin-top: 0.5em;
-    position: relative;    
-    margin-bottom: 0.5em;
-}
+            </div>
+        </div>
+    </div>
+<nav class="navbar" role="navigation" id="bottom-area">
+    <div class="container">
 
-
-div.input_row label, #top-corner label {
-    color:#888;
-    font-size:95%;
-    font-style:italic;
-    position: absolute;
-    left:8px;
-    top:8px;
-    cursor:text;
-}
-
-input[type=text], input[type=email] {
-    width: 336px;
-    height:32px;
-    padding:0;
-    padding-left:8px;
-    font-size:100%;
-    font-family: Helvetica, Verdana, sans-serif;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;    
-    border:1px solid #888;
-}
-
-#email_help {
-    display:none;
-    width: 240px;
-    position:absolute;
-    top:-10px;
-    left:-265px;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    background-color:rgb(136,187,231);  
-    font-weight:bold;
-    font-size:12px;
-    padding:10px;
-
-}
-
-#shareddatakey {
-    width: 192px;
-}
-
-textarea {
-    width: 336px;
-    height:64px;
-    font-size:100%;
-    padding:8px;
-    padding-right:0;
-    font-family: Helvetica, Verdana, sans-serif;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;    
-    border:1px solid #888;
-}
-
-#note1, #note2, #note3, #note4 {
-    position:relative;
-    display:inline-block;
-    width: 60px;
-    font-size:12px;
-    text-align:left;
-    line-height:16px;
-    color:#aaa;
-}
-#note1 {
-left:32px;
-}
-#note2 {
-left:100px;
-}
-#note3 {
-left:160px;
-}
-#note4 {
-left:230px;
-}
-
-
-#tips {
-    display:inline-block;
-    width:200px;
-    font-size:80%;
-    color:#7ABBEC;
-}
-
-#create_classroom {
-    display:inline-block;
-    background-image:url('images/join.png');
-    width:140px;
-    height:34px;
-    top:-12px;
-    position:relative;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;        
-}
-#create_classroom:hover {
-    background-color:#aaa; 
-    background-image:none;
-    color:#fff;
-}
-
-#progress {
-    position: absolute;
-    display:none;
-    right:-20px;
-    top:10px;
-    width:20px;
-    height:20px;
-    font-size:12pt;
-    text-align:center;
-    border-radius: 2px;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    background:#600;
-    color:#aaa;      
-}
-
-</style>
-
-</head>
-
-<body>
-<form>
-<div id="header-area">
-<div class="content">
-<h1><img src="images/teams_old.png" id="titlelogo" width="36" height="36" alt="" />TeamUp</h1>
-<h4 class="i18n">Form teams based on skills and interests, record teams' progress.</h4>
-<div id="top-corner">
-    <label class="i18n">Classroom name</label><input type="text" id="shareddatakey" name="shareddatakey" value="" />
-    <input type="button" id="join_classroom" class="i18n-value" value="Go to classroom" disabled="1" />
-    <div id="progress">&#x25b6;</div>
-</div>
-<div id="classroom_not_available" class="i18n">Sorry, no such classroom 
-or cannot reach the server.</div>
-</div>
-</div>
-<div id="main-area">
-<div class="content">
-<div id="left_area">
-    <p>
-    <img src="images/4stepsalfa.png" width="500" height="92" /></p>
-     <p id="note1" class="i18n">Add people</p>
-     <p id="note2" class="i18n">Choose topics</p>
-     <p id="note3" class="i18n">Form teams</p>
-     <p id="note4" class="i18n">Record progress</p>
-</div>
-
-<div id="right_area">
-<input type="hidden" id="userid" name="userid" id="userid" value=""/>
-<input type="hidden" id="locale" name="locale" value="en-EN"/>
- 
-
-
-<p class="gogo"><span class="i18n">New to TeamUp?</span> <span class="i18n">Create new classroom</span>!</p>
-<div class="input_row">
-    <label class="i18n">Classroom name</label><input type="text" id="new_classroom_key" name="new_classroom_key" size="20" value="" />
-</div>
-    <div id="classroom_already_exists" class="i18n">Classroom with same name already exists. Choose another name.</div>
-    <div style="display:none" id="bad_classroom_name" class="i18n">Missing or invalid class name. Too short or too long.</div>
-<div class="input_row">
-    <label class="i18n">Your email address</label><input type="email" id="email" name="email" value="" />
-    <div id="email_help" class="i18n">We use your email address only for sending you a link to access the classroom as a teacher.</div> 
-</div>
-<div class="input_row">
-    <label class="i18n">First names of people*</label><textarea id="names_list" name="names_list"></textarea> 
-</div>
-<p id="tips">* <span class="i18n">Separate names with commas.</span> <br/><span class="i18n">First names are preferred for privacy.</span></p> 
-<input type="button" id="create_classroom" class="i18n-value" value="Create classroom" />  
-<p id="debugger"></p>
-<p id="flash_version"></p> 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=114766928630002&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-<div class="fb-like" data-href="http://teamup.aalto.fi/" data-send="true" data-width="350" data-show-faces="false" data-colorscheme="dark"></div>
-</div>
-</div>
-</div>
-</div>
-<div id="bottom-area">
-<div class="content">
-<div id="language_column">
-suomi | english
-</div>
-<a href="https://docs.google.com/present/view?id=dfmx7dv4_172c394r98t" target="_other">Teacher's manual</a> | contact | privacy policy | terms<br/><a id="itec_link" href="http://itec.eun.org/" alt="iTEC">iTEC 2012</a>
-</div>
-</div>
-</form>
-
+        <div class="row">
+            <div id="language_column">
+                suomi | english
+            </div>
+        </div>
+        <div class="row">
+            <div>
+                <a href="TeamUp-Manual.pdf" target="_other">Teacher's manual (pdf)</a> | contact | privacy policy | terms<br/><a id="itec_link" href="http://itec.eun.org/" alt="iTEC">iTEC 2012</a>
+            </div>
+        </div>
+    </div>
+</nav>
 </body>
 </html>

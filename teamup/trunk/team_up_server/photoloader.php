@@ -27,6 +27,9 @@ if (!file_exists($base.'/'.$dir1.'/'.$class_id)) {
 }
 $pic_name=$base.'/'.$dir1.'/'.$class_id.'/'.$record_id.'_photo.jpg';
 rename($picture['tmp_name'], $pic_name);
+//$fh=fopen($pic_name, 'w');
+//fwrite($fh, $picture);
+//fclose($fh); 
 
 fwrite($log, "Wrote file ".$pic_name."\n");
 fclose($log); 

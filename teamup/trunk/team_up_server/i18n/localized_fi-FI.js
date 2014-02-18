@@ -14,7 +14,7 @@
 "Sorry, no such classroom.": "Pahoittelumme, luokkaa ei löytynyt.",
 "Classroom with same name already exists. Choose another name.": "Löytyi jo luotu luokka tällä nimellä. Keksi toinen nimi.", 
 "Missing or invalid class name. Too short or too long.": "Luokan nimi puuttuu tai nimi on liian pitkä tai lyhyt.",
-"Your email address (optional)": "Opettajan sähköpostiosoite (ei pakollinen)",
+"Your email address": "Opettajan sähköpostiosoite",
 "First names of people*": "Oppilaiden etunimet*",
 "Separate names with commas.": "Erottele nimet pilkulla.",
 "First names are preferred for privacy.":"Etunimiä käytetään yksityisyyden vuoksi.",

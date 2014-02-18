@@ -15,7 +15,7 @@
 "Sorry, no such classroom.": "Sajnos nincs ilyen osztály.",
 "Classroom with same name already exists. Choose another name.": "Ez az osztálynév már létezik. Válasszon másikat!",
 "Missing or invalid class name. Too short or too long.": "Hiányzó vagy érvénytelen osztálynév. Túl rövid vagy túl hosszú.",
-"Your email address (optional)": "Az Ön email címe (opcionális)",
+"Your email address": "Az Ön email címe",
 
 "First names of people*": "A tagok keresztnevei",
 "Separate names with commas.": "A neveket vesszővel válassza el!",

@@ -15,7 +15,7 @@
 "Sorry, no such classroom.": "Vabandust, sellist klassiruumi pole.",
 "Classroom with same name already exists. Choose another name.": "Sellise nimega klassiruum on juba oleams. Vali teine nimi",
 "Missing or invalid class name. Too short or too long.": "Sobimatu klassi nimi. Liiga lühike või liiga pikk.",
-"Your email address (optional)": "Sinu e-mail (valikuline)",
+"Your email address": "Sinu e-mail",
 
 "First names of people*": "Inimeste eesnimed.",
 "Separate names with commas.": "Eralda nimed komadega.",

@@ -15,7 +15,7 @@
 "Sorry, no such classroom.": "Desculpe, essa turma não existe",
 "Classroom with same name already exists. Choose another name.": "Já existe uma turma com esse nome. Escolha outro nome.",
 "Missing or invalid class name. Too short or too long.": "O nome da turma é inválido ou é omisso. Demasiado curto ou demasiado longo",
-"Your email address (optional)": "O seu endereço de correio eletrónico (opcional)",
+"Your email address": "O seu endereço de correio eletrónico",
 
 "First names of people*": "Nomes próprios das pessoas*",
 "Separate names with commas.": "Nomes separados por vírgulas",
