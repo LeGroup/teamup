@@ -29,10 +29,6 @@ function restore_packed_object(obj) {
             new_obj= new Team(true);
         } else if (obj.type=='Pupil') {
             new_obj= new Pupil('','',true);
-            cr=new Friend(new_obj);
-            ALL_FRIENDS.add(cr);
-            cr=new Enemy(new_obj);
-            ALL_ENEMIES.add(cr);
         } else if (obj.type=='Topic') {
             new_obj= new Topic('',true);
         } else if (obj.type=='TeamNote') {
@@ -46,6 +42,14 @@ function restore_packed_object(obj) {
             new_obj[key] = obj[key];
         }
         CATALOG[new_obj.uid]=new_obj;
+
+        if (obj.type=='Pupil') {
+            cr=new Friend(new_obj);
+            ALL_FRIENDS.add(cr);
+            cr=new Enemy(new_obj);
+            ALL_ENEMIES.add(cr);
+        }
+
         return new_obj;
     }
 }
@@ -247,6 +251,15 @@ function localize(){
 	} else if (lang.length == 2) {
 	    lang = lang+'-'+lang.toUpperCase();   
 	}
+	if (lang=='he-HE') {
+        $('html').attr('dir','rtl')
+        RTL=true;
+        debug('RTL language');
+	} else {
+        $('html').attr('dir','ltr')
+        RTL=false;
+        debug('non-RTL language');
+	}
 	if (lang=='en-EN' || lang=='en-US') return;
     debug('loading i18n/localized_'+lang+'.js');
     jQuery.ajax("i18n/localized_"+lang+".js", {
@@ -291,6 +304,6 @@ function str(myObj) {
 
 
 
-navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.getUserMedia;
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
 

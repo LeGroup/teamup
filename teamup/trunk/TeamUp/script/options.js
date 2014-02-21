@@ -9,6 +9,7 @@ OPTIONS.color=false;
 OPTIONS.clicker='None';
 OPTIONS.are_loaded=false;
 OPTIONS.wait_for_load=false;
+OPTIONS.learners_edit_teams=false;
 
 OPTIONS.init = function() {
     var s="";
@@ -34,6 +35,9 @@ OPTIONS.init = function() {
     $('#clicker_select').val(OPTIONS.clicker);
     $('#clicker_select').change(OPTIONS.set_clicker);
     $('#clicker_select').change();
+
+    $('#learners_edit_teams').attr('checked', OPTIONS.learners_edit_teams);
+    $('#learners_edit_teams').change(OPTIONS.set_learners_edit_teams);
 }
 OPTIONS.save_options = function() {
     var d={};
@@ -41,6 +45,7 @@ OPTIONS.save_options = function() {
     d.show_icons= OPTIONS.show_icons;
     d.always_show_names= OPTIONS.always_show_names;
     d.team_size= OPTIONS.team_size;
+    d.learners_edit_teams=OPTIONS.learners_edit_teams;
     return d;
 }
 
@@ -127,6 +132,14 @@ OPTIONS.set_show_names = function(event) {
     }
 	OPTIONS.are_loaded=true;
     CLASSROOM.update_faces();
+}
+
+OPTIONS.set_learners_edit_teams = function(event) {
+    OPTIONS.learners_edit_teams=this.checked;
+    if (MODERATOR) {
+        CONTROLLER.addOption('learners_edit_teams', OPTIONS.learners_edit_teams);
+        CONTROLLER.sendChanges();        
+    }
 }
 
 OPTIONS.set_language = function(event) {

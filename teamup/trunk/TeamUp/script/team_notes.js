@@ -2,8 +2,10 @@
 // Team notes view
 
 TEAM_NOTES.highlighted_question=0;
+TEAM_NOTES.player_ready=false;
 
 TEAM_NOTES.next= function() {
+    BOTTOM_HEIGHT=96;
     var next_team;    
     var team=getData($('#team_title'));
     for (var i=0;i<TEAMS.length;i++) {
@@ -15,6 +17,7 @@ TEAM_NOTES.next= function() {
             }
         }
     }
+    $('div.bottom').show()
     $('div.recordings').hide('slide', {direction:'left'}, 300);
     $('#available_recordings').hide('slide', {direction:'left'}, 300);
     TEAM_NOTES.create_team_notes(next_team);
@@ -23,6 +26,7 @@ TEAM_NOTES.next= function() {
 }   
 
 TEAM_NOTES.prev= function() {
+    BOTTOM_HEIGHT=96;
     TEAM_NOTES.view_mode();
     var prev_team;
     var team=getData($('#team_title'));
@@ -35,6 +39,7 @@ TEAM_NOTES.prev= function() {
             }
         }
     }
+    $('div.bottom').show()
     $('div.recordings').hide('slide', {direction:'right'}, 300);
     $('#available_recordings').hide('slide', {direction:'right'}, 300);
     TEAM_NOTES.create_team_notes(prev_team);
@@ -47,18 +52,28 @@ TEAM_NOTES.hide = function(){
     $('#available_recordings').hide();        
 }
 
-TEAM_NOTES.show = function() {
+
+TEAM_NOTES.adjust_heights = function() {
+    var inner_height=WINDOW_HEIGHT - TOP_HEIGHT - BOTTOM_HEIGHT;
+    $('div.recordings').css('height', inner_height);
     var table=$('div.recordings table:first');
-    $('div.recordings').css('height', WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT);
+    var size_difference = inner_height-389;
+    if (size_difference<0) {
+        $('div.recordings table tr').first().hide();
+        size_difference+=96;        
+    } else {
+        $('div.recordings table tr').first().show();        
+    }
+    table.css('top', size_difference/2);
+}
+
+
+TEAM_NOTES.show = function() {
+    BOTTOM_HEIGHT=96;
+    TEAM_NOTES.view_mode();
+    TEAM_NOTES.adjust_heights();
     enable_nav();
     enable_bottom();
-    table.css('top',Math.max((WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480)/2, -20)+TOP_HEIGHT);
-    if (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480<-20) {
-        $('div.recordings table tr').first().hide();
-    } else {
-        $('div.recordings table tr').first().show();
-    }
-
     $('div.recordings').show('slide', {direction:'down'},300);
     $('#available_recordings').show('slide',{direction:'down'},300);
     view=TEAM_NOTES;    
@@ -80,6 +95,7 @@ TEAM_NOTES.create_team_notes= function(team) {
         
     }
     RECORDER.on=false;
+    TEAM_NOTES.adjust_heights();
     TEAM_NOTES.highlight_question(0);
     $('#note_questions p').first().addClass('highlight');
 
@@ -218,8 +234,8 @@ TEAM_NOTES.remove_note=function(event, confirmed) {
 TEAM_NOTES.load_this_note= function(event) {
     TEAM_NOTES.load_note(getData($(this)));
     TEAM_NOTES.view_mode(event);
-    // autoplay is now enabled-- TODO 1.10. 
-    $('#note_player').jPlayer("play", 0);
+    // autoplay is now enabled-- TODO 1.10.     
+    //$('#note_player').jPlayer("play", 0);
 }  
 
 TEAM_NOTES.empty_note= function() {
@@ -247,8 +263,13 @@ TEAM_NOTES.load_note= function(note) {
         $('#note_photo').css('background-image','none');
         $('#note_photo_img').hide();
     }
-    $('#note_player').jPlayer("setMedia", {mp3:note.audio_url});
-    debug('loading '+note.audio_url+' to jPlayer');
+
+    if (TEAM_NOTES.player_ready) {
+        $('#note_player').jPlayer("setMedia", {mp3:note.audio_url});
+        debug('loading '+note.audio_url+' to jPlayer');
+    } else {
+        debug('loading note, but player is not ready.');
+    }
 
 }
 
@@ -268,12 +289,16 @@ TEAM_NOTES.view_mode= function(event) {
 //    </div>
 
 TEAM_NOTES.prepare_audio= function() {
+    debug('player is now ready.')
     var note=getData($('#note_photo'));
     var rec=''
+    TEAM_NOTES.player_ready=true;
     if (note!=null) {
         rec=note.audio_url;
     }
-    $('#note_player').jPlayer("setMedia", {mp3:rec});
+    if (rec) {
+        $('#note_player').jPlayer("setMedia", {mp3:rec});        
+    }
 }
 
 TEAM_NOTES.play = function(event) {
@@ -299,7 +324,6 @@ TEAM_NOTES.show_play_progress = function(event) {
 
 // Full line of progress bar is 464 pixels wide.
 // 1 second = 464/60= 7.733333... pixels
-
 
 TEAM_NOTES.set_up_timeline = function(event) {
     var ft= event.jPlayer.status.duration;

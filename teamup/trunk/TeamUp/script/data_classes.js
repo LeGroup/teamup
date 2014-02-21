@@ -52,6 +52,9 @@ function Pupil(name, img, no_catalog){
 }
 
 Pupil.prototype.addProperty = function(prop) {
+    if (!prop) {
+        return null
+    }
     // check what kind of property it is to put it to the right category
     if (ALL_HOBBIES.contains(prop))  {
         for (j=0;j<this.hobbies.length;j++) {
@@ -88,6 +91,10 @@ Pupil.prototype.addProperty = function(prop) {
 }
 
 Pupil.prototype.removeProperty = function(prop) {
+    if (!prop) {
+        return null
+    }
+    
     if (prop.uid==this.gender) {
         this.gender=null;
         return prop;
@@ -289,6 +296,24 @@ Topic.prototype.removeVoter = function(person) {
         }        
     }
     return null
+}
+Topic.prototype.removeAllVotesFrom = function(person) {
+    // returns true if changes were made
+    var filtered_voters=[];
+    var voter;
+    var len_before=this.voters.length;
+    for (i=0;i<this.voters.length;i++) {
+        voter=this.voters[i];
+        if (person.uid!=voter) {
+            filtered_voters.push(voter);
+        }
+    }
+    this.voters=filtered_voters;
+    if (this.voters.length < len_before) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function Team(no_catalog){

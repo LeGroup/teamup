@@ -21,7 +21,7 @@ INTERESTS.draw_topics = function(animate) {
         is_empty= (topic.name.length==0) ? ' empty' : '';
         val= (topic.name.length==0) ? i18n('Enter topic') : topic.name;
         reset_button= (MODERATOR && i==0) ? '<div id="reset_votes" class="button" label="'+i18n('Reset votes')+'"></div>' : '';
-        drop_area_content = (topic.voters.length) ? '' : ' '+i18n('Drag pictures here');
+        drop_area_content = (topic.voters.length) ? '' : ' <span class="i18n">'+i18n('Drag pictures here')+'</span>';
         s='<tr><td style="width:32px">'+(i+1)+'.</td><td><input type="text" class="topic'+is_empty+'" id="'+topic.uid+'" tabindex="'+(i+10)+'" value="'+val+'" /></td><td><div class="interest_drop_area">'+drop_area_content+'</div>'+reset_button+'</td></tr>';
         place.append(s);
         setData($('#'+topic.uid), topic);
@@ -89,8 +89,13 @@ INTERESTS.store_topic = function(event) {
     $('#'+topic.uid).closest('tr').next().find('input').focus(); // focus to next field 
 }
 
+INTERESTS.adjust_heights= function(){
+    var inner_height = WINDOW_HEIGHT - TOP_HEIGHT - BOTTOM_HEIGHT;
+    $('div.interests').css('height', inner_height);            
+}
 
 INTERESTS.show = function(dir){
+    INTERESTS.adjust_heights();
     enable_bottom();
     disable_nav();
     $('div.interests').show('slide',{direction:dir},300);

@@ -81,7 +81,7 @@ if (CONTROLLER.offline) {
         np.addProperty(ALL_HOBBIES.criteria[Math.floor(Math.random()*ALL_HOBBIES.criteria.length)]);
         np.addProperty(ALL_HOBBIES.criteria[Math.floor(Math.random()*ALL_HOBBIES.criteria.length)]);
         PUPILS.push(np);
-        cr=new Friend(np);
+        cr=new Friend(np); // safe 
         ALL_FRIENDS.add(cr);
         cr=new Enemy(np);
         ALL_ENEMIES.add(cr);
@@ -106,12 +106,12 @@ if (CONTROLLER.offline) {
 // All event sources from index.html 
 // Assign events to elements and connect events to functions
 $(document).ready(function(){
-
+    $('#load_error').hide();
     // hide panels        
     $('#language-panel').dialog({height:480, width:720, modal:true, autoOpen: false});
 
     $('#welcome-panel').dialog({ width:720, position:[80,10], modal:true, autoOpen: false, close:function(event,ui){
-        if( PUPILS.length==0) LEARNER_VIEW.create_person(null);
+        if( PUPILS.length==0) LEARNER_VIEW.create_new_person();
         }});
     $('#teacher-panel').dialog({height:480, width:480, modal:true, autoOpen: false, closeOnEscape: true, buttons: { "OK": function() { $(this).dialog("close"); }}});
     $('#delete-confirm-panel').dialog({height:480, width:480, modal:true, autoOpen: false, closeOnEscape: true, buttons: { "Delete": function() {$(this).dialog("close");LEARNER_VIEW.delete_learner();}, "Cancel": function() {$(this).dialog("close");}}});
@@ -119,14 +119,14 @@ $(document).ready(function(){
     $('#delete-note-confirm-panel').dialog({height:480, width:480, modal:true, autoOpen: false, closeOnEscape: true, buttons: { "Delete": function() {$(this).dialog("close");TEAM_NOTES.remove_note(event, true);}, "Cancel": function() {$(this).dialog("close");}}});
 
     //$('#welcome-panel-inner').accordion({header:'h3', autoHeight:false});
-    $('#debug').toggle(function () {$(this).css('height','20px')}, function () {$(this).css('height','400px')});
+    //$('#debug').toggle(function () {$(this).css('height','20px')}, function () {$(this).css('height','400px')});
     $('div.main_area').css({height:$(window).height()-62});
     $('body').css({height:$(window).height()});
 
 
-    if (URL_VARS.debug_mode) {
-        DEBUG_MODE=true;
-    }
+    //if (URL_VARS.debug_mode) {
+    //    DEBUG_MODE=true;
+    //}
 
 
     // General navigation    
@@ -170,6 +170,8 @@ $(document).ready(function(){
     $(window).resize(function(event) {
         //CLASSROOM.resize_display();
         WINDOW_HEIGHT=$(window).height();
+        var inner_height = WINDOW_HEIGHT - TOP_HEIGHT - BOTTOM_HEIGHT;
+
         $('div.main_area').css('height', WINDOW_HEIGHT - TOP_HEIGHT);
         $('div.nav').css('top', WINDOW_HEIGHT/2-24)
 
@@ -179,27 +181,26 @@ $(document).ready(function(){
             } else {
                 CLASSROOM.build_class_view(false);
             }
+        } else if (view==CRITERIA) {
+            CRITERIA.adjust_heights();
+        } else if (view==INTERESTS) {
+            INTERESTS.adjust_heights();
         } else if (view==LEARNER_VIEW) {
-            $('div.person table').css('top', (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-$('div.person table').height())/2);
+            LEARNER_VIEW.adjust_heights();
         } else if (view==TEAM_NOTES) {
-            $('div.recordings table').css('top',Math.max((WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480)/2, -40)+TOP_HEIGHT);
-            if (WINDOW_HEIGHT-TOP_HEIGHT-BOTTOM_HEIGHT-480<-40) {
-                $('div.recordings table tr').first().hide();
-            } else {
-                $('div.recordings table tr').first().show();
-            }
-
-        }        
+            TEAM_NOTES.adjust_heights();
+        }
+        $('div.interests').css('height', inner_height);
     });
 
 
     // Team notes
 
-    $('#note_player').jPlayer( { swfPath: "", supplied:"mp3", cssSelectorAncestor: "#player_interface", preload:'auto', 
+    $('#note_player').jPlayer( { swfPath: "Jplayer.swf", supplied:"mp3", cssSelectorAncestor: "#player_interface", preload:'auto', 
         ready:TEAM_NOTES.prepare_audio,        
+        progress: TEAM_NOTES.set_up_timeline, 
         timeupdate: TEAM_NOTES.show_play_progress,
         play: TEAM_NOTES.play,
-        loadeddata: TEAM_NOTES.set_up_timeline,
         backgroundColor: '#3D3D3B'
     });
 
@@ -224,17 +225,11 @@ $(document).ready(function(){
 
     // People functionalities
     
-    $('#remove_person').click(function () {$('#delete-confirm-panel').find('b').text(PUPILS[THIS_PERSON].name);$('#delete-confirm-panel').dialog('open');$('div.ui-dialog-buttonpane').find('button:last').focus();}).keyup(function(e){if(e.keyCode==13) $(this).click()});
-    $('#add_person').click(LEARNER_VIEW.create_new_person).keyup(function(e){if(e.keyCode==13) $(this).click()});
-    $('#new_person').click(LEARNER_VIEW.create_new_person).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#remove_person').click(function () {$('#delete-confirm-panel').find('b').text(PUPILS[SELECTED_PERSON].name);$('#delete-confirm-panel').dialog('open');$('div.ui-dialog-buttonpane').find('button:last').focus();}).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#add_person').click(LEARNER_VIEW.add_new_person).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#new_person').click(LEARNER_VIEW.add_new_person).keyup(function(e){if(e.keyCode==13) $(this).click()});
 
-    $("#namebox").change(function(event) {
-        PUPILS[THIS_PERSON].name=$(this).val().replace('<','').replace('>','');
-        CONTROLLER.addChange(PUPILS[THIS_PERSON]);
-        CONTROLLER.sendChanges();
-        CLASSROOM.update_faces();
-        $(this).blur();
-    }),
+    $("#namebox").change(LEARNER_VIEW.rename_person),
     $("#camera_button").click(function(event) {
         if (CAMERA.on) {
             debug('camera is on, take a photo');

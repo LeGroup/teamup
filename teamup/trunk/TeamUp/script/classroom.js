@@ -67,8 +67,11 @@ CLASSROOM.populate_class= function() {
         }
     }
     
+    if (MODERATOR || OPTIONS.learners_edit_teams) {
+        $('div.face').draggable({zIndex:2700}).droppable({greedy:false, over:CLASSROOM.drag_over, out:CLASSROOM.drag_out, drop:CLASSROOM.drag_drop, tolerance:'pointer', scroll:false});        
+    }
+
     if (MODERATOR) {
-        $('div.face').draggable({zIndex:2700}).droppable({greedy:false, over:CLASSROOM.drag_over, out:CLASSROOM.drag_out, drop:CLASSROOM.drag_drop, tolerance:'pointer', scroll:false});
         $('#new_person').show();        
     } else {
         $('#new_person').hide();
@@ -135,12 +138,12 @@ CLASSROOM.adjust_for_learners= function (event) {
     $('#team_size').closest('p').hide();
     $('#teacher_url').closest('p').hide();
     $('#show_icons').closest('p').hide();
-    $('#new_teams').html(i18n('vote'));
+    $('#learners_edit_teams').closest('p').hide();
+    $('#new_teams').html('<span class="i18n">vote</span>');
     $('#interests_next').hide();
     if (TEAMS.length==0) {
         $('#team_view').hide();    
     }
-
 }
 
 
@@ -162,7 +165,7 @@ CLASSROOM.prepare_new_classroom = function (event) {
         }
     }    
 
-    LEARNER_VIEW.create_person(clean_names);
+    LEARNER_VIEW.create_persons(clean_names);
     $('#welcome-panel').dialog('close');
 }
 
@@ -409,7 +412,7 @@ CLASSROOM.create_random_teams= function() {
             if (free_pupils.length>0) {
                 if (TEAMS.length<=i) {                    
                     nt=new Team();
-                    nt.name=i18n('Team')+' '+(i+1);
+                    nt.name=i18n('Team')+' '+(i+1).toString();                        
                     nt.color=colors[i];
 					TEAMS.push(nt);
                     member=random_pick(free_pupils)
@@ -444,9 +447,10 @@ CLASSROOM.redraw_team_labels= function() {
     $('div.team_box').remove();
     var place=$('div.class_area');
     var team_name, team_name_input;
+    // +i18n_concat(i18n_concat(i18n('Tram'),':',''), 'x', team_name)+
     for (i=0;i<TEAMS.length;i++){
         team_name=TEAMS[i].name;
-        place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+i18n('Team')+': '+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><span class="available_recordings">0</span><img class="team_table" src="images/teams-stencil-1.png" alt="" width="164" height="152" /></div>');
+        place.append('<div class="team_box" id="team_box_'+i+'"><span class="team_name" tabindex="'+(i+10)+'">'+team_name+'</span><input type="text" class="team_name" value="" size="12" id="team_'+i+'"/ tabindex="'+(i+10)+'"><span class="available_recordings">0</span><img class="team_table" src="images/teams-stencil-1.png" alt="" width="164" height="152" /></div>');
         team_name_input=$('#team_'+i);
         team_name_input.val(team_name);
         team_name_input.attr('size',(team_name.length>10) ? team_name.length: 10);

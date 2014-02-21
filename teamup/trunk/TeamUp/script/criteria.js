@@ -4,8 +4,8 @@
 CRITERIA.show= function(dir){
     var crits=CRITERIA.available_criteria();
     disable_nav();
+    CRITERIA.adjust_heights();
     enable_bottom();    
-    $('div.criteria').css('height',WINDOW_HEIGHT - TOP_HEIGHT);
     $('div.criteria_picker').width(crits.length*74);
     CRITERIA.populate_criteria_picker(crits);
     CRITERIA.init_dragging();
@@ -28,6 +28,13 @@ CRITERIA.show= function(dir){
     $('div.criteria_picker').show('slide',{direction:'down'},300);
     view=CRITERIA;
 }
+
+
+CRITERIA.adjust_heights= function(){
+    var inner_height = WINDOW_HEIGHT - TOP_HEIGHT - BOTTOM_HEIGHT;
+    $('div.criteria').css('height', inner_height);            
+}
+
 
 CRITERIA.hide= function(){
     $('div.criteria').hide();
@@ -62,21 +69,25 @@ CRITERIA.prev = function(){
 }
 
 CRITERIA.update_preview = function() {
-    s='';
-    var team, person;
+    var team, person, s;
+    $('#preview_inner').html('');
     for (var i=0;i<TEAMS_PREVIEW.length;i++) {
         team=TEAMS_PREVIEW[i];
-        s+='<p style="color:'+team.color+'"><b>'+team.name+': ';
+        // this string concatenation can seem a bit strange, but they are so that
+        // RTL languages can lay out elements in correct order. 
+        s='<p style="color:'+team.color+'"><b><span>'+team.name+':</span></b>';
+        $('#preview_inner').append(s);
+        place=$('#preview_inner p b').last();
         for (var j=0;j<team.members.length;j++) {
             person=CATALOG[team.members[j]];
-            s+=person.name;
             if (j<team.members.length-1) {
-                s+=', ';
+                place.append('<span>'+person.name+', </span>');
+            } else {
+                place.append('<span>'+person.name+'</span>');
             }
         }
-        s+='</b></p>';        
+       
     }
-    $('#preview_inner').html(s);
 }
 
 CRITERIA.add_unifying_crit = function(event, ui){
@@ -207,7 +218,14 @@ CRITERIA.confirm_before_teaming = function(event) {
     }
     if (team_names.length>0) {
         debug('Found items... alerting user.');
-        $('#reset-confirm-panel').dialog("option", "buttons", { "Reset": function() { $(this).dialog("close");CRITERIA.save_teams();}, "Cancel": function() {$(this).dialog("close");} } );
+        $('#reset-confirm-panel').dialog("option", "buttons", { 
+            "Reset": function() { 
+                $(this).dialog("close");CRITERIA.save_teams();
+             }, 
+             "Cancel": function() {
+                $(this).dialog("close");
+             } 
+         });
         $('#reset-confirm-panel').find('b').html(team_names);
         $('#reset-confirm-panel').dialog('open');
         $('div.ui-dialog-buttonpane').find('button:last').focus();
@@ -225,7 +243,7 @@ CRITERIA.team_up = function () {
         }
         return n;
     }
-
+    debug('Unifying criteria n: '+UNIFYING_CRITERIA.length)
 
     //unifying_criteria=[ALL_GENDERS, ALL_HOBBIES]; // replace this with actual choices
     splitting_criteria=[ALL_GENDERS, ALL_HOBBIES, ALL_LANGUAGES, ALL_VOTES, ALL_FRIENDS, ALL_ENEMIES]; //  ALL_LEVELS
@@ -244,6 +262,7 @@ CRITERIA.team_up = function () {
             }
         };
         UNIFYING_CRITERIA[i].weight=weights[i];
+        debug('Unifying criteria '+i+':'+UNIFYING_CRITERIA[i].name+', w='+UNIFYING_CRITERIA[i].weight);
     }
     for (var j=0;j<splitting_criteria.length;j++) {
         splitting_criteria[j].weight=neg_weight;
@@ -300,12 +319,12 @@ CRITERIA.team_up = function () {
                 score+=ALL_GENDERS.weight;                
             }
             for (var k=0;k<pup.friends.length;k++) {
-                if (pup.friends[k].person==pup2) {
+                if (CATALOG[pup.friends[k]].person==pup2.uid) {
                     score+=ALL_FRIENDS.weight;
                 }
             }
             for (var k=0;k<pup.enemies.length;k++) {
-                if (pup.enemies[k].person==pup2) {
+                if (CATALOG[pup.enemies[k]].person==pup2.uid) {
                     score-=5000;
                 }
             }
@@ -339,9 +358,9 @@ CRITERIA.team_up = function () {
             nteam.topic=this_topic;
             nteam.color=colors[h];
             if (this_topic && this_topic.name!='') { 
-                nteam.name=this_topic.name+' '+topic_round;
+                nteam.name=this_topic.name+' '+topic_round.toString();
             } else {
-                nteam.name=i18n('Team')+' '+(h+1);
+                nteam.name=i18n('Team')+' '+(h+1).toString();
             }
 
             if (this_topic && this_topic.voters.length>0) {

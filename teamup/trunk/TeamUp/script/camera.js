@@ -7,6 +7,9 @@ CAMERA.prepare_photoshoot = function() {
         var cam = CAMERA.getCamera();
         return;
     }
+    if (MODERATOR) {
+        $('div.bottom').hide('slide',{direction:'down'},300);
+    }
     $("div.portrait").hide();
     $('div.photoshoot').css('border-color','transparent');
     $("div.photoshoot").show();
@@ -63,7 +66,7 @@ CAMERA.tookPhoto = function () {
 
 CAMERA.savedPhoto = function (path) {
     debug('Received a photo');
-    var pup=PUPILS[THIS_PERSON];
+    var pup=PUPILS[SELECTED_PERSON];
     var old_src=pup.img_src;
     // random argument is added so that the photo is updated properly = it's not coming from the same url as previous
     pup.img_src=SERVER_URL+path+'?r='+Math.floor(Math.random()*10000);
@@ -86,7 +89,7 @@ CAMERA.savedPhoto = function (path) {
 
 CAMERA.keep_photo = function() { 
     debug('saving photo...');
-    var pup=PUPILS[THIS_PERSON];
+    var pup=PUPILS[SELECTED_PERSON];
     var server_path=SERVER_URL;
     var class_name=fs_friendly_string((PARAMS) ? PARAMS.class_key : 'demo');
     var user_uid= (pup._id) ? fs_friendly_string(pup._id) : fs_friendly_string(pup.uid);
@@ -124,6 +127,10 @@ CAMERA.finish_photoshoot=function() {
     if (WEBRTC_CAM.available) {
         WEBRTC_CAM.cancel()
     }
+    if (MODERATOR) {
+        $('div.bottom').show('slide',{direction:'down'},300);
+    }
+
     $('div.portrait').show();
     $('div.photoshoot').hide();
     $('#save_portrait').hide('slide',{direction:'left'});

@@ -11,6 +11,7 @@ if (typeof wave!== 'undefined') {
         wave.setStateCallback(CONTROLLER.stateUpdated);
         wave.setParticipantCallback(CONTROLLER.availablePeopleChanged);
         OPTIONS.wait_for_update=true;
+        loading_alert_on();
     }
     CONTROLLER.user={};
     CONTROLLER.availablePeopleChanged=function() {}
@@ -46,6 +47,7 @@ if (typeof wave!== 'undefined') {
         if (!state) return;
         var keys=state.getKeys();
         var key, existing, update, change, obj;
+        loading_alert_off();
         debug('received '+keys.length+' objects');
     
         // set params
@@ -83,6 +85,11 @@ if (typeof wave!== 'undefined') {
             OPTIONS.show_icons=$.parseJSON(state.get('SHOW_ICONS'));            
         }
 
+        var new_pupils=state.get('PUPILS');
+        if (new_pupils) {
+            new_pupils=$.parseJSON(new_pupils);
+        }
+
 
         for (var i=0;i<keys.length;i++) {
             key=keys[i];
@@ -98,7 +105,23 @@ if (typeof wave!== 'undefined') {
                 } else {
                     existing=null;
                 }
-                update=restore_json_object(state.get(key));
+                obj = $.parseJSON(state.get(key));
+                if (obj) {
+                    if (obj.type=='Pupil') {
+                        // verify that pupil really belongs to class before restoring it
+                        for (var j=0;j<new_pupils.length;j++) {
+                            if (new_pupils[j]==obj.uid) {
+                                update=restore_packed_object(obj);
+                                break;                                
+                            }
+                        }
+                    } else {
+                        update=restore_packed_object(obj);
+                    }
+                } else {
+                    // broken object
+                    continue;
+                }
                 if (!update) {
                     // somehow broken object. better skip it.
                     debug('skipping broken object '+key);
@@ -142,12 +165,6 @@ if (typeof wave!== 'undefined') {
                     // create new object based on flat_new
                     // add it to relevant lists and catalogs
                     debug('downloading new '+update.uid);
-                    if (isType(update, 'Pupil')) {
-                        cr=new Friend(update);
-                        ALL_FRIENDS.add(cr);
-                        cr=new Enemy(update);
-                        ALL_ENEMIES.add(cr);
-                    }
                     changes.push(update);
                 }
             }
@@ -173,9 +190,7 @@ if (typeof wave!== 'undefined') {
             }
         }
         // update LISTS  -- look at the keys in flattened list and replace them with respective CATALOG objects.
-        var new_pupils=state.get('PUPILS');
         if (new_pupils) {
-            new_pupils=$.parseJSON(new_pupils);
             debug('PUPILS updated:'+new_pupils.length);
             for (var p=0;p<new_pupils.length;p++) {
                 if (PUPILS[p] && new_pupils[p]!=PUPILS[p].uid) {order_changed=true;}
@@ -192,10 +207,10 @@ if (typeof wave!== 'undefined') {
                     clean_names.push(clean);
                 }
             }    
-            LEARNER_VIEW.create_person(clean_names);
+            LEARNER_VIEW.create_persons(clean_names);
         } else {
             debug('no PUPILS in state nor names list, strange situation.');
-            LEARNER_VIEW.create_person(['Learner1','Learner2']);                
+            LEARNER_VIEW.create_persons(['Learner1','Learner2']);                
         }
         var new_teams=state.get('TEAMS');
         if (new_teams) {
@@ -372,6 +387,7 @@ if (typeof wave!== 'undefined') {
         CATALOG[changed_object.uid]=changed_object;
         CONTROLLER.delta[changed_object.uid]=JSON.stringify(changed_object);
     }
+
     
     CONTROLLER.addOption=function(option_key, value) {
         debug('Changed option '+option_key+' to '+value);
@@ -392,11 +408,11 @@ if (typeof wave!== 'undefined') {
         
     CONTROLLER.sendChanges=function() {
         CONTROLLER.checkConsistency();
-
         debug('*** sending changes ***');
         if (CONTROLLER.state_received) {
             wave.getState().submitDelta(CONTROLLER.delta);        
             CONTROLLER.delta={};
+            loading_alert_on();
         }
     }
 

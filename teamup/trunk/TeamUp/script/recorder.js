@@ -65,6 +65,9 @@ RECORDER.prepare_recorder=function() {
     $('#note_player').jPlayer("setMedia", {mp3:''});
     $('#timer_text span.now').text('0:00');
     $('#timer_text span.max_duration').text('0:00');
+    BOTTOM_HEIGHT=0;
+    TEAM_NOTES.adjust_heights()
+    $('div.bottom').hide('slide',{direction:'down'},300);
 
     if (!RECORDER.getRecorder()) {
         swfobject.embedSWF('recorder/TeamRecorder4.swf', 'TeamRecorder', '240', '240', '10.3.0', 'expressInstall.swf', {},{wmode:"opaque"},{});
@@ -212,7 +215,7 @@ function html5Play(buf) {
 
 RECORDER.stop_recording = function() {
     var rec = RECORDER.getRecorder();
-    if(rec) {
+    if (rec) {
         debug('-> stopRecording')
         rec.stopRecording();
     }
@@ -326,6 +329,9 @@ RECORDER.save_note= function() {
     $('#save_note').off('click');
     $('#rec_indicator').off('click').removeClass('active');
     $('#recorder_play_button').off('click').removeClass('active');
+    $('div.bottom').show('slide',{direction:'down'},300);
+    BOTTOM_HEIGHT=96;
+    TEAM_NOTES.adjust_heights()
 }
 
 RECORDER.finished_recording= function(path) {
