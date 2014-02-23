@@ -35,8 +35,8 @@ DataProvider.prototype.getCollection= function(classroom_id, callback) {
 };
 
 DataProvider.prototype.createClassroom= function(data, callback) {
-  console.log('Creating classroom '+data.c);
-  this.db.createCollection(data.c, function(error, classroom) {
+  console.log('Creating classroom '+data.class_key);
+  this.db.createCollection(data.class_key, function(error, classroom) {
     if( error ) {
         console.log('Error creating collection');
         callback(error);
@@ -44,7 +44,7 @@ DataProvider.prototype.createClassroom= function(data, callback) {
     else {
         console.log('Classroom created');
         // setting classroom properties
-        classroom.save({uid:'setup', class_key:data.c, email:data.e, locale:data.l, teacher:data.u, teacher_link:data.tl, student_link:data.sl, names:data.n, version:1}, function (err) {
+        classroom.save({uid:'setup', class_key:data.class_key, email:data.email, locale:data.locale, teacher:data.userid, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err) {
             if (err) console.log("Error saving settings");
             else {
                 console.log("Saved settings");
