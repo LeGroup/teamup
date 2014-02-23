@@ -17,8 +17,9 @@
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
       <!--<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>-->
       <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-      <script src="js/bootstrap.min.js"></script>
-      <script language="javascript" type="text/javascript" src="teamup_loader.js"></script>
+      <script language="javascript" type="text/javascript" src="js/bootstrap.min.js"></script>
+      <script language="javascript" type="text/javascript" src="js/wookie-connector.js"></script>
+      <script language="javascript" type="text/javascript" src="js/teamup_loader.js"></script>
       <style>
         input[type=text], input[type=email], textarea {
             max-width: 500px;
@@ -51,6 +52,7 @@
             font-size:90%;
             height:80px;
             line-height:18px;
+            margin-top: 1em;
         }
         .has-error input, .has-error textarea {
             background:#ffaaaa;
@@ -69,13 +71,13 @@
                 <p class="i18n">Form teams based on skills and interests, record teams' progress.</p>
             </div>
             <div class="col-sm-4 col-md-5">
-                <form role="form" style="margin-top: 2em; padding-left:0px;" class="navbar-form form-right">
+                <form role="form" style="margin-top: 2em; padding-left:0px;" id="join_form" class="navbar-form form-right">
                     <div class="form-group">
-                        <label class="i18n sr-only" for="shareddatakey">Classroom name</label>
-                        <input style="margin-top:0.5em" type="text" class="form-control i18nplaceholder" id="shareddatakey" name="shareddatakey" value="" placeholder="Classroom name" />
-                        <button style="margin-top:0.5em" type="button" id="join_classroom" disabled="1" class="btn btn-primary i18n">Go to classroom</button>
-                        <span id="progress" class="navbar-text" style="display:none">&#x25b6;</span>
-                        <div id="classroom_not_available" class="i18n help-block" style="display:none">Sorry, no such classroom or cannot reach the server.</div>
+                        <label class="i18n sr-only" for="class_key">Classroom name</label>
+                        <input style="margin-top:0.5em" type="text" class="form-control i18nplaceholder" id="class_key" name="class_key" required="true" value="" placeholder="Classroom name" />
+                        <button style="margin-top:0.5em" type="submit" id="join_classroom" disabled="1" class="btn btn-primary i18n">Go to classroom</button>
+                        <span id="join_progress" class="btn" style="display:none">&#x25b6;</span>
+                        <div id="classroom_not_available" class="i18n help-block" style="display:none;margin-top:0.5em">Sorry, no such classroom or cannot reach the server.</div>
                     </div>
                 </form>
             </div>
@@ -107,7 +109,7 @@
 
             </div>
             <div class="col-sm-4 col-md-5">
-                <form>
+                <form id ="create_form">
                     <div class="form-group">
                         <input type="hidden" id="userid" name="userid" id="userid" value=""/>
                         <input type="hidden" id="locale" name="locale" value="en-EN"/>
@@ -116,13 +118,13 @@
                         </p>
                         <div class="form-group">
                             <label for="new_classroom_key" class="i18n sr-only">Classroom name</label>
-                            <input class="i18nplaceholder form-control" type="text" id="new_classroom_key" name="new_classroom_key" size="20" value="" placeholder="Classroom name" />
+                            <input class="i18nplaceholder form-control" type="text" id="new_classroom_key" name="new_classroom_key" size="20" value="" placeholder="Classroom name" required="true" />
                             <div id="classroom_already_exists" style="display:none" class="help-block i18n">Classroom with same name already exists. Choose another name.</div>
                             <div style="display:none" id="bad_classroom_name" class="help-block i18n">Missing or invalid class name. Too short or too long.</div>
                         </div>
                         <div class="form-group">
                             <label for="email" class="i18n sr-only">Your email address</label>
-                            <input class="form-control i18nplaceholder" type="email" id="email" name="email" value="" placeholder="Your email address" />
+                            <input class="form-control i18nplaceholder" type="email" id="email" name="email" value="" placeholder="Your email address" required="true"/>
                             <div id="email_help" style="display:none" class="help-block i18n">We use your email address only for sending you a link to access the classroom as a teacher.</div>
                         </div>
                         <div class="form-group"> 
@@ -133,7 +135,9 @@
                                 <span class="i18n">First names are preferred for privacy.</span>
                             </div> 
                         </div>
-                        <button type="button" id="create_classroom" class="btn btn-primary i18n">Create classroom</button> 
+                        <button type="submit" id="create_classroom" class="btn btn-primary i18n">Create classroom</button> 
+                        <span id="create_progress" style="display:none">&#x25b6;</span>
+
                     </div>
                 </form>
                 <!-- FACEBOOK CODE GOES HERE -->
