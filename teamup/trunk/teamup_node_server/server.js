@@ -1,11 +1,8 @@
 var EMAIL = "teamup.taik@gmail.com";
 var WOOKIE1 = "http://wookie.eun.org/wookie";
-var WOOKIE1_API_KEY = "TEST"; 
-var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
-var WOOKIE2_API_KEY = "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ";
-//var TESTPOST = "http://requestb.in/1eo1a5z1";
-//var TESTPOST = "http://lemill.net";
-//var TESTPOST = "http://localhost:8085/";
+//var WOOKIE1_API_KEY = "TEST"; 
+//var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
+//var WOOKIE2_API_KEY = "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ";
 
 var http = require("http");
 var util = require("util");
@@ -20,6 +17,7 @@ var nodemailer = require("nodemailer");
 var path = require("path");
 var log = require('npmlog');
 var httpProxy = require('http-proxy');
+var rrequest = require('request');
 
 
 var Db= require("./db").DataProvider;
@@ -29,9 +27,8 @@ var app = express();
 var server=http.createServer(app);
 var file;
 var transport = nodemailer.createTransport();
-//var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
 var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
-
+console.log("Proxy to " + WOOKIE1 + " has started at :8082");
 log.stream = fs.createWriteStream('teamup.log', {flags: 'a'});
 log.info(new Date().toUTCString(), "Launching TeamUp node.js server.");
 
@@ -93,6 +90,8 @@ function getUpload(request, response)
 function start() {
     var handle = {};
     app.use(express.bodyParser());
+    app.post('/site/WOOKIE_OLD/*', wookieRedirect);
+    app.get('/site/WOOKIE_OLD/*', wookieRedirect);
 	app.get("/check_classroom", checkClassroom);
     app.get("/create_classroom", createClassroom);
     app.get("/upload_photo", uploadPhoto);
@@ -106,7 +105,6 @@ function start() {
 	proxy.on("proxyRes", function(res)
 	{
         res.headers['Access-Control-Allow-Origin']='*';
-		//console.log("RES");
 		return res;
 	});
 	proxy.on("error", function(err, req, res)
@@ -114,6 +112,47 @@ function start() {
 		console.log("proxy ERROR");
 		console.log(err);
 	});
+
+    function isEmptyObject(obj) {
+      return !Object.keys(obj).length;
+    }
+
+    function wookieRedirect(request, response) {
+        //console.log("Redirecting to old wookie server");
+        if (!isEmptyObject(request.query)) {
+            console.log('Sending GET to '+ WOOKIE2+'/properties');
+            rrequest.get(
+                WOOKIE2+'/properties',
+                { qs: request.query  },
+                function (error, resp, body) {
+                    if (!error && resp.statusCode == 200) {
+                        //console.log('got response:');
+                        //console.log(body);
+                        response.end(body);
+                    } else {
+                        console.log(error);
+                        response.end();
+                    }
+                }
+            );
+        } else if (!isEmptyObject(request.body)) {
+            console.log('Sending POST to '+ WOOKIE2+'/widgetinstances');
+            rrequest.post(
+                WOOKIE2+'/widgetinstances',
+                { form: request.body  },
+                function (error, resp, body) {
+                    if (!error && resp.statusCode == 200) {
+                        //console.log(body);
+                        response.end(body);
+                    } else {
+                        console.log(error);
+                        response.end();
+                    }
+                }
+            );
+
+        }
+    }
 
     function isNode(request, response) {
         // Used to detect if a server is node.js server

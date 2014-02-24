@@ -236,25 +236,35 @@ function join_classroom() {
     // first try node server's 'join_classroom' 
     $.get('../check_classroom', data, function(classroom_url) {
         if (classroom_url=='not found') {
-                // then try wookie servers
-                Wookie.configureConnection("http://localhost:8082/wookie", "TEST", data.class_key);
-                instance = Wookie.getOrCreateInstance(WIDGET_ID);  
-                console.log("Found: " + instance.url);
-                debug("Found: " + instance.url);               
-
-                // $.get('new_bridge.php', data, function(instance_url) {
-                //     if (instance_url=='not found') {
-                //         no_class();
-                //     } else if (instance_url=='no server') {
-                //         debug('no server');
-                //     } else {
-                //         go_to_instance(instance_url);
-                //     }
-                // }, 'text');              
-            } else {
-                go_to_instance(classroom_url);
+            // then try wookie servers
+            found = false;
+            Wookie.configureConnection("http://localhost:8082/wookie", "TEST", data.class_key.toLowerCase());
+            instance = Wookie.getInstance(WIDGET_ID);
+            console.log(instance);
+            if (!$.isEmptyObject(instance)) {
+                property = Wookie.getProperty(instance.id_key, "PARAMS", true);
+                if (!$.isEmptyObject(property)) {
+                    found = true;
+                }
             }
-        }, 'text'); 
+            if (found) {
+                fixed_url = instance.url.replace('localhost:80', 'wookie.eun.org');
+                //go_to_instance(fixed_url);
+            } else {
+                Wookie.configureConnection("WOOKIE_OLD", "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ", data.class_key);
+                property = Wookie.getProperty(WIDGET_ID, "PARAMS");
+                if (!$.isEmptyObject(property)) {
+                    instance = Wookie.getOrCreateInstance(WIDGET_ID);
+                    console.log("Found: " + instance.url);
+                    //go_to_instance(instance.url);
+                } else {
+                    no_class();
+                }
+            }
+        } else {
+            go_to_instance(classroom_url);
+        }
+    }, 'text'); 
 }
 
 function validate_create_form() {
