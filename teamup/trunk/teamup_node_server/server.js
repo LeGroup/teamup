@@ -1,9 +1,11 @@
 var EMAIL = "teamup.taik@gmail.com";
-var WOOKIE1 = "http://wookie.eun.org/wookie/";
+var WOOKIE1 = "http://wookie.eun.org/wookie";
 var WOOKIE1_API_KEY = "TEST"; 
-var WOOKIE2 = "http://itec-wookie.eun.org/wookie/";
+var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
 var WOOKIE2_API_KEY = "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ";
-var TESTPOST = "http://requestb.in/14vbq5i1";
+//var TESTPOST = "http://requestb.in/1eo1a5z1";
+//var TESTPOST = "http://lemill.net";
+//var TESTPOST = "http://localhost:8085/";
 
 var http = require("http");
 var util = require("util");
@@ -17,7 +19,7 @@ var express = require("express");
 var nodemailer = require("nodemailer");
 var path = require("path");
 var log = require('npmlog');
-//var srequest = require('request');
+var httpProxy = require('http-proxy');
 
 
 var Db= require("./db").DataProvider;
@@ -27,7 +29,7 @@ var app = express();
 var server=http.createServer(app);
 var file;
 var transport = nodemailer.createTransport();
-var httpProxy = require('http-proxy');
+//var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
 var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
 
 log.stream = fs.createWriteStream('teamup.log', {flags: 'a'});
@@ -91,8 +93,6 @@ function getUpload(request, response)
 function start() {
     var handle = {};
     app.use(express.bodyParser());
-    app.post("/site/WOOKIE1/*", wookieProxy1);
-    app.post("/site/WOOKIE2/*", wookieProxy2);
 	app.get("/check_classroom", checkClassroom);
     app.get("/create_classroom", createClassroom);
     app.get("/upload_photo", uploadPhoto);
@@ -105,84 +105,15 @@ function start() {
     	});
 	proxy.on("proxyRes", function(res)
 	{
-		console.log("RES");
-		//console.log(res);
+        res.headers['Access-Control-Allow-Origin']='*';
+		//console.log("RES");
 		return res;
 	});
 	proxy.on("error", function(err, req, res)
 	{
-		console.log("ERROR");
+		console.log("proxy ERROR");
 		console.log(err);
 	});
-
-    function wookieProxy1(request, response) {
-        console.log("wookieProxy1 called!");
-
-        //console.log(WOOKIE2 + end_part);
-        //console.log(TESTPOST);
-        //console.log(proxy);
-        var end_part = request.url.substring(request.url.lastIndexOf('WOOKIE1')+8);
-        //proxy.proxyRequest(request, response, {target:TESTPOST});
-        //proxy.web(request, response, {target: TESTPOST});
-		console.log(end_part);
-		response.redirect("http://127.0.0.1:8082/" + end_part);
-		//response.redirect("http://127.0.0.1:8082");
-
-        //console.log(request.body);
-        //console.log(request.query);
-        //response.writeHead(200, {Location: WOOKIE1 + end_part});
-        //response.location(WOOKIE1 + end_part);
-        //response.end();
-        // now the request should be forwarded to address WOOKIE1
-        // and api_key in request should be replaced with WOOKIE1_API_KEY
-        // response should be the one coming from WOOKIE1
-/*        var remote = srequest(WOOKIE2 + end_part);
-        console.log('created srequest as remote');
-        request.pipe(remote);
-        console.log('piped request to remote');
-        remote.pipe(response);
-        console.log('piped remote to response');
-        remote.end();
-        console.log('ended remote');
-        response.end();
-        console.log('ended response');
-*//*
-        var options = {
-            host:   'wookie.eun.org',
-            port:   80,
-            path:   '/wookie/' + end_part,
-            method: 'POST',
-            headers: request.headers
-        };
-
-        var creq = http.request(options, function(cres) {
-            cres.setEncoding('utf8');
-            // wait for data
-            cres.on('data', function(chunk){
-              response.write(chunk);
-            });
-
-            cres.on('close', function(){
-              // closed, let's end client request as well 
-              response.writeHead(cres.statusCode);
-              response.end();
-            });
-
-        }).on('error', function(e) {
-            // we got an error, return 500 error to client and log error
-            console.log(e.message);
-            response.writeHead(500);
-            response.end();
-        });
-
-        creq.end();
-
-*/    }
-
-    function wookieProxy2(request, response) {
-        console.log("wookieProxy2 called!");        
-        response.redirect(WOOKIE2);
-    }
 
     function isNode(request, response) {
         // Used to detect if a server is node.js server
@@ -345,6 +276,7 @@ function start() {
     var db = new DataProvider('localhost', 27017);
 
     io.sockets.on('connection', function (socket) {
+        console.log("Connected to socket");
         socket.on('join_classroom', function(classroom_id) {
 
         console.log("Joining classroom "+classroom_id);

@@ -237,9 +237,7 @@ function join_classroom() {
     $.get('../check_classroom', data, function(classroom_url) {
         if (classroom_url=='not found') {
                 // then try wookie servers
-                debug("Trying!");
-                Wookie.configureConnection("WOOKIE1", "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq.", data.class_key);
-                debug("Configured connection!");
+                Wookie.configureConnection("http://localhost:8082/wookie", "TEST", data.class_key);
                 instance = Wookie.getOrCreateInstance(WIDGET_ID);  
                 console.log("Found: " + instance.url);
                 debug("Found: " + instance.url);               

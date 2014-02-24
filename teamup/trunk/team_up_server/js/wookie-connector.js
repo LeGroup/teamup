@@ -140,7 +140,7 @@ var Wookie = {
             postdata = postdata + encodeURI(Wookie.currentUser.loginName);
             postdata = postdata + "&widgetid=";
             postdata = postdata + encodeURI(id);
-            var url = Wookie.connection.url + "/widgetinstances";
+            var url = Wookie.connection.url +  "/widgetinstances"; //"show_post"
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -163,7 +163,8 @@ var Wookie = {
                     Wookie.instances[key]=instance;
                 },
                 error: function(err) {
-                    console.log('ajax call for widgetinstances errored');
+                    console.log('ajax call for widgetinstances error: ' + err.status);
+                    console.log(err.statusText);
                 },
                 async: false
             });
@@ -184,6 +185,7 @@ var Wookie = {
             postdata = postdata + encodeURI(Wookie.currentUser.loginName);
             postdata = postdata + "&participant_thumbnail_url=";
             postdata = postdata + encodeURI(Wookie.currentUser.thumbnailUrl);
+            
             var url = Wookie.connection.url + "/participants";
             $.ajax({
                 type: 'POST',
@@ -193,6 +195,7 @@ var Wookie = {
                 },
                 async: false
             });
+
         }
         return Wookie.instances[key];
     },
