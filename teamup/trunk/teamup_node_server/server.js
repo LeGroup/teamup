@@ -28,7 +28,7 @@ var server=http.createServer(app);
 var file;
 var transport = nodemailer.createTransport();
 var httpProxy = require('http-proxy');
-var proxy = new httpProxy.createProxyServer({target:TESTPOST});
+var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
 
 log.stream = fs.createWriteStream('teamup.log', {flags: 'a'});
 log.info(new Date().toUTCString(), "Launching TeamUp node.js server.");
@@ -103,19 +103,33 @@ function start() {
 	app.get("/*", function(request, response) {
     		file.serve(request, response);
     	});
+	proxy.on("proxyRes", function(res)
+	{
+		console.log("RES");
+		//console.log(res);
+		return res;
+	});
+	proxy.on("error", function(err, req, res)
+	{
+		console.log("ERROR");
+		console.log(err);
+	});
 
     function wookieProxy1(request, response) {
         console.log("wookieProxy1 called!");
 
         //console.log(WOOKIE2 + end_part);
-        console.log(TESTPOST);
-        console.log(proxy);
-        //var end_part = request.url.substring(request.url.lastIndexOf('WOOKIE1')+8);
+        //console.log(TESTPOST);
+        //console.log(proxy);
+        var end_part = request.url.substring(request.url.lastIndexOf('WOOKIE1')+8);
         //proxy.proxyRequest(request, response, {target:TESTPOST});
-        proxy.web(request, response);
+        //proxy.web(request, response, {target: TESTPOST});
+		console.log(end_part);
+		response.redirect("http://127.0.0.1:8082/" + end_part);
+		//response.redirect("http://127.0.0.1:8082");
 
-        console.log(request.body);
-        console.log(request.query);
+        //console.log(request.body);
+        //console.log(request.query);
         //response.writeHead(200, {Location: WOOKIE1 + end_part});
         //response.location(WOOKIE1 + end_part);
         //response.end();
