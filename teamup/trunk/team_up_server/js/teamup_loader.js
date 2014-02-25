@@ -295,14 +295,17 @@ function create_classroom() {
     // first check if this class exists in any of the servers 
     set_creation_progress(LOOKING);
     searching = true;
-    data = build_data_object('#new_class_key');
+    data = build_data_object('#new_classroom_key');
+	console.log(data);
     $.get('../check_classroom', data, function(classroom_url) {
         if (classroom_url=='not found') {
             // then check if wookie servers have such class
+			/*
             $.get('new_bridge.php', data, function(instance_url) {
-                if (instance_url == 'reserved') {
-                    room_name_reserved();
+			if (instance_url == 'reserved') {
+				room_name_reserved();
                 } else {
+			*/
                     // ok, then we can create this class to node server:
                     set_creation_progress(SETTING_PARAMS);
                     data.msg_subject = i18n('Your TeamUp classroom');
@@ -311,7 +314,7 @@ function create_classroom() {
                     data.email = $.trim($('#email').val().replace(/\s/g, ''));
                     data.names = get_validated_names_list();
                     data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+data.teacher_link+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+data.student_link+'\n\n -- TeamUp service';        
-                    $.get('create_classroom', data, function(room_url) {
+                    $.get('../create_classroom', data, function(room_url) {
                         if (room_url == 'already exists') {
                             room_name_reserved();
                         } else if (room_url == 'error') {
@@ -320,12 +323,13 @@ function create_classroom() {
                             go_to_instance(room_url);
                         }
                     }, 'text');                     
-                };
-            }, 'text');             
-        } else {
+				//}, 'text');             
+			}
+        /*}*/ else {
             room_name_reserved();
         }
-    }, 'text');
+    });
+	return false;
 }
 
 
