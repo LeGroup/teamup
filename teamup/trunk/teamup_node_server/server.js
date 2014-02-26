@@ -90,8 +90,8 @@ function getUpload(request, response)
 function start() {
     var handle = {};
     app.use(express.bodyParser());
-    app.post('/site/WOOKIE_OLD/*', wookieRedirect);
-    app.get('/site/WOOKIE_OLD/*', wookieRedirect);
+    app.post('/WOOKIE_OLD/*', wookieRedirect);
+    app.get('/WOOKIE_OLD/*', wookieRedirect);
 	app.get("/check_classroom", checkClassroom);
     app.get("/create_classroom", createClassroom);
     app.get("/upload_photo", uploadPhoto);
@@ -172,7 +172,7 @@ function start() {
                     response.write('not found');
                 } else {
                     console.log("Found, returning url");
-                    response.write('app/?c='+data.class_key);
+                    response.write('app/?class_key='+data.class_key);
                 }
                 response.end();
             });
@@ -223,7 +223,7 @@ function start() {
                                     console.log("Message was accepted by %s", d.domain);
                                 });
                             });
-                            response.write('app/?c='+data.class_key);
+                            response.write('app/?class_key='+data.class_key);
                         }
                         response.end();
                     });
