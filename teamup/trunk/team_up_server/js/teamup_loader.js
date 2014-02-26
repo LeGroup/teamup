@@ -29,6 +29,9 @@ var searching=false;
 var localizedStrings;
 var prev_width=0;
 
+var chars = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+var bad_chars = '1lI0O'; 
+
 var LANGUAGES = {'de-AT':'deutsch','et-ET':'eesti','en-EN':'english', 'es-ES':'español', 'fr-FR':'français', 'he-HE':'עִבְרִית', 'hu-HU':'magyar', 'it-IT':'italiano','lt-LT':'lietuvių', 'nl-NL':'nederlands', 'no-NO':'norsk', 'pt-PT':'português','sk-SK':'slovenčina', 'fi-FI':'suomi','tr-TR':'türkçe'};
 
 
@@ -45,10 +48,33 @@ function hide_progress() {
     $('#create_progress').hide();
 }
 
-function validate_class_name(name) {
+function validate_wookie_class_name(name) {
     name = $.trim(name.replace(/[\\%\+*<>\n\t\r]/g, ''));
     return name;
 }
+
+function validate_key(code) {
+    if (code.length != 7) return false;
+    if (code[3] != '-') return false;
+    for (var i=0; i<code.length; i++) {
+        if (bad_chars.search(code[i]) > -1) return false;
+        if (i != 3 && chars.search(code[i])==k) return false;
+    }
+    return true
+}
+
+function create_key() {
+    code = '';
+    while (code.length < 7) {
+        if (code.length == 3) {
+            code += '-';
+        } else {
+            code += chars[Math.round(Math.random() * (chars.length-1))];
+        }
+    }
+    return code
+}
+
 
 function get_validated_names_list() {
     nl = $.trim($('#names_list').val());
@@ -61,7 +87,7 @@ function get_validated_names_list() {
 }
 
 function go_to_instance(url) {
-    if (data.locale.length<10) url+='&locale='+data.locale;
+    if (data.locale.length<10) url+='&locale='+encodeURIComponent(data.locale);
     window.location = url;
 }
 
@@ -210,7 +236,7 @@ function set_language_column(params) {
         if (params.lang==key || (key=='en-EN' && !params.lang)) {
             s+='<span class="selected" id="lang_'+key+'">'+LANGUAGES[key]+'</span> | ';
         } else {
-            s+='<a href="?lang='+key+'" class="lang" id="lang_'+key+'">'+LANGUAGES[key]+'</a> | ';
+            s+='<a href="?lang=' + key + '" class="lang" id="lang_' + key + '">' + LANGUAGES[key] + '</a> | ';
         }
     }
     $('#language_column').html(s);
@@ -218,7 +244,7 @@ function set_language_column(params) {
 
 function try_to_jump_to_class(params) {
     // fill join_form with given url parameters:
-    $('#class_key').val(validate_class_name(decodeURIComponent(params.class_key)));
+    $('#class_key').val(decodeURIComponent(params.class_key));
     $('#join_classroom').attr('disabled', ($('#class_key').val() == '')); 
     if (params.teacher) {
         $('#userid').val(decodeURIComponent(params.teacher));
@@ -229,152 +255,101 @@ function try_to_jump_to_class(params) {
 }
 
 function join_classroom() {
-    data=build_data_object('#class_key');
-    data.task='get_instance';
-    set_join_progress(LOOKING); 
 
-    // first try node server's 'join_classroom' 
-    $.get('../check_classroom', data, function(classroom_url) {
-        if (classroom_url=='not found') {
-            // then try wookie servers
-            found = false;
-            Wookie.configureConnection("http://localhost:8082/wookie", "TEST", data.class_key.toLowerCase());
-            instance = Wookie.getInstance(WIDGET_ID);
-            console.log(instance);
-            if (!$.isEmptyObject(instance)) {
-                property = Wookie.getProperty(instance.id_key, "PARAMS", true);
-                if (!$.isEmptyObject(property)) {
-                    found = true;
-                }
-            }
-            if (found) {
-                fixed_url = instance.url.replace('localhost:80', 'wookie.eun.org');
-                //go_to_instance(fixed_url);
+    data = {
+        class_key: $('#class_key').val(),
+        user_id: $('#userid').val(),
+        locale: $('#locale').val()
+    }
+    set_join_progress(LOOKING); 
+    if (validate_key(data.class_key)) {
+        // it is a proper short code, try node server or fail  
+        $.get('../check_classroom', data, function(classroom_url) {
+            if (classroom_url=='not found') {
+                no_class();
             } else {
-                Wookie.configureConnection("WOOKIE_OLD", "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ", data.class_key);
-                property = Wookie.getProperty(WIDGET_ID, "PARAMS");
-                if (!$.isEmptyObject(property)) {
-                    instance = Wookie.getOrCreateInstance(WIDGET_ID);
-                    console.log("Found: " + instance.url);
-                    //go_to_instance(instance.url);
-                } else {
-                    no_class();
-                }
+                go_to_instance(classroom_url);
             }
-        } else {
-            go_to_instance(classroom_url);
+        }, 'text');
+    } else {
+        // then it is old type key, try wookie servers
+        data.class_key = validate_wookie_class_name(data.class_key);
+        data.task='get_instance';
+        found = false;
+        Wookie.configureConnection("http://localhost:8082/wookie", "TEST", data.class_key.toLowerCase());
+        instance = Wookie.getInstance(WIDGET_ID);
+        console.log(instance);
+        if (!$.isEmptyObject(instance)) {
+            property = Wookie.getProperty(instance.id_key, "PARAMS", true);
+            if (!$.isEmptyObject(property)) {
+                found = true;
+            }
         }
-    }, 'text'); 
+        if (found) {
+            fixed_url = instance.url.replace('localhost:80', 'wookie.eun.org');
+            //go_to_instance(fixed_url);
+        } else {
+            Wookie.configureConnection("WOOKIE_OLD", "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ", data.class_key);
+            property = Wookie.getProperty(WIDGET_ID, "PARAMS");
+            if (!$.isEmptyObject(property)) {
+                instance = Wookie.getOrCreateInstance(WIDGET_ID);
+                console.log("Found: " + instance.url);
+                //go_to_instance(instance.url);
+            } else {
+                no_class();
+            }
+        }
+
+    }
 }
 
 function validate_create_form() {
-    var ok = true;
-    if (!is_email($('#email').val())) {
-        $('#email_help').show();
+    // now it only validates email
+    var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+    if (!regex.test($('#email').val())) {
         $('#email').parent('div.form-group').addClass('has-error');
-        ok = false;
+        return false;
     } else {
-        $('#email_help').hide();
         $('#email').parent('div.form-group').removeClass('has-error');
     }
-    if ($('#new_classroom_key').val().length < 3 || $('#new_classroom_key').val().length > 50) {
-        $('#bad_classroom_name').parent('div.form-group').addClass('has-error');
-        $('#bad_classroom_name').show();
-        ok = false;
-    } else {            
-        $('#bad_classroom_name').parent('div.form-group').removeClass('has-error');
-        $('#bad_classroom_name').hide();
-    }
-    return ok;
+    return true;
 }
 
 function create_classroom() {
-    if (searching) return;
-    if (!validate_create_form()) return;
+    if (!validate_create_form()) return false;
 
     // first check if this class exists in any of the servers 
     set_creation_progress(LOOKING);
-    searching = true;
-    data = build_data_object('#new_classroom_key');
-	console.log(data);
+    data = {
+        class_key: $('#new_class_key').val(),
+        user_id: $('#userid').val(),
+        locale: $('#locale').val()
+    }
     $.get('../check_classroom', data, function(classroom_url) {
         if (classroom_url=='not found') {
-            // then check if wookie servers have such class
-			/*
-            $.get('new_bridge.php', data, function(instance_url) {
-			if (instance_url == 'reserved') {
-				room_name_reserved();
+            // ok, then we can create this class to node server:
+            set_creation_progress(SETTING_PARAMS);
+            data.msg_subject = i18n('Your TeamUp classroom');
+            data.teacher_link = build_teacher_url(data);
+            data.student_link = build_learner_url(data);
+            data.email = $.trim($('#email').val().replace(/\s/g, ''));
+            data.names = get_validated_names_list();
+            data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+data.teacher_link+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+data.student_link+'\n\n -- TeamUp service';        
+            $.get('../create_classroom', data, function(room_url) {
+                if (room_url == 'already exists') {
+                    debug('error');
+                } else if (room_url == 'error') {
+                    debug('error');
                 } else {
-			*/
-                    // ok, then we can create this class to node server:
-                    set_creation_progress(SETTING_PARAMS);
-                    data.msg_subject = i18n('Your TeamUp classroom');
-                    data.teacher_link = build_teacher_url(data);
-                    data.student_link = build_learner_url(data);
-                    data.email = $.trim($('#email').val().replace(/\s/g, ''));
-                    data.names = get_validated_names_list();
-                    data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+data.teacher_link+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+data.student_link+'\n\n -- TeamUp service';        
-                    $.get('../create_classroom', data, function(room_url) {
-                        if (room_url == 'already exists') {
-                            room_name_reserved();
-                        } else if (room_url == 'error') {
-                            debug('error');
-                        } else {
-                            go_to_instance(room_url);
-                        }
-                    }, 'text');                     
-				//}, 'text');             
-			}
-        /*}*/ else {
-            room_name_reserved();
+                    go_to_instance(room_url);
+                }
+            }, 'text');                     
+        } else {
+            $('#new_class_key').val(create_key());
         }
-    });
-	return false;
+    }, 'text');
+    return false;
 }
-
-
-function build_data_object(key) {
-    data = {};
-    data.class_key = validate_class_name($(key).val());
-    $(key).val(data.class_key);
-    data.userid=$('#userid').val();
-    data.locale=$('#locale').val();    
-    return data
-}    
-
-
-/*
-    $('#create_classroom').click(function () {
-        if (!is_email($('#email').val())) {
-            $('#email').css('background-color','#ffaaaa');
-            return;
-        } 
-        $('#new_class_key').val(validate_class_name($('#new_class_key').val()));
-
-        if ($('#new_class_key').val().length < 3 || $('#new_class_key').val().length > 50) {
-            $('#bad_classroom_name').show();
-            return;
-        } else {            
-            $('#bad_classroom_name').hide();
-        }
-
-        $('#progress').css('background','#f00').show(); 
-        $('#names_list').val(validated_names_list());
-        $('#email').val($.trim($('#email').val().replace(/\s/g, '')));
-        data=getData('#new_class_key');
-        
-        $.get('create_classroom', data, function(classroom_url) {
-            $('#progress').css('background','#fa0').show();
-            if (classroom_url=='already exists') {
-                room_name_reserved();
-            } else if (classroom_url=='error') {
-                debug('error');
-            } else {
-                go_there(classroom_url);
-            }
-            }, 'text'); 
-    });
-*/
 
 
 jQuery(document).ready(function() {
@@ -392,15 +367,20 @@ jQuery(document).ready(function() {
 
     $('join_form').submit(join_classroom);
     $('#create_form').submit(create_classroom); 
-
-    $('#class_key').change(function () {
-        $('#join_classroom').attr('disabled',($(this).val()==''));
-        $(this).val(validate_class_name($(this).val())); 
+    $('#create_form_button').click(function() {
+        $(this).hide();
+        $('#creation_form').show('fast');
+        $('#new_class_key').val(create_key());
     });
 
-    $('#new_classroom_key').change(function () {
-        $(this).val(validate_class_name($(this).val())); 
-    });
+    $('#close_creation_form').click(function() {
+        $('#create_form_button').show('fast');
+        $('#creation_form').hide('fast');
+    })
+
+    $('#new_class_key').click(function() {
+        this.select();
+    })
 
     $('#names_list').change(function () {
         $('#names_list').val(get_validated_names_list());

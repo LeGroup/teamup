@@ -1,7 +1,7 @@
 var EMAIL = "teamup.taik@gmail.com";
 var WOOKIE1 = "http://wookie.eun.org/wookie";
 //var WOOKIE1_API_KEY = "TEST"; 
-//var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
+var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
 //var WOOKIE2_API_KEY = "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ";
 
 var http = require("http");
