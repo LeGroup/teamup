@@ -43,8 +43,9 @@ DataProvider.prototype.createClassroom= function(data, callback) {
     }
     else {
         console.log('Classroom created');
+		var classname="Class " + data.class_key;
         // setting classroom properties
-        classroom.save({uid:'setup', class_key:data.class_key, email:data.email, locale:data.locale, teacher:data.userid, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err) {
+        classroom.save({uid:'setup', class_key:data.class_key, class_name: classname, email:data.email, locale:data.locale, teacher:data.userid, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err) {
             if (err) console.log("Error saving settings");
             else {
                 console.log("Saved settings");

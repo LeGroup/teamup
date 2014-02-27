@@ -5,6 +5,27 @@ Controller to be used with Nodejs-powered backend for TeamUp
 
 $.get("/isnode", function()
 {
+	function sendClassnameChange()
+	{
+		var $cn=$("#classname");
+		CONTROLLER.addChange({uid: "class_name", class_name: $cn.text()});
+		CONTROLLER.sendChanges();
+	}
+	$(function()
+	{// After the document is loaded
+		var $cn=$("#classname");
+		setData($cn, {uid: "class_name", class_name: $cn.text()});
+		$cn.attr("contenteditable", "true").keydown(function(e)
+		{
+			if(e.keyCode == 13)
+			{// Enter
+				sendClassnameChange();
+				$cn.blur();
+				return false;
+			}
+		}).blur(sendClassnameChange);
+	});
+
 	ARRAY_VESSELS= {
 		'TOPICS': {'uid':'TOPICS', 'array':[], 'version':0},
 		'PUPILS': {'uid':'PUPILS','array':[], 'version':0},
@@ -15,7 +36,7 @@ $.get("/isnode", function()
 	CONTROLLER.socket = null;
 	CONTROLLER.offline=false;
 	CONTROLLER.init=function() {
-		var class_key=(URL_VARS) ? URL_VARS.c : 'demo';
+		var class_key=(URL_VARS) ? URL_VARS.class_key : 'demo';
 		CONTROLLER.socket = io.connect('http://localhost:8081');
 		CONTROLLER.socket.on('update', CONTROLLER.stateUpdated);
 		CONTROLLER.socket.on('full_update', CONTROLLER.fullUpdate);
@@ -55,6 +76,8 @@ $.get("/isnode", function()
 				}
 			} else if (key=='SHOW_ICONS') {
 				OPTIONS.show_icons=item;
+			} else if(key==="class_name") {
+				$("#classname").text(item.class_name);
 			} else {
 				existing=CATALOG[key];
 				if (!item)
@@ -150,10 +173,10 @@ $.get("/isnode", function()
 					clean_names.push(clean);
 				}
 			}
-			LEARNER_VIEW.create_person(clean_names);
+			LEARNER_VIEW.create_new_person(clean_names);
 		} else if (!PUPILS.length) {
 			debug('no PUPILS in state nor names list, strange situation.');
-			LEARNER_VIEW.create_person(['Learner1','Learner2']);
+			LEARNER_VIEW.create_new_person(['Learner1','Learner2']);
 		}
 		if (TOPICS.length==0) {
 			debug('>>>> Creating initial topics');
@@ -219,7 +242,9 @@ $.get("/isnode", function()
 	CONTROLLER.getLocale=function() { return ''; };
 
 	CONTROLLER.setParams=function(data) {
-		PARAMS={class_key:data.class_key,
+		PARAMS={
+			class_key:data.class_key,
+			class_name:data.class_name,
 			locale:data.locale,
 			moderator_email:data.email,
 			moderator_id:data.teacher,
@@ -240,7 +265,7 @@ $.get("/isnode", function()
 			$('#teacher_url').val(PARAMS.teacher_url);
 		}
 		$('#learner_url').val(PARAMS.learner_url || PARAMS.student_url);
-		$('#classname').text(PARAMS.class_key);
+		$('#classname').text(PARAMS.class_name);
 		//if (!MODERATOR) CLASSROOM.adjust_for_learners();
 		//if (getUrlVars().first) $('#teacher-panel').dialog('open');
 	};
