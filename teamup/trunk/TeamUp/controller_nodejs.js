@@ -5,7 +5,6 @@ Controller to be used with Nodejs-powered backend for TeamUp
 
 NODE_CHECK.done(function()
 {
-	NODE_CHECK=undefined;
 	CONTROLLER.offline=false;
 
 	function sendClassnameChange()
