@@ -187,51 +187,46 @@ function start() {
         console.log("Creating classroom");
         data=url.parse(request.url, true).query;
         if (data && data.class_key) {
-            db.getCollection(data.class_key, function(error, classroom) {
-                if (error) {
-                    console.log("class id available");
-                    db.createClassroom(data, function(error) {
-                        if (error) {
-                            response.write('error');
-                        } else {
-                            // at this point email should be sent
-                            var mail = {
-                                from: EMAIL,
-                                to: data.email,
-                                bcc: EMAIL, 
-                                subject: data.msg_subject,
-                                text: data.msg_body  
-                            };
-                            // from http://www.nodemailer.com/docs/direct
-                            transport.sendMail(mail, function(error, response) {
-                                if (error) {
-                                    console.log(error);
-                                    return;
-                                }                                
-                                // response.statusHandler only applies to 'direct' transport
-                                response.statusHandler.once("failed", function(d){
-                                    console.log(
-                                      "Permanently failed delivering message to %s with the following response: %s",
-                                      d.domain, d.response);
-                                });
-
-                                response.statusHandler.once("requeue", function(d){
-                                    console.log("Temporarily failed delivering message to %s", d.domain);
-                                });
-
-                                response.statusHandler.once("sent", function(d){
-                                    console.log("Message was accepted by %s", d.domain);
-                                });
-                            });
-                            response.write('app/?class_key='+data.class_key);
-                        }
-                        response.end();
-                    });
-                } else {
+			db.getClassroom(data.class_key, function(err, classroom)
+			{
+				if(classroom) {
                     console.log("Classroom exists, cannot create");
                     response.write('already exists');
                     response.end();
                 }
+				db.createClassroom(data, function(result)
+				{
+					// at this point email should be sent
+					var mail = {
+						from: EMAIL,
+						to: data.email,
+						bcc: EMAIL,
+						subject: data.msg_subject,
+						text: data.msg_body
+					};
+					// from http://www.nodemailer.com/docs/direct
+					transport.sendMail(mail, function(error, response)
+					{
+						if (error) {
+							console.log(error);
+							return;
+						}
+						// response.statusHandler only applies to 'direct' transport
+						response.statusHandler.once("failed", function(d){
+							console.log("Permanently failed delivering message to %s with the following response: %s", d.domain, d.response);
+						});
+
+						response.statusHandler.once("requeue", function(d){
+							console.log("Temporarily failed delivering message to %s", d.domain);
+						});
+
+						response.statusHandler.once("sent", function(d){
+							console.log("Message was accepted by %s", d.domain);
+						});
+					});
+					response.write('app/?class_key='+data.class_key);
+					response.end();
+				});
             });
         }
     }
@@ -252,8 +247,10 @@ function start() {
         var form = new formidable.IncomingForm();
         form.parse(request, function(error, fields, files) {
             if (error) {
-                response.write('error');
+				console.log(error);
+                response.send(400, 'error');
             } else if (!files) {
+				response.send(400, "No files");
                 console.log('Files are missing');
             } else {
                 var uploadPath=getUploadPath(fields.class_id, fields.record_id, "_photo.jpg");
@@ -316,31 +313,46 @@ function start() {
 
     io.sockets.on('connection', function (socket) {
         console.log("Connected to socket");
-        socket.on('join_classroom', function(classroom_id) {
+        socket.on('join_classroom', function(classroom_id)
+		{
+			console.log("Joining classroom "+classroom_id);
+			db.getClassroom(classroom_id, function(error, classroom)
+			{
+				if (error) {
+					console.log(error);
+					socket.emit('message', error);
+				} else {
+					console.log('Setting socket to room '+classroom_id);
+					socket.join(classroom_id);
+					socket.set('classroom_id', classroom_id);
+					socket.emit('message', 'Joined classroom '+classroom_id);
+					socket.broadcast.emit('message', 'Joined classroom '+classroom_id);
 
-        console.log("Joining classroom "+classroom_id);
-        db.getCollection(classroom_id, function(error, classroom) {
-            if (error) {
-                console.log('Classroom '+classroom_id+' does not exist');
-                socket.emit('message', 'Classroom '+classroom_id+' does not exist');
-            } else {
-                console.log('Setting socket to room '+classroom_id);
-                socket.join(classroom_id);
-                socket.set('classroom_id', classroom_id);
-                socket.emit('message', 'Joined classroom '+classroom_id);
-                socket.broadcast.emit('message', 'Joined classroom '+classroom_id);
-                db.giveFullClass(classroom_id, function(err, data) {
-                    if (err)
-                        console.log('Failed dumping data');
-                    else {
-                        console.log('Sending full data to client:'+data.length);
-                        socket.emit('full_update', data)
-                    }
-                });
-            }
-        });
-        console.log('done.');
-        });
+					console.log("FULL UPDATE");
+					db.getChanges(classroom_id, function(err, data)
+					{
+						if(err) console.log('Failed dumping data');
+						else
+						{
+							console.log(data);
+							console.log('Sending full data to client:'+data.length);
+							socket.emit('full_update', data);
+						}
+					});
+					/*
+					db.giveFullClass(classroom_id, function(err, data) {
+						if (err)
+							console.log('Failed dumping data');
+						else {
+							console.log('Sending full data to client:'+data.length);
+							socket.emit('full_update', data)
+						}
+					});
+					*/
+				}
+			});
+			console.log('done.');
+		});
         socket.on('delta', function (delta) {
         console.log('Incoming changes.');
         socket.get('classroom_id', function (err, classroom_id) {
@@ -350,32 +362,36 @@ function start() {
                 return;
             }
 
-            db.getCollection(classroom_id, function(err, classroom) {
-                if (err) {
-                    console.log('No classroom found, exiting');
-                    return;
-                }
-                good_changes=[];
-                delta=JSON.parse(delta);
-                db.filterOldObjects(delta, classroom, function(err, good_changes) {
-                    if (err) console.log('error checking object versions')
-                    else if (good_changes.length>0) {
-                        console.log('preparing to save objects to db');
-                        db.save(good_changes, classroom, function (err, objects) {
-                            if (err) socket.emit('message', 'Update rejected -- no newer objects');
-                            else {
-                                console.log('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
-                                socket.broadcast.to(classroom_id).emit('update', objects);
-                                //socket.broadcast.emit('update', objects);
-                                socket.emit('update', objects);
-                                //socket.emit('message', 'server received delta');
-                                }
-                            } );
-                    }
-                });
-            });
-        });
-        console.log('Changes handled.');
+				db.getClassroom(classroom_id, function(err, classroom) {
+					if (err) {
+						console.log('No classroom found, exiting');
+						return;
+					}
+					good_changes=[];
+					delta=JSON.parse(delta);
+					db.filterOldObjects(delta, classroom, function(err, good_changes)
+					{
+						if(err) console.log('error checking object versions: ' + err);
+						else if (good_changes.length>0)
+						{
+							console.log('preparing to save objects to db');
+							db.save(good_changes, classroom, function (err, objects)
+							{
+								if(err) socket.emit('message', 'Update rejected -- no newer objects');
+								else
+								{
+									console.log('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
+									socket.broadcast.to(classroom_id).emit('update', objects);
+									//socket.broadcast.emit('update', objects);
+									socket.emit('update', objects);
+									//socket.emit('message', 'server received delta');
+								}
+							});
+						}
+					});
+				});
+			});
+			console.log('Changes handled.');
         });
     });
 }
