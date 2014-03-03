@@ -42,6 +42,20 @@ DataProvider.prototype.createClassroom=function(data, callback)
 	});
 };
 
+DataProvider.prototype.getClassesForEmail=function(email, callback)
+{
+	this.db.collection("Classrooms", function(err, classrooms)
+	{
+		if(err) callback(err, null);
+		else
+		{
+			classrooms.find({email: email}).toArray(function(err, results)
+			{
+				if(err) callback(err, null);
+				else callback(null, results);
+			});
+		}
+	});
 };
 
 /*
@@ -129,7 +143,7 @@ DataProvider.prototype.giveFullClass = function(classroom_id, callback) {
             });
         }
     });
-}
+};
 
 DataProvider.prototype.save = function(objects, classroom, callback) {
     if(!classroom) console.log('missing classroom!');

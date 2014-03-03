@@ -89,11 +89,12 @@ function getUpload(request, response)
 
 function start() {
     var handle = {};
-    app.use(express.bodyParser());
+    //app.use(express.bodyParser()); // This is deprecated and should not be used. Breaks formidable.IncomingForm
     app.post('/WOOKIE_OLD/*', wookieRedirect);
     app.get('/WOOKIE_OLD/*', wookieRedirect);
 	app.get("/check_classroom", checkClassroom);
     app.get("/create_classroom", createClassroom);
+    app.get("/forgot_classroom", forgotClassroom);
     app.get("/upload_photo", uploadPhoto);
     app.post("/photoloader.php", uploadPhoto);
     app.get("/isnode", isNode);
@@ -166,7 +167,7 @@ function start() {
         var instance;
         data=url.parse(request.url, true).query;
         if (data && data.class_key) {
-            db.getCollection(data.class_key, function(error, classroom) {
+            db.getClassroom(data.class_key, function(error, classroom) {
                 if (error) {
                     console.log("Not found");
                     response.write('not found');
@@ -182,6 +183,38 @@ function start() {
             response.end();
         }
     }
+	function sendMail(to, subject, body)
+	{
+		var mail = {
+			from: EMAIL,
+			to: to,
+			bcc: EMAIL,
+			subject: subject,
+			text: body
+		};
+		console.log("Sending mail to %s\nSubject: %s\nBody: %s", to, subject, body);
+
+		// from http://www.nodemailer.com/docs/direct
+		transport.sendMail(mail, function(error, response)
+		{
+			if (error) {
+				console.log(error);
+				return;
+			}
+			// response.statusHandler only applies to 'direct' transport
+			response.statusHandler.once("failed", function(d){
+				console.log("Permanently failed delivering message to %s with the following response: %s", d.domain, d.response);
+			});
+
+			response.statusHandler.once("requeue", function(d){
+				console.log("Temporarily failed delivering message to %s", d.domain);
+			});
+
+			response.statusHandler.once("sent", function(d){
+				console.log("Message was accepted by %s", d.domain);
+			});
+		});
+	}
 
     function createClassroom(request, response) {
         console.log("Creating classroom");
@@ -196,40 +229,40 @@ function start() {
                 }
 				db.createClassroom(data, function(result)
 				{
-					// at this point email should be sent
-					var mail = {
-						from: EMAIL,
-						to: data.email,
-						bcc: EMAIL,
-						subject: data.msg_subject,
-						text: data.msg_body
-					};
-					// from http://www.nodemailer.com/docs/direct
-					transport.sendMail(mail, function(error, response)
-					{
-						if (error) {
-							console.log(error);
-							return;
-						}
-						// response.statusHandler only applies to 'direct' transport
-						response.statusHandler.once("failed", function(d){
-							console.log("Permanently failed delivering message to %s with the following response: %s", d.domain, d.response);
-						});
-
-						response.statusHandler.once("requeue", function(d){
-							console.log("Temporarily failed delivering message to %s", d.domain);
-						});
-
-						response.statusHandler.once("sent", function(d){
-							console.log("Message was accepted by %s", d.domain);
-						});
-					});
+					sendMail(data.email, data.msg_subject, data.msg_body);
 					response.write('app/?class_key='+data.class_key);
 					response.end();
 				});
             });
         }
     }
+
+	function forgotClassroom(request, response)
+	{
+        var data=url.parse(request.url, true).query;
+		if(data && data.email)
+		{
+			db.getClassesForEmail(data.email, function(err, classes)
+			{
+				if(err)
+				{
+					response.send(400, err);
+					return;
+				}
+				var mail="You have created classes with following keys:\n";
+				for(var i=0; i<classes.length; ++i)
+				{
+					mail+="\t"+classes[i].class_key+"\n";
+				}
+				sendMail(data.email, "TeamUp classes", mail);
+				response.send(200, "Class keys have been sent to " + data.email);
+			});
+		}
+		else
+		{// 400: Bad request
+			response.send(400, "No email given");
+		}
+	}
 
     function getUploadPath(classid, recordid, suffix)
     {
@@ -354,13 +387,13 @@ function start() {
 			console.log('done.');
 		});
         socket.on('delta', function (delta) {
-        console.log('Incoming changes.');
-        socket.get('classroom_id', function (err, classroom_id) {
-            if (err) {
-                console.log('No classroom_id stored for socket');
-                socket.emit('message', 'No classroom_id stored for socket');
-                return;
-            }
+			console.log('Incoming changes.');
+			socket.get('classroom_id', function (err, classroom_id) {
+				if (err) {
+					console.log('No classroom_id stored for socket');
+					socket.emit('message', 'No classroom_id stored for socket');
+					return;
+				}
 
 				db.getClassroom(classroom_id, function(err, classroom) {
 					if (err) {
