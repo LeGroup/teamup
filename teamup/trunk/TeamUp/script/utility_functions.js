@@ -236,8 +236,8 @@ function fs_friendly_string(s) {
 }
 
 function guess_language(){
-    debug(URL_VARS.locale+'|'+CONTROLLER.getLocale()+'|'+OPTIONS.default_language+'|'+navigator.language+'|'+navigator.userLanguage)
-    return URL_VARS.locale || CONTROLLER.getLocale() || OPTIONS.default_language || navigator.language || navigator.userLanguage;
+    debug(URL_VARS.locale+'|'+CONTROLLER.getLocale()+'|'+CLASS_SETTINGS.default_language+'|'+navigator.language+'|'+navigator.userLanguage)
+    return URL_VARS.locale || CONTROLLER.getLocale() || CLASS_SETTINGS.default_language || navigator.language || navigator.userLanguage;
 }
 
 function localize(){
@@ -245,7 +245,7 @@ function localize(){
     // This is enough for us, but would not scale for larger program. (Homonyms in english would translate identically for differing purposes.)
 
     // Ensure language code is in the format aa-AA:
-	var lang = OPTIONS.language.replace(/_/, '-').toLowerCase();
+	var lang = CLASS_SETTINGS.language.replace(/_/, '-').toLowerCase();
 	if (lang.length > 3) {
 		lang = lang.substring(0, 3) + lang.substring(3).toUpperCase();
 	} else if (lang.length == 2) {

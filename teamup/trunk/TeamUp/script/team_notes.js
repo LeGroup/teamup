@@ -135,7 +135,7 @@ TEAM_NOTES.create_team_notes= function(team) {
         member=CATALOG[team.members[i]];
         s='<div class="team_face" alt="'+member.name+'" title="'+member.name+'" style="border-color:'+team.color+'">';
         s+='<img src="'+member.img_src+'" width="40" height="40" />';
-        if (member.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
+        if (member.img_src==DEFAULT_IMAGE || CLASS_SETTINGS.always_show_names) {
             s+='<label>'+member.name+'</label>';
         }
         s+='</div>';

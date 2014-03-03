@@ -1,4 +1,4 @@
-
+/*
 // defaults: 
 OPTIONS.language='';
 OPTIONS.default_language='';
@@ -178,4 +178,4 @@ OPTIONS.set_clicker = function(event) {
 OPTIONS.hide = function() {
     $('div.options').hide();     
 }
-
+*/

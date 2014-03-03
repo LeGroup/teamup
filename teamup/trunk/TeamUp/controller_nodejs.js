@@ -3,24 +3,26 @@ Controller to be used with Nodejs-powered backend for TeamUp
 
 */
 
-$.get("/isnode", function()
+NODE_CHECK.done(function()
 {
+	NODE_CHECK=undefined;
+	CONTROLLER.offline=false;
+
 	function sendClassnameChange()
 	{
-		var $cn=$("#classname");
-		CONTROLLER.addChange({uid: "class_name", class_name: $cn.text()});
+		CLASS_SETTINGS.class_name=$("#classname").text();
+		CONTROLLER.addChange(CLASS_SETTINGS);
 		CONTROLLER.sendChanges();
 	}
 	$(function()
 	{// After the document is loaded
-		var $cn=$("#classname");
-		setData($cn, {uid: "class_name", class_name: $cn.text()});
-		$cn.attr("contenteditable", "true").keydown(function(e)
+		var $classname=$("#classname");
+		$classname.attr("contenteditable", "true").keydown(function(e)
 		{
 			if(e.keyCode == 13)
 			{// Enter
 				sendClassnameChange();
-				$cn.blur();
+				$classname.blur();
 				return false;
 			}
 		}).blur(sendClassnameChange);
@@ -34,10 +36,9 @@ $.get("/isnode", function()
 
 	CONTROLLER.delta={};
 	CONTROLLER.socket = null;
-	CONTROLLER.offline=false;
 	CONTROLLER.init=function() {
 		var class_key=(URL_VARS) ? URL_VARS.class_key : 'demo';
-		CONTROLLER.socket = io.connect('http://localhost:8081');
+		CONTROLLER.socket = io.connect(SERVER_URL);
 		CONTROLLER.socket.on('update', CONTROLLER.stateUpdated);
 		CONTROLLER.socket.on('full_update', CONTROLLER.fullUpdate);
 		CONTROLLER.socket.on('message', CONTROLLER.message);
@@ -75,9 +76,7 @@ $.get("/isnode", function()
 					$('#class_name_hint').text(PARAMS.class_key);
 				}
 			} else if (key=='SHOW_ICONS') {
-				OPTIONS.show_icons=item;
-			} else if(key==="class_name") {
-				$("#classname").text(item.class_name);
+				CLASS_SETTINGS.show_icons=item;
 			} else {
 				existing=CATALOG[key];
 				if (!item)
@@ -114,6 +113,7 @@ $.get("/isnode", function()
 		var people_changed=false;
 		var order_changed=false;
 		var topics_changed=false;
+		var settings_changed=false;
 		debug(''+changes.length+' changed objects found.');
 		// check the totality of changes AND make sure that CATALOG points to the new version from now on.
 		for (var i=0;i<changes.length;i++) {
@@ -127,6 +127,9 @@ $.get("/isnode", function()
 				}
 			if (obj.type=='Team') {
 				teams_changed=true;
+			}
+			if(obj.type=="ClassSettings") {
+				settings_changed=true;
 			}
 		}
 		for (var i=0; i<data.length; i++) {
@@ -216,6 +219,10 @@ $.get("/isnode", function()
 			} else {
 				INTERESTS.draw_topics(false);
 			}
+		}
+		if(settings_changed)
+		{
+			$("#classname").text(CLASS_SETTINGS.class_name);
 		}
 
 		debug('** finished state update **');

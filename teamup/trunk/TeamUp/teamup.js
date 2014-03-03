@@ -24,7 +24,8 @@ var CLASSROOM=new View(0);
 var INTERESTS=new View(1);
 var CRITERIA=new View(2);
 var LEARNER_VIEW=new View(3);
-var OPTIONS=new View(4);
+var CLASS_SETTINGS=new ClassSettings(4);
+//var OPTIONS=new View(4);
 var TEAM_NOTES=new View(5);
 
 var view = CLASSROOM;
@@ -60,41 +61,45 @@ ALL_GENDERS.set([new Criterion('Girl','icons/female.png'), new Criterion('Boy','
 ALL_VOTES=new CriterionGroup('Votes');
 ALL_VOTES.img_src='icons/together-vote.png';
 
+var NODE_CHECK=$.get("/isNode");
+NODE_CHECK.fail(function()
+{
+	NODE_CHECK=undefined;
+	// ********* FILLING WITH DEMO CONTENT ******
+	if (CONTROLLER.offline) {
+		
+		// fill Array pupils with Pupils. These pupils should be created from data from LMS or something. 
+		names=['Jukka','Tarmo','Oscar','Teemu','Jyri','Wilhelm','Knuth','Ringo','Peter','Ted','Nico','Leyla','Sam','Anne','Diana','Tiina','Bianca','Zarrin','Diniella','Cindy','Sarah R','Jasmin','Sarah N','Maria', 'Jafar','Daniel','Simin','Anna'];
+		genders=[1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0];
+		
+		for (var i=0; i<names.length; i++){
+			if (DEMO) {
+				np=new Pupil(names[i], 'demo/Learner'+(i+1)+'.png');
+				//np=new Pupil(names[i],'');
+				np.addProperty(ALL_GENDERS.criteria[genders[i]]);
+			} else {
+				photo=(photos[i]) ? 'newstudents/'+photos[i]+'.png' : '';
+				np=new Pupil(names[i], photo);
+			}
+			//give random hobbies
+			np.addProperty(ALL_HOBBIES.criteria[Math.floor(Math.random()*ALL_HOBBIES.criteria.length)]);
+			np.addProperty(ALL_HOBBIES.criteria[Math.floor(Math.random()*ALL_HOBBIES.criteria.length)]);
+			PUPILS.push(np);
+			cr=new Friend(np); // safe 
+			ALL_FRIENDS.add(cr);
+			cr=new Enemy(np);
+			ALL_ENEMIES.add(cr);
+		
+		}
+		
+		//PUPILS=[];
+		
+		demo_note = new TeamNote();
+		demo_note.audio_url='demo/demo_note.mp3';
+		demo_note.photos=['demo/demo_note.jpg'];
 
-// ********* FILLING WITH DEMO CONTENT ******
-if (CONTROLLER.offline) {
-    
-    // fill Array pupils with Pupils. These pupils should be created from data from LMS or something. 
-    names=['Jukka','Tarmo','Oscar','Teemu','Jyri','Wilhelm','Knuth','Ringo','Peter','Ted','Nico','Leyla','Sam','Anne','Diana','Tiina','Bianca','Zarrin','Diniella','Cindy','Sarah R','Jasmin','Sarah N','Maria', 'Jafar','Daniel','Simin','Anna'];
-    genders=[1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0];
-    
-    for (var i=0; i<names.length; i++){
-        if (DEMO) {
-            np=new Pupil(names[i], 'demo/Learner'+(i+1)+'.png');
-            //np=new Pupil(names[i],'');
-            np.addProperty(ALL_GENDERS.criteria[genders[i]]);
-        } else {
-            photo=(photos[i]) ? 'newstudents/'+photos[i]+'.png' : '';
-            np=new Pupil(names[i], photo);
-        }
-        //give random hobbies
-        np.addProperty(ALL_HOBBIES.criteria[Math.floor(Math.random()*ALL_HOBBIES.criteria.length)]);
-        np.addProperty(ALL_HOBBIES.criteria[Math.floor(Math.random()*ALL_HOBBIES.criteria.length)]);
-        PUPILS.push(np);
-        cr=new Friend(np); // safe 
-        ALL_FRIENDS.add(cr);
-        cr=new Enemy(np);
-        ALL_ENEMIES.add(cr);
-    
-    }
-    
-    //PUPILS=[];
-    
-    demo_note = new TeamNote();
-    demo_note.audio_url='demo/demo_note.mp3';
-    demo_note.photos=['demo/demo_note.jpg'];
-
-}
+	}
+});
 
 // ********* FILLING WITH DEMO CONTENT ENDS ******
 
@@ -139,7 +144,7 @@ $(document).ready(function(){
     $('div.left_menu_nav').click(go_left_slider);
     $('div.right_menu_nav').click(go_right_slider);
     $('#leave_iframe').click(function () {window.open(self.location, 'TeamUp')});
-    $('#prefs_button').click(OPTIONS.toggle).keyup(function(e){if(e.keyCode==13) $(this).click()});
+    $('#prefs_button').click(CLASS_SETTINGS.toggle).keyup(function(e){if(e.keyCode==13) $(this).click()});
 
     
     // Classroom functionalities
@@ -150,10 +155,10 @@ $(document).ready(function(){
     $('#names_submit').click(CLASSROOM.prepare_new_classroom);
     $('#join_submit').click(CLASSROOM.join_classroom);
     CONTROLLER.init();
-    if (!OPTIONS.wait_for_update) {
-        OPTIONS.guess_language();
+    if (!CLASS_SETTINGS.wait_for_update) {
+        CLASS_SETTINGS.guess_language();
         localize();
-        OPTIONS.init();
+        CLASS_SETTINGS.init();
     }
     if (top !== self) $('#leave_iframe').show();
     if (CONTROLLER.offline && getUrlVars().first) $('#teacher-panel').dialog('open');     

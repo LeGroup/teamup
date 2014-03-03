@@ -34,12 +34,12 @@ CLASSROOM.populate_class= function() {
         // <span class="away ui-icon ui-icon-closethick">&nbsp;</span>
         place.append(s);
         obj=place.find('#pup'+pup.uid);
-        if (OPTIONS.color) {
+        if (CLASS_SETTINGS.color) {
             obj.css({'background-color':pup.color, 'border-color':pup.color});
         }
         //debug('populate_class calling setData');
         setData(obj, PUPILS[i]);
-        if (OPTIONS.always_show_names || pup.img_src==DEFAULT_IMAGE) {
+        if (CLASS_SETTINGS.always_show_names || pup.img_src==DEFAULT_IMAGE) {
             obj.find('label').show();
         } else {
             //obj.find('label').hide();
@@ -67,7 +67,7 @@ CLASSROOM.populate_class= function() {
         }
     }
     
-    if (MODERATOR || OPTIONS.learners_edit_teams) {
+    if (MODERATOR || CLASS_SETTINGS.learners_edit_teams) {
         $('div.face').draggable({zIndex:2700}).droppable({greedy:false, over:CLASSROOM.drag_over, out:CLASSROOM.drag_out, drop:CLASSROOM.drag_drop, tolerance:'pointer', scroll:false});        
     }
 
@@ -404,7 +404,7 @@ CLASSROOM.build_team_view = function(animate) {
 CLASSROOM.create_random_teams= function() {
     debug('Creating random teams');
     var free_pupils=PUPILS.slice(0);
-    var teams_count=PUPILS.length/OPTIONS.team_size;
+    var teams_count=PUPILS.length/CLASS_SETTINGS.team_size;
     var colors=create_colors(teams_count);
     var nt, member;
     while (free_pupils.length>0) {

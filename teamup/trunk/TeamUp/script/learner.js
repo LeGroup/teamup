@@ -166,7 +166,7 @@ LEARNER_VIEW.update_person_properties= function(new_prop) {
     var props=pup.hobbies.concat(pup.friends, pup.enemies, pup.languages);
     if (pup.gender) props.push(pup.gender);
     
-    if (MODERATOR || OPTIONS.show_icons) {
+    if (MODERATOR || CLASS_SETTINGS.show_icons) {
         div=$('.drag_area');
         div.html('');
         for (i=0; i<props.length; i++) {
@@ -189,14 +189,14 @@ LEARNER_VIEW.update_person_properties= function(new_prop) {
                 s+='<img src="'+prop.img_src+'" width="60" height="60" />';
                 s+='<img src="images/enemy.png" width="24" height="24" class="frenemy_icon" />';               
                 s+='<span>X</span>';
-                if (prop.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
+                if (prop.img_src==DEFAULT_IMAGE || CLASS_SETTINGS.always_show_names) {
                     s+='<label class="name_label">'+prop.name+'</label>'
                 }
             } else if (ALL_FRIENDS.contains(prop)) {
                 s='<div class="property_item" id="'+prop.name+'" alt="'+prop.name+'" title="'+prop.name+'">';
                 s+='<img src="'+prop.img_src+'" width="60" height="60" />';
                 s+='<img src="images/friend.png" width="24" height="24" class="frenemy_icon" />';               
-                if (prop.img_src==DEFAULT_IMAGE || OPTIONS.always_show_names) {
+                if (prop.img_src==DEFAULT_IMAGE || CLASS_SETTINGS.always_show_names) {
                     s+='<label class="name_label">'+prop.name+'</label>'
                 }
             } else {
@@ -454,7 +454,7 @@ LEARNER_VIEW.populate_person_properties= function(props) {
                 s+='<div class="language_panel"></div>';
             }
         }
-        if ((isType(prop, 'Friend') || isType(prop, 'Enemy')) && (OPTIONS.always_show_names || prop.img_src==DEFAULT_IMAGE)) {
+        if ((isType(prop, 'Friend') || isType(prop, 'Enemy')) && (CLASS_SETTINGS.always_show_names || prop.img_src==DEFAULT_IMAGE)) {
             s+='<label class="name_label">'+prop.name+'</label>';
         }
 
