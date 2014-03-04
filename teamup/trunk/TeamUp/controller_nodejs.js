@@ -175,7 +175,7 @@ NODE_CHECK.done(function()
 					clean_names.push(clean);
 				}
 			}
-			LEARNER_VIEW.create_new_person(clean_names);
+			LEARNER_VIEW.create_persons(clean_names);
 		} else if (!PUPILS.length) {
 			debug('no PUPILS in state nor names list, strange situation.');
 			LEARNER_VIEW.create_new_person(['Learner1','Learner2']);
