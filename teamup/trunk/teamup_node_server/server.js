@@ -361,8 +361,7 @@ function start() {
 					socket.emit('message', 'Joined classroom '+classroom_id);
 					socket.broadcast.emit('message', 'Joined classroom '+classroom_id);
 
-					console.log("FULL UPDATE");
-					db.getChanges(classroom_id, function(err, data)
+					db.getFullClass(classroom_id, function(err, data)
 					{
 						if(err) console.log('Failed dumping data');
 						else
@@ -372,16 +371,6 @@ function start() {
 							socket.emit('full_update', data);
 						}
 					});
-					/*
-					db.giveFullClass(classroom_id, function(err, data) {
-						if (err)
-							console.log('Failed dumping data');
-						else {
-							console.log('Sending full data to client:'+data.length);
-							socket.emit('full_update', data)
-						}
-					});
-					*/
 				}
 			});
 			console.log('done.');
@@ -395,33 +384,26 @@ function start() {
 					return;
 				}
 
-				db.getClassroom(classroom_id, function(err, classroom) {
-					if (err) {
-						console.log('No classroom found, exiting');
-						return;
-					}
-					good_changes=[];
-					delta=JSON.parse(delta);
-					db.filterOldObjects(delta, classroom, function(err, good_changes)
+				delta=JSON.parse(delta);
+				db.filterOldObjects(delta, function(err, good_changes)
+				{
+					if(err) console.log('error checking object versions: ' + err);
+					else if (good_changes.length>0)
 					{
-						if(err) console.log('error checking object versions: ' + err);
-						else if (good_changes.length>0)
+						console.log('preparing to save objects to db');
+						db.save(good_changes, classroom_id, function (err, objects)
 						{
-							console.log('preparing to save objects to db');
-							db.save(good_changes, classroom, function (err, objects)
+							if(err) socket.emit('message', 'Update rejected -- no newer objects');
+							else
 							{
-								if(err) socket.emit('message', 'Update rejected -- no newer objects');
-								else
-								{
-									console.log('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
-									socket.broadcast.to(classroom_id).emit('update', objects);
-									//socket.broadcast.emit('update', objects);
-									socket.emit('update', objects);
-									//socket.emit('message', 'server received delta');
-								}
-							});
-						}
-					});
+								console.log('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
+								socket.broadcast.to(classroom_id).emit('update', objects);
+								//socket.broadcast.emit('update', objects);
+								socket.emit('update', objects);
+								//socket.emit('message', 'server received delta');
+							}
+						});
+					}
 				});
 			});
 			console.log('Changes handled.');

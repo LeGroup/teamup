@@ -364,6 +364,7 @@ function ClassSettings()
 	this.wait_for_load       = false;
 	this.learners_edit_teams = false;
 	this.uid                 = "CLASS_SETTINGS";
+	this.version             = 0;
 
     CATALOG[this.uid]=this;
 }

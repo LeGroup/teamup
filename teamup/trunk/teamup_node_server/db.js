@@ -82,7 +82,7 @@ DataProvider.prototype.createClassroom= function(data, callback) {
 };
 */
 
-DataProvider.prototype.filterOldObjects = function(objectarray, classroom, callback) {
+DataProvider.prototype.filterOldObjects = function(objectarray, callback) {
 	function filter(changes, i)
 	{
 		if(i<objectarray.length)
@@ -91,7 +91,7 @@ DataProvider.prototype.filterOldObjects = function(objectarray, classroom, callb
 			if(!item._id)
 			{
 				result_array.push(item);
-				filter(classroom, ++i);
+				filter(changes, ++i);
 			}
 			else
 			{
@@ -101,7 +101,7 @@ DataProvider.prototype.filterOldObjects = function(objectarray, classroom, callb
 					{
 						result_array.push(item);
 					}
-					filter(classroom, ++i);
+					filter(changes, ++i);
 				});
 			}
 		}
@@ -120,6 +120,32 @@ DataProvider.prototype.filterOldObjects = function(objectarray, classroom, callb
 	});
 };
 
+DataProvider.prototype.getFullClass=function(classroom_id, callback)
+{
+	var that=this;
+	this.db.collection("Classrooms", function(err, classrooms)
+	{
+		if(err) callback(err, null);
+		else
+		{
+			classrooms.find({class_key: classroom_id}).toArray(function(err, classroom)
+			{
+				if(err) callback(err, null);
+				else
+				{
+					that.getChanges(classroom_id, function(err, changes)
+					{
+						console.log(classroom);
+						console.log(changes);
+						if(err) callback(err, null);
+						else callback(null, classroom.concat(changes));
+					});
+				}
+			});
+		}
+	});
+};
+
 DataProvider.prototype.getChanges=function(classroom_id, callback)
 {
 	this.db.collection("Changes", function(err, changes)
@@ -129,24 +155,8 @@ DataProvider.prototype.getChanges=function(classroom_id, callback)
 	});
 };
 
-DataProvider.prototype.giveFullClass = function(classroom_id, callback) {
-    //var data={};
-    console.log('dp dumping classroom');
-    this.getCollection(classroom_id, function(error, classroom) {
-        if (error) {
-            console.log("Couldn't find classroom to dump");
-            callback(error, '');
-        } else {
-            classroom.find().toArray(function(err, arr) {
-                console.log("Returning as array, "+arr.length);
-                callback(null,arr);
-            });
-        }
-    });
-};
-
-DataProvider.prototype.save = function(objects, classroom, callback) {
-    if(!classroom) console.log('missing classroom!');
+DataProvider.prototype.save = function(objects, classroom_id, callback) {
+    if(!classroom_id) throw new Error('missing classroom!');
 	this.db.collection("Changes", function(err, changes)
 	{
 		if(err) throw err;
@@ -159,10 +169,11 @@ DataProvider.prototype.save = function(objects, classroom, callback) {
 				callback(null, objects);
 				return;
 			}
-			console.log(objects[i]);
-			objects[i]._id=new ObjectID(objects[i]._id);
-			objects[i].classroom_id=classroom._id;
-			changes.update({classroom_id: classroom.class_key, uid: objects[i].uid}, objects[i], {upsert: true, w: 1}, function(err, result)
+
+			// CLASS_SETTINGS does not have id when the first change happens
+			if(objects[i]._id !== undefined) objects[i]._id=new ObjectID(objects[i]._id);
+			objects[i].classroom_id=classroom_id;
+			changes.update({classroom_id: classroom_id, uid: objects[i].uid}, objects[i], {upsert: true, w: 1}, function(err, result)
 			{// Upsert will insert the document if it does not exist
 				if(err) throw err;
 				console.log(result);
@@ -171,28 +182,6 @@ DataProvider.prototype.save = function(objects, classroom, callback) {
 		}
 		insertOrUpdate(0);
 	});
-	/*
-    function saver(i) {
-        if ( i<objects.length) {
-            uobj=objects[i];
-            if (!uobj._id) {
-                console.log("no objid... ");
-                uobj._id=new ObjectID();
-                console.log("created _id:" +uobj._id);
-            }
-            console.log("adding record: "+uobj.uid);
-            classroom.save(uobj, function (err, callback) {
-                if (err) console.log("Error saving "+JSON.stringify(uobj))
-                else {
-                   saver(i+1)
-                }
-            });
-        }
-    }
-    saver(0);
-    console.log("Save in progress");
-    callback(null, objects);
-	*/
 };
 
 exports.DataProvider = DataProvider;
