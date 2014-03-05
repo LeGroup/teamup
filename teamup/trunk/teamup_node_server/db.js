@@ -30,7 +30,7 @@ DataProvider.prototype.createClassroom=function(data, callback)
 		if(err) throw err;
 		var classname="Class " + data.class_key;
         // setting classroom properties
-        classrooms.insert({_id: data.class_key, uid:'setup', class_key:data.class_key, class_name: classname, email:data.email, locale:data.locale, teacher:data.userid, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err, result)
+        classrooms.insert({_id: data.class_key, uid:'setup', class_key:data.class_key, class_name: classname, email:data.email, locale:data.locale, teacher:data.teacher, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err, result)
 		{
             if(err) console.log("Error saving settings");
             else

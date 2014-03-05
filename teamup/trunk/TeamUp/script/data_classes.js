@@ -387,10 +387,10 @@ ClassSettings.prototype.init=function()
 	var $learners_edit_teams=$("#learners_edit_teams");
 
     $team_size.val(this.team_size);
-    $team_size.change(this.set_team_size);
+    $team_size.on("change", null, this, this.set_team_size);
     $show_icons.attr('checked', this.show_icons);
-    $show_icons.change(this.set_show_icons);
-    $show_names.change(this.set_show_names);
+    $show_icons.on("change", null, this, this.set_show_icons);
+    $show_names.on("change", null, this, this.set_show_names);
     $show_names.attr('checked', this.always_show_names);
 
     for(var key in LANGUAGES) {
@@ -398,8 +398,8 @@ ClassSettings.prototype.init=function()
     }
     $language_select.html(s);
     $language_select.val(this.language);
-    $language_select.change(this.set_language);
-    $('#reset_teams').click(this.reset_teams);
+    $language_select.on("change", null, this, this.set_language);
+    $('#reset_teams').on("click", null, this, this.reset_teams);
 
     $('#teacher_url, #learner_url, #panel_teacher_url, #panel_learner_url').click(function()
 	{
@@ -407,11 +407,11 @@ ClassSettings.prototype.init=function()
 	});
 
     $clicker_select.val(this.clicker);
-    $clicker_select.change(this.set_clicker);
-    $clicker_select.change();
+    $clicker_select.on("change", null, this, this.set_clicker);
 
+	var that=this;
     $learners_edit_teams.attr('checked', this.learners_edit_teams);
-    $learners_edit_teams.change(this.set_learners_edit_teams);
+    $learners_edit_teams.on("change", null, this, this.set_learners_edit_teams);
 };
 
 ClassSettings.prototype.save=function()
@@ -450,7 +450,8 @@ ClassSettings.prototype.toggle=function()
 
 ClassSettings.prototype.reset_teams=function(event)
 {
-	this.confirmed_reset_teams(false);
+	var that=event.data;
+	that.confirmed_reset_teams(false);
 };
 
 ClassSettings.prototype.confirmed_reset_teams=function(confirmed)
@@ -488,64 +489,53 @@ ClassSettings.prototype.confirmed_reset_teams=function(confirmed)
 
 ClassSettings.prototype.set_team_size=function(event)
 {
-	alert("Check this pointer");
-	console.log(this);
-	console.log(event);
-	console.log(this.val());
-	this.team_size=event.target.val();
+	var that=event.data;
+	that.team_size=$(event.target).val();
 	if (MODERATOR) {
-		CONTROLLER.addOption('team_size', this.team_size);
+		CONTROLLER.addChange(CLASS_SETTINGS);
 		CONTROLLER.sendChanges();
 	}
-	this.are_loaded=true;
+	that.are_loaded=true;
 };
 
 ClassSettings.prototype.set_show_icons=function(event)
 {
-	alert("Check this pointer");
-	console.log(this);
-	console.log(event);
-	console.log(this.val());
-    this.show_icons=event.target.checked;
+	var that=event.data;
+    that.show_icons=event.target.checked;
     if (MODERATOR) {
-		CONTROLLER.addOption('show_icons', this.show_icons);
+		CONTROLLER.addChange(CLASS_SETTINGS);
 		CONTROLLER.sendChanges();
 	}
-	this.are_loaded=true;
+	that.are_loaded=true;
 };
 
 ClassSettings.prototype.set_show_names=function(event)
 {
-	alert("Check this pointer");
-	console.log(this);
-	console.log(event);
-	console.log(this.val());
-	this.always_show_names=event.target.checked;
+	var that=event.data;
+	that.always_show_names=event.target.checked;
     if (MODERATOR) {
-		CONTROLLER.addOption('always_show_names', this.always_show_names);
+		CONTROLLER.addChange(CLASS_SETTINGS);
 		CONTROLLER.sendChanges();
     }
-	this.are_loaded=true;
+	that.are_loaded=true;
     CLASSROOM.update_faces();
 };
 
 ClassSettings.prototype.set_learners_edit_teams=function(event)
 {
-	alert("Check this pointer");
-	console.log(this);
-	console.log(event);
-	console.log(this.val());
-    this.learners_edit_teams=this.target.checked;
+	var that=event.data;
+    that.learners_edit_teams=event.target.checked;
     if(MODERATOR) {
-        CONTROLLER.addOption('learners_edit_teams', this.learners_edit_teams);
+        CONTROLLER.addChange(that);
         CONTROLLER.sendChanges();
     }
 };
 
 ClassSettings.prototype.set_language=function(event)
 {
-    this.language=$(event.target).val();
-    URL_VARS.locale=this.language;
+	var that=event.data;
+    that.language=$(event.target).val();
+    URL_VARS.locale=that.language;
     new_url='';
     if (window.location.href.indexOf('?')==-1) {
         new_url=window.location.href+'?'+$.param(URL_VARS);
@@ -553,11 +543,11 @@ ClassSettings.prototype.set_language=function(event)
         new_url=window.location.href.slice(0,window.location.href.indexOf('?')+1)+$.param(URL_VARS);
     }
     if(MODERATOR) {
-        this.default_language=this.language;
-		CONTROLLER.addOption('default_language', this.default_language);
+        that.default_language=that.language;
+		CONTROLLER.addChange(CLASS_SETTINGS);
 		CONTROLLER.sendChanges();
     }
-	this.are_loaded=true;
+	that.are_loaded=true;
 
     if(MODERATOR){
         $('#reload_link').attr('href', new_url).show();
@@ -568,8 +558,9 @@ ClassSettings.prototype.set_language=function(event)
 
 ClassSettings.prototype.set_clicker=function(event)
 {
-    this.clicker=$(event.target).val();
-    SMART_ENABLED= (this.clicker=='SMART');
+	var that=event.data;
+    that.clicker=$(event.target).val();
+    SMART_ENABLED=(that.clicker=='SMART');
     if (SMART_ENABLED) {
         smart_clicker_enable();
     } else {

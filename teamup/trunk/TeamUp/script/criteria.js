@@ -285,7 +285,7 @@ CRITERIA.team_up = function () {
     }
     popular_topics=temp;
     
-    var teams_total=Math.ceil(PUPILS.length/OPTIONS.team_size)
+    var teams_total=Math.ceil(PUPILS.length/CLASS_SETTINGS.team_size)
 
     var colors=create_colors(teams_total);
 

@@ -128,7 +128,7 @@ function build_learner_url(data) {
 
 function build_teacher_url(data) {
     base = build_learner_url(data);
-    return base + '&teacher=' + encodeURIComponent(data.userid);
+    return base + '&teacher=' + create_key().substr(0,3);
 }
 
 function get_url_parameters() {
@@ -332,6 +332,7 @@ function create_classroom() {
             data.msg_subject = i18n('Your TeamUp classroom');
             data.teacher_link = build_teacher_url(data);
             data.student_link = build_learner_url(data);
+            data.teacher = data.teacher_link.substr(data.teacher_link.length-3);
             data.email = $.trim($('#email').val().replace(/\s/g, ''));
             data.names = get_validated_names_list();
             data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+data.teacher_link+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+data.student_link+'\n\n -- TeamUp service';        

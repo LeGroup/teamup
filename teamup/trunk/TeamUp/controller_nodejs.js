@@ -36,7 +36,7 @@ NODE_CHECK.done(function()
 	CONTROLLER.delta={};
 	CONTROLLER.socket = null;
 	CONTROLLER.init=function() {
-		var class_key=(URL_VARS) ? URL_VARS.class_key : 'demo';
+		var class_key=URL_VARS ? URL_VARS.class_key : 'demo';
 		CONTROLLER.socket = io.connect(SERVER_URL);
 		CONTROLLER.socket.on('update', CONTROLLER.stateUpdated);
 		CONTROLLER.socket.on('full_update', CONTROLLER.fullUpdate);
@@ -265,7 +265,7 @@ NODE_CHECK.done(function()
 		//debug('teacher_url:'+PARAMS.teacher_url);
 		//debug('learner_url:'+PARAMS.learner_url || PARAMS.student_url);
 		//debug('moderator_email:'+PARAMS.moderator_email);
-		MODERATOR=true; //(PARAMS.moderator_id==CONTROLLER.user.id);
+		MODERATOR=(URL_VARS.teacher === PARAMS.moderator_id);
 		if (MODERATOR) {
 			//debug('**** MODERATOR ****');
 			$('#teacher_url').val(PARAMS.teacher_url);
