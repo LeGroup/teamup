@@ -568,7 +568,7 @@ ClassSettings.prototype.set_clicker=function(event)
     }
 };
 
-ClassSettings.prototype.hideOptions=function()
+ClassSettings.prototype.hide=function()
 {
     $('div.options').hide();
 };

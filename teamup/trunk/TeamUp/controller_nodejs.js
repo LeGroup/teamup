@@ -76,6 +76,7 @@ NODE_CHECK.done(function()
 				}
 			} else if (key=='SHOW_ICONS') {
 				CLASS_SETTINGS.show_icons=item;
+				settings_changed=true;
 			} else {
 				existing=CATALOG[key];
 				if (!item)
@@ -222,6 +223,12 @@ NODE_CHECK.done(function()
 		if(settings_changed)
 		{
 			$("#classname").text(CLASS_SETTINGS.class_name);
+			$("#team_size").val(CLASS_SETTINGS.team_size);
+			$("#show_icons").attr("checked", CLASS_SETTINGS.show_icons);
+			$("#show_names").attr("checked", CLASS_SETTINGS.always_show_names);
+			$("#language_select").val(CLASS_SETTINGS.language);
+			$("#clicker_select").val(CLASS_SETTINGS.clicker);
+			$("#learners_edit_teams").attr("checked", CLASS_SETTINGS.learners_edit_teams);
 		}
 
 		debug('** finished state update **');
