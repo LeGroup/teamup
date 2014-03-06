@@ -240,6 +240,61 @@ div.header_inner {
     left:17px;
     right:auto;
 }
+#share_button {
+    position: absolute;
+    top:12px;
+    right:67px;
+    width:69px;
+    height:39px;
+	text-align: center;
+	line-height: 39px;
+}
+[dir=rtl] #share_button {
+    left:67px;
+    right:auto;
+}
+#share_popup {
+	width: 400px;
+	background-color: #3D3D3B;
+	border: #5F5F5D solid 2px;
+	position: absolute;
+	right: 65px;
+	top: 52px;
+	display: none;
+	z-index: 100;
+	line-height: 28px;
+}
+#share_popup input, #share_popup select {
+    color: #ddd;
+    background:transparent;
+    font-size: 120%;
+}
+#share_popup input[type="text"], #panel_teacher_url, #panel_learner_url {
+    font-size:10pt;
+    cursor:pointer;
+    background: #1E88AD;
+    border: #0E488D;
+	width: 380px;
+}
+.arrow:after {
+	border-color: #5F5F5D rgba(0, 0, 0, 0);
+	border-style: solid;
+	border-width: 0 15px 15px;
+	content: "";
+	display: block;
+	left: auto;
+	right: 22px;
+	top: -15px;
+	bottom: auto;
+	position: absolute;
+	width: 0;
+}
+.arrow {
+	background: green;
+	border-radius: 10px;
+	margin: 1em 0 3em;
+	padding: 15px;
+}
 
 
 #admin_tag {
@@ -567,13 +622,6 @@ div.main_options {
 .options input[type="checkbox"] {
     width:32px;
     height:32px;
-}
-
-.options input[type="text"], #panel_teacher_url, #panel_learner_url {
-    font-size:10pt;
-    cursor:pointer;
-    background: #1E88AD;
-    border: #0E488D;
 }
 
 /* Recording and playback (TEAM_NOTES) */

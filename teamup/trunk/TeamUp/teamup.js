@@ -123,6 +123,22 @@ NODE_CHECK.always(function()
 		$('#delete-confirm-panel').dialog({height:480, width:480, modal:true, autoOpen: false, closeOnEscape: true, buttons: { "Delete": function() {$(this).dialog("close");LEARNER_VIEW.delete_learner();}, "Cancel": function() {$(this).dialog("close");}}});
 		$('#reset-confirm-panel').dialog({height:480, width:480, modal:true, autoOpen: false, closeOnEscape: true, buttons: { "Reset": function() {$(this).dialog("close");CLASSROOM.reset_teams(true);}, "Cancel": function() {$(this).dialog("close");}}});
 		$('#delete-note-confirm-panel').dialog({height:480, width:480, modal:true, autoOpen: false, closeOnEscape: true, buttons: { "Delete": function() {$(this).dialog("close");TEAM_NOTES.remove_note(event, true);}, "Cancel": function() {$(this).dialog("close");}}});
+		$("#share_button").click(function()
+		{
+			var $popup=$("#share_popup");
+			$popup.toggle(100, function()
+			{
+				if($popup.is(":visible"))
+				{// Close popup if clicked somewhere else
+					$("body").one("click", function()
+					{
+						$popup.hide(100);
+					});
+				}
+			});
+			return false;
+		});
+		$("#share_popup").click(false); // Prevent event from propagating to body (and closing the popup)
 
 		//$('#welcome-panel-inner').accordion({header:'h3', autoHeight:false});
 		//$('#debug').toggle(function () {$(this).css('height','20px')}, function () {$(this).css('height','400px')});
