@@ -241,6 +241,7 @@ function start() {
                 }
 				db.createClassroom(data, function(result)
 				{
+					log.info("Classroom " + data.class_key + " created.");
 					sendMail(data.email, data.msg_subject, data.msg_body);
 					response.write('app/?class_key='+data.class_key);
 					response.end();
@@ -315,6 +316,7 @@ function start() {
         var os=fs.createWriteStream(destination);
         is.pipe(os);
         is.on("end", function() {
+			log.info("File " + destination + " successfully saved");
             fs.unlinkSync(source);
             if(callback) callback();
         });
@@ -380,6 +382,7 @@ function start() {
 						{
 							log.debug(data);
 							log.debug('Sending full data to client:'+data.length);
+							log.info("A person joined class " + classroom_id);
 							socket.emit('full_update', data);
 						}
 					});
