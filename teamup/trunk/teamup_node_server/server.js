@@ -1,6 +1,6 @@
 var EMAIL = "teamup.taik@gmail.com";
 var WOOKIE1 = "http://wookie.eun.org/wookie";
-//var WOOKIE1_API_KEY = "TEST"; 
+//var WOOKIE1_API_KEY = "TEST";
 var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
 //var WOOKIE2_API_KEY = "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ";
 
@@ -15,7 +15,7 @@ var buffer = require("buffer");
 var express = require("express");
 var nodemailer = require("nodemailer");
 var path = require("path");
-var log = require('npmlog');
+var npmlog = require('npmlog');
 var httpProxy = require('http-proxy');
 var rrequest = require('request');
 
@@ -27,10 +27,25 @@ var app = express();
 var server=http.createServer(app);
 var file;
 var transport = nodemailer.createTransport();
+
+var logStream = fs.createWriteStream("teamup.log", {flags: "a", encoding: "utf-8", mode: 0666});
+function logMsg(msg) { logStream.write(msg.level + " | " + msg.prefix + " | " + msg.message + "\n"); }
+
+var log={};
+log.debug = function(msg) { npmlog.debug(new Date().toUTCString(), msg); };
+log.info = function(msg) { npmlog.info(new Date().toUTCString(), msg); };
+log.error = function(msg) { npmlog.error(new Date().toUTCString(), msg); };
+log.warn = function(msg) { npmlog.warn(new Date().toUTCString(), msg); };
+npmlog.level="debug";
+npmlog.addLevel("debug", 0);
+npmlog.on("log.info", logMsg);
+npmlog.on("log.warn", logMsg);
+npmlog.on("log.error", logMsg);
+log.info("Launching TeamUp node.js server.");
+
 var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
-console.log("Proxy to " + WOOKIE1 + " has started at :8082");
-log.stream = fs.createWriteStream('teamup.log', {flags: 'a'});
-log.info(new Date().toUTCString(), "Launching TeamUp node.js server.");
+log.debug("Proxy to " + WOOKIE1 + " has started at :8082");
+
 
 function mkdirp(str, callback)
 {
@@ -100,9 +115,7 @@ function start() {
     app.get("/isnode", isNode);
     app.get("/uploads/:clid/:classroom/:entity", getUpload);
 	app.post("/varloader.php", uploadRecording);
-	app.get("/*", function(request, response) {
-    		file.serve(request, response);
-    	});
+	app.get("/*", function(request, response) {file.serve(request, response);});
 	proxy.on("proxyRes", function(res)
 	{
         res.headers['Access-Control-Allow-Origin']='*';
@@ -110,8 +123,7 @@ function start() {
 	});
 	proxy.on("error", function(err, req, res)
 	{
-		console.log("proxy ERROR");
-		console.log(err);
+		log.error("proxy ERROR" + err);
 	});
 
     function isEmptyObject(obj) {
@@ -121,7 +133,7 @@ function start() {
     function wookieRedirect(request, response) {
         //console.log("Redirecting to old wookie server");
         if (!isEmptyObject(request.query)) {
-            console.log('Sending GET to '+ WOOKIE2+'/properties');
+            log.debug('Sending GET to '+ WOOKIE2+'/properties');
             rrequest.get(
                 WOOKIE2+'/properties',
                 { qs: request.query  },
@@ -131,13 +143,13 @@ function start() {
                         //console.log(body);
                         response.end(body);
                     } else {
-                        console.log(error);
+                        log.error(error);
                         response.end();
                     }
                 }
             );
         } else if (!isEmptyObject(request.body)) {
-            console.log('Sending POST to '+ WOOKIE2+'/widgetinstances');
+            log.debug('Sending POST to '+ WOOKIE2+'/widgetinstances');
             rrequest.post(
                 WOOKIE2+'/widgetinstances',
                 { form: request.body  },
@@ -146,7 +158,7 @@ function start() {
                         //console.log(body);
                         response.end(body);
                     } else {
-                        console.log(error);
+                        log.error(error);
                         response.end();
                     }
                 }
@@ -162,23 +174,23 @@ function start() {
     }
 
     function checkClassroom(request, response) {
-        console.log("Checking if exists");
-		console.log(request.url);
+        log.debug("Checking if exists");
+		log.debug(request.url);
         var instance;
         data=url.parse(request.url, true).query;
         if (data && data.class_key) {
             db.getClassroom(data.class_key, function(error, classroom) {
                 if (error) {
-                    console.log("Not found");
+                    log.debug("Not found");
                     response.write('not found');
                 } else {
-                    console.log("Found, returning url");
+                    log.debug("Found, returning url");
                     response.write('app/?class_key='+data.class_key);
                 }
                 response.end();
             });
         } else {
-            console.log("Empty query");
+            log.debug("Empty query");
             response.write('error');
             response.end();
         }
@@ -192,38 +204,38 @@ function start() {
 			subject: subject,
 			text: body
 		};
-		console.log("Sending mail to %s\nSubject: %s\nBody: %s", to, subject, body);
+		log.debug("Sending mail to " + to + "\nSubject: " + subject + "\nBody: " + body);
 
 		// from http://www.nodemailer.com/docs/direct
 		transport.sendMail(mail, function(error, response)
 		{
 			if (error) {
-				console.log(error);
+				log.error(error);
 				return;
 			}
 			// response.statusHandler only applies to 'direct' transport
 			response.statusHandler.once("failed", function(d){
-				console.log("Permanently failed delivering message to %s with the following response: %s", d.domain, d.response);
+				log.error("Permanently failed delivering message to %s with the following response: %s", d.domain, d.response);
 			});
 
 			response.statusHandler.once("requeue", function(d){
-				console.log("Temporarily failed delivering message to %s", d.domain);
+				log.warn("Temporarily failed delivering message to %s", d.domain);
 			});
 
 			response.statusHandler.once("sent", function(d){
-				console.log("Message was accepted by %s", d.domain);
+				log.debug("Message was accepted by %s", d.domain);
 			});
 		});
 	}
 
     function createClassroom(request, response) {
-        console.log("Creating classroom");
+        log.debug("Creating classroom");
         data=url.parse(request.url, true).query;
         if (data && data.class_key) {
 			db.getClassroom(data.class_key, function(err, classroom)
 			{
 				if(classroom) {
-                    console.log("Classroom exists, cannot create");
+                    log.debug("Classroom exists, cannot create");
                     response.write('already exists');
                     response.end();
                 }
@@ -276,15 +288,15 @@ function start() {
     }
 
     function uploadPhoto(request, response) {
-        console.log("Receiving photo");
+        log.debug("Receiving photo");
         var form = new formidable.IncomingForm();
         form.parse(request, function(error, fields, files) {
             if (error) {
-				console.log(error);
+				log.error(error);
                 response.send(400, 'error');
             } else if (!files) {
 				response.send(400, "No files");
-                console.log('Files are missing');
+                log.debug('Files are missing');
             } else {
                 var uploadPath=getUploadPath(fields.class_id, fields.record_id, "_photo.jpg");
                 mkdirp(path.dirname(uploadPath), function(error) {
@@ -312,7 +324,7 @@ function start() {
     {
         function movesDone(response, uploadPath, recordid)
         {
-            console.log("DONE. uploadPath: " + uploadPath);
+            log.debug("DONE. uploadPath: " + uploadPath);
             response.send(200, path.dirname(uploadPath) + path.sep + recordid);
         }
         var form=new formidable.IncomingForm();
@@ -341,21 +353,21 @@ function start() {
     file = new(static.Server)('www');
     io= require('socket.io').listen(server, {'log level':2,'heartbeat':true});
     server.listen(8081);
-    console.log("Server has started at :8081");
+    log.debug(new Date().toUTCString(), "Server has started at :8081");
     var db = new DataProvider('localhost', 27017);
 
     io.sockets.on('connection', function (socket) {
-        console.log("Connected to socket");
+        log.debug("Connected to socket");
         socket.on('join_classroom', function(classroom_id)
 		{
-			console.log("Joining classroom "+classroom_id);
+			log.debug("Joining classroom "+classroom_id);
 			db.getClassroom(classroom_id, function(error, classroom)
 			{
 				if (error) {
-					console.log(error);
+					log.error(error);
 					socket.emit('message', error);
 				} else {
-					console.log('Setting socket to room '+classroom_id);
+					log.debug('Setting socket to room '+classroom_id);
 					socket.join(classroom_id);
 					socket.set('classroom_id', classroom_id);
 					socket.emit('message', 'Joined classroom '+classroom_id);
@@ -363,23 +375,23 @@ function start() {
 
 					db.getFullClass(classroom_id, function(err, data)
 					{
-						if(err) console.log('Failed dumping data');
+						if(err) log.error('Failed dumping data');
 						else
 						{
-							console.log(data);
-							console.log('Sending full data to client:'+data.length);
+							log.debug(data);
+							log.debug('Sending full data to client:'+data.length);
 							socket.emit('full_update', data);
 						}
 					});
 				}
 			});
-			console.log('done.');
+			log.debug('done.');
 		});
         socket.on('delta', function (delta) {
-			console.log('Incoming changes.');
+			log.debug('Incoming changes.');
 			socket.get('classroom_id', function (err, classroom_id) {
 				if (err) {
-					console.log('No classroom_id stored for socket');
+					log.error('No classroom_id stored for socket');
 					socket.emit('message', 'No classroom_id stored for socket');
 					return;
 				}
@@ -387,16 +399,16 @@ function start() {
 				delta=JSON.parse(delta);
 				db.filterOldObjects(delta, function(err, good_changes)
 				{
-					if(err) console.log('error checking object versions: ' + err);
+					if(err) log.error('error checking object versions: ' + err);
 					else if (good_changes.length>0)
 					{
-						console.log('preparing to save objects to db');
+						log.debug('preparing to save objects to db');
 						db.save(good_changes, classroom_id, function (err, objects)
 						{
 							if(err) socket.emit('message', 'Update rejected -- no newer objects');
 							else
 							{
-								console.log('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
+								log.debug('Broadcasting update to peers in '+classroom_id+' ('+objects.length+') objects');
 								socket.broadcast.to(classroom_id).emit('update', objects);
 								//socket.broadcast.emit('update', objects);
 								socket.emit('update', objects);
@@ -406,7 +418,7 @@ function start() {
 					}
 				});
 			});
-			console.log('Changes handled.');
+			log.debug('Changes handled.');
         });
     });
 }
