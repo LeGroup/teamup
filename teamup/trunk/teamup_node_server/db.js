@@ -3,6 +3,7 @@ var Connection = require('mongodb').Connection;
 var Server = require('mongodb').Server;
 var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
+var log=require("./logger").log;
 
 DataProvider = function(host, port) {
   this.db= new Db('teamup', new Server(host, port, {auto_reconnect: true}), {strict: true, journal: true});
@@ -15,7 +16,6 @@ DataProvider.prototype.getClassroom=function(classroom_id, callback) {
 		if(err) throw err;
 		if(!classrooms) callback("Collection 'Classrooms' does not exist");
 		classrooms.findOne({class_key: classroom_id}, function(err, classroom) {
-			console.log(classroom);
 			if(err) throw err;
 			if(classroom) callback(null, classroom);
 			else callback("Classroom does not exist");
@@ -32,10 +32,10 @@ DataProvider.prototype.createClassroom=function(data, callback)
         // setting classroom properties
         classrooms.insert({_id: data.class_key, uid:'setup', class_key:data.class_key, class_name: classname, email:data.email, locale:data.locale, teacher:data.teacher, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err, result)
 		{
-            if(err) console.log("Error saving settings");
+            if(err) log.error("Error saving settings of class: " + data.class_key);
             else
 			{
-                console.log("Saved settings");
+                log.debug("Saved settings");
                 callback(result);
             }
         });
@@ -57,30 +57,6 @@ DataProvider.prototype.getClassesForEmail=function(email, callback)
 		}
 	});
 };
-
-/*
-DataProvider.prototype.createClassroom= function(data, callback) {
-  console.log('Creating classroom '+data.class_key);
-  this.db.createCollection(data.class_key, function(error, classroom) {
-    if( error ) {
-        console.log('Error creating collection');
-        callback(error);
-    }
-    else {
-        console.log('Classroom created');
-		var classname="Class " + data.class_key;
-        // setting classroom properties
-        classroom.save({uid:'setup', class_key:data.class_key, class_name: classname, email:data.email, locale:data.locale, teacher:data.userid, teacher_link:data.teacher_link, student_link:data.student_link, names:data.names, version:1}, function (err) {
-            if (err) console.log("Error saving settings");
-            else {
-                console.log("Saved settings");
-                callback(null);
-            }
-        });
-    }
-  });
-};
-*/
 
 DataProvider.prototype.filterOldObjects = function(objectarray, callback) {
 	function filter(changes, i)
@@ -107,7 +83,7 @@ DataProvider.prototype.filterOldObjects = function(objectarray, callback) {
 		}
 		else
 		{
-			console.log('found '+result_array.length+' new or newer objects');
+			log.debug('found '+result_array.length+' new or newer objects');
 			callback(null, result_array);
 		}
 	}
@@ -135,8 +111,6 @@ DataProvider.prototype.getFullClass=function(classroom_id, callback)
 				{
 					that.getChanges(classroom_id, function(err, changes)
 					{
-						console.log(classroom);
-						console.log(changes);
 						if(err) callback(err, null);
 						else callback(null, classroom.concat(changes));
 					});
@@ -162,10 +136,8 @@ DataProvider.prototype.save = function(objects, classroom_id, callback) {
 		if(err) throw err;
 		function insertOrUpdate(i)
 		{
-			console.log("Insert/update #" + i);
 			if(i>=objects.length)
 			{
-				console.log('saved '+i);
 				callback(null, objects);
 				return;
 			}
@@ -176,7 +148,6 @@ DataProvider.prototype.save = function(objects, classroom_id, callback) {
 			changes.update({classroom_id: classroom_id, uid: objects[i].uid}, objects[i], {upsert: true, w: 1}, function(err, result)
 			{// Upsert will insert the document if it does not exist
 				if(err) throw err;
-				console.log(result);
 				insertOrUpdate(++i);
 			});
 		}

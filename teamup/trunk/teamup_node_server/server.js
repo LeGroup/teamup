@@ -3,6 +3,7 @@ var WOOKIE1 = "http://wookie.eun.org/wookie";
 //var WOOKIE1_API_KEY = "TEST";
 var WOOKIE2 = "http://itec-wookie.eun.org/wookie";
 //var WOOKIE2_API_KEY = "4qvOFWsUITPrFcCUgvzJlHDxlWE.eq. ";
+var APP_LOCATION = "/app/"; // Change from init_vars.js too
 
 var http = require("http");
 var util = require("util");
@@ -15,10 +16,8 @@ var buffer = require("buffer");
 var express = require("express");
 var nodemailer = require("nodemailer");
 var path = require("path");
-var npmlog = require('npmlog');
 var httpProxy = require('http-proxy');
 var rrequest = require('request');
-
 
 var Db= require("./db").DataProvider;
 
@@ -27,20 +26,8 @@ var app = express();
 var server=http.createServer(app);
 var file;
 var transport = nodemailer.createTransport();
+var log=require("./logger").log;
 
-var logStream = fs.createWriteStream("teamup.log", {flags: "a", encoding: "utf-8", mode: 0666});
-function logMsg(msg) { logStream.write(msg.level + " | " + msg.prefix + " | " + msg.message + "\n"); }
-
-var log={};
-log.debug = function(msg) { npmlog.debug(new Date().toUTCString(), msg); };
-log.info = function(msg) { npmlog.info(new Date().toUTCString(), msg); };
-log.error = function(msg) { npmlog.error(new Date().toUTCString(), msg); };
-log.warn = function(msg) { npmlog.warn(new Date().toUTCString(), msg); };
-npmlog.level="debug";
-npmlog.addLevel("debug", 0);
-npmlog.on("log.info", logMsg);
-npmlog.on("log.warn", logMsg);
-npmlog.on("log.error", logMsg);
 log.info("Launching TeamUp node.js server.");
 
 var proxy = new httpProxy.createProxyServer({target:WOOKIE1}).listen(8082);
@@ -185,7 +172,7 @@ function start() {
                     response.write('not found');
                 } else {
                     log.debug("Found, returning url");
-                    response.write('app/?class_key='+data.class_key);
+                    response.write(APP_LOCATION + "?class_key="+data.class_key);
                 }
                 response.end();
             });
@@ -215,15 +202,15 @@ function start() {
 			}
 			// response.statusHandler only applies to 'direct' transport
 			response.statusHandler.once("failed", function(d){
-				log.error("Permanently failed delivering message to %s with the following response: %s", d.domain, d.response);
+				log.error("Permanently failed delivering message to " + d.domain + " with the following response: " + d.response);
 			});
 
 			response.statusHandler.once("requeue", function(d){
-				log.warn("Temporarily failed delivering message to %s", d.domain);
+				log.warn("Temporarily failed delivering message to " + d.domain);
 			});
 
 			response.statusHandler.once("sent", function(d){
-				log.debug("Message was accepted by %s", d.domain);
+				log.debug("Message was accepted by " + d.domain);
 			});
 		});
 	}
@@ -243,7 +230,7 @@ function start() {
 				{
 					log.info("Classroom " + data.class_key + " created.");
 					sendMail(data.email, data.msg_subject, data.msg_body);
-					response.write('app/?class_key='+data.class_key);
+					response.write(APP_LOCATION + "?class_key=" + data.class_key);
 					response.end();
 				});
             });
@@ -265,7 +252,7 @@ function start() {
 				var mail="You have created classes with following keys:\n";
 				for(var i=0; i<classes.length; ++i)
 				{
-					mail+="\t"+classes[i].class_key+"\n";
+					mail+="    "+classes[i].class_key+" "+classes[i].teacher_link+"\n";
 				}
 				sendMail(data.email, "TeamUp classes", mail);
 				response.send(200, "Class keys have been sent to " + data.email);
@@ -353,7 +340,12 @@ function start() {
     }
 
     file = new(static.Server)('www');
-    io= require('socket.io').listen(server, {'log level':2,'heartbeat':true});
+    io=require('socket.io').listen(server, {'log level':2,'heartbeat':true});
+	io.configure("production", function() {
+		io.enable("browser client minification");
+		io.enable("browser client etag");
+		io.enable("browser client gzip");
+	});
     server.listen(8081);
     log.debug(new Date().toUTCString(), "Server has started at :8081");
     var db = new DataProvider('localhost', 27017);
@@ -362,6 +354,12 @@ function start() {
         log.debug("Connected to socket");
         socket.on('join_classroom', function(classroom_id)
 		{
+			if(!classroom_id)
+			{
+				log.debug("No classroom specified. Giving up.");
+				return;
+			}
+
 			log.debug("Joining classroom "+classroom_id);
 			db.getClassroom(classroom_id, function(error, classroom)
 			{
@@ -380,7 +378,6 @@ function start() {
 						if(err) log.error('Failed dumping data');
 						else
 						{
-							log.debug(data);
 							log.debug('Sending full data to client:'+data.length);
 							log.info("A person joined class " + classroom_id);
 							socket.emit('full_update', data);

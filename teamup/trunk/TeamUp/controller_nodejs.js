@@ -13,19 +13,6 @@ NODE_CHECK.done(function()
 		CONTROLLER.addChange(CLASS_SETTINGS);
 		CONTROLLER.sendChanges();
 	}
-	$(function()
-	{// After the document is loaded
-		var $classname=$("#classname");
-		$classname.attr("contenteditable", "true").keydown(function(e)
-		{
-			if(e.keyCode == 13)
-			{// Enter
-				sendClassnameChange();
-				$classname.blur();
-				return false;
-			}
-		}).blur(sendClassnameChange);
-	});
 
 	ARRAY_VESSELS= {
 		'TOPICS': {'uid':'TOPICS', 'array':[], 'version':0},
@@ -69,6 +56,16 @@ NODE_CHECK.done(function()
 						debug('**** MODERATOR ****');
 						$('#teacher_url').val(PARAMS.teacher_url);
 						$('#admin_tag').show();
+						var $classname=$("#classname");
+						$classname.attr("contenteditable", "true").keydown(function(e)
+						{
+							if(e.keyCode == 13)
+							{// Enter
+								sendClassnameChange();
+								$classname.blur();
+								return false;
+							}
+						}).blur(sendClassnameChange);
 					} else {
 						CLASSROOM.adjust_for_learners();
 					}

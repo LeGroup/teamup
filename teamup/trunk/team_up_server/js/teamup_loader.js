@@ -23,6 +23,7 @@ var GOING_TO_CLASSROOM = '#77f';
 var TRY_ANOTHER = '#f90';
 var RESERVED = '#f00';
 var WIDGET_ID = "http://wookie.apache.org/widgets/teamup"; 
+var APP_LOCATION = "/app/"; // If changed, should be changed from server.js as well
 
 var params = {};
 var searching=false;
@@ -114,7 +115,8 @@ function no_class(data, textStatus, jqXHR) {
 }
 
 function build_learner_url(data) {
-    var base = window.location.href.slice(0, (window.location.href.lastIndexOf('/') + 1));
+    var base = window.location.href.slice(0, window.location.href.lastIndexOf('/'));
+	base += APP_LOCATION;
     if (data.class_key) {
         base += '?class_key=' + encodeURIComponent(data.class_key);
     } else {
@@ -335,7 +337,7 @@ function create_classroom() {
             data.teacher = data.teacher_link.substr(data.teacher_link.length-3);
             data.email = $.trim($('#email').val().replace(/\s/g, ''));
             data.names = get_validated_names_list();
-            data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+data.teacher_link+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+data.student_link+'\n\n -- TeamUp service';        
+            data.msg_body=i18n('Welcome to TeamUp!')+'\n'+i18n('You can use the following address to return this classroom as a teacher:')+'\n'+data.teacher_link+' \n\n'+i18n('You can give this address as a link for learners to enter this classroom:')+'\n'+data.student_link+'\n\n -- TeamUp service';
             $.get('/create_classroom', data, function(room_url) {
                 if (room_url == 'already exists') {
                     debug('error');
