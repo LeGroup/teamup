@@ -230,7 +230,8 @@ function start() {
 				{
 					log.info("Classroom " + data.class_key + " created.");
 					sendMail(data.email, data.msg_subject, data.msg_body);
-					response.write(APP_LOCATION + "?class_key=" + data.class_key);
+					//response.write(APP_LOCATION + "?class_key=" + classroom.);
+					response.write(result[0].teacher_link);
 					response.end();
 				});
             });
