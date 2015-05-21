@@ -19,3 +19,11 @@ Includes:
 - Node 0.12
 - MongoDB 1.3
 
+Initializes the server to `10.12.14.16`
+
+Synced folders:
+
+* `TeamUp` mapped to `/teamup_app`
+* `team_up_server` mapped to `/var/www/html`
+* `teamup_node_server` mapped to `/node_server`
+
