@@ -47,9 +47,6 @@ apt-get -qy install apache2 &>> ${LOG}
 a2enmod rewrite &>> ${LOG}
 sed -Ei 's/AllowOverride\s+None/AllowOverride All/g' ${APACHE_CONF}
 
-# Remove default Apache index page
-rm -f /var/www/html/index.html &>> ${LOG}
-
 echo 'Installing PHP...'
 
 apt-get -qy install php5 &>> ${LOG}
@@ -69,8 +66,8 @@ echo 'Installing MongoDB...'
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 \
     &>> ${LOG}
 
-echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/1.3 multiverse" \
-    > /etc/apt/sources.list.d/mongodb-org-1.3.list
+echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" \
+    > /etc/apt/sources.list.d/mongodb-org-3.0.list
 
 apt-get -qy update &>> ${LOG}
 
