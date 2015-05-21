@@ -1,0 +1,7 @@
+* text=auto
+
+# The following files should have Unix-style line endings to prevent errors
+# when reading them from the Vagrant box during provisioning. Without this,
+# provisioning might fail on Windows if Git has been set up to convert LF
+# endings to CRLF on checkout.
+*.sh eol=lf
