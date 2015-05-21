@@ -18,6 +18,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.synced_folder './TeamUp', '/teamup_app'
 
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/node_server", "1"]
+    v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/var/www/html", "1"]
+  end
+
   config.vm.provision 'shell', path: './provisioning/provisioning.sh'
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"

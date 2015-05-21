@@ -27,3 +27,6 @@ Synced folders:
 * `team_up_server` mapped to `/var/www/html`
 * `teamup_node_server` mapped to `/node_server`
 
+Note: Because the synced folders contain symlinks you must run the bash as adminstrator in Windows
+before doing `vagrant up`.
+

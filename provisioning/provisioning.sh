@@ -39,6 +39,9 @@ echo 'Installing utilities...'
 
 apt-get -qy install git-core curl &>> ${LOG}
 
+# Save index.html from being overwritten
+cp /var/www/html/index.html /tmp/index_store.html
+
 echo 'Installing Apache...'
 
 apt-get -qy install apache2 &>> ${LOG}
@@ -77,5 +80,13 @@ echo 'Starting servers...'
 
 service apache2 restart &>> ${LOG}
 service mongod restart &>> ${LOG}
+
+# Restore index.html
+cp /tmp/index_store.html /var/www/html/index.html
+rm /tmp/index_store.html
+
+# Create symlinks for app (php->app) and www (node->php)
+ln -s /teamup_app /var/www/html/app
+ln -s /var/www/html /node_server/www
 
 echo 'Done!'

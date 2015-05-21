@@ -1,3 +1,12 @@
 # Ignore Vagrant stuff
 /.vagrant
 /provisioning/*.log
+
+# Ignore symlinks created by vagrant
+/team_up_server/app
+/teamup_node_server/www
+
+# Ignore files by node server
+/teamup_node_server/node_modules
+/teamup_node_server/teamup.log
+
