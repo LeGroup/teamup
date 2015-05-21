@@ -17,7 +17,7 @@ Includes:
 - Apache 2.4
 - PHP 5.5
 - Node 0.12
-- MongoDB 3.0
+- MongoDB 1.3
 
 Initializes the server to `10.12.14.16`
 
