@@ -76,6 +76,12 @@ apt-get -qy update &>> ${LOG}
 
 apt-get -qy install mongodb-org &>> ${LOG}
 
+echo 'Updating node.js dependencies...'
+
+pushd /node_server
+npm update &>> ${LOG}
+popd
+
 echo 'Starting servers...'
 
 service apache2 restart &>> ${LOG}
@@ -84,6 +90,10 @@ service mongod restart &>> ${LOG}
 # Restore index.html
 cp /tmp/index_store.html /var/www/html/index.html
 rm /tmp/index_store.html
+
+#Remove old links
+rm -f /var/www/html/app 2> /dev/null || true
+rm -f /node_server/www 2> /dev/null || true
 
 # Create symlinks for app (php->app) and www (node->php)
 ln -s /teamup_app /var/www/html/app
